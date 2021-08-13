@@ -1,0 +1,80 @@
+﻿<div class="@VerticalClass">
+    <div class="@(LeftClass)">
+        <label class="@("m-0 mr-2 text-" + ColorClass)">@(Title)</label>
+    </div>
+    <div class="@(RightClass)">
+        @if (Content == null || Content == "")
+        {
+            @ChildContent
+        }
+        else
+        {
+            @Content
+        }
+    </div>
+</div>
+<hr class="m-0 mt-2"/>
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Content { get; set; }
+
+    [Parameter]
+    public string ToolTip { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool LastItem { get; set; }
+
+    [Parameter]
+    public int Left { get; set; } = 4;
+
+    [Parameter]
+    public int Right { get; set; } = 8;
+
+    [Parameter]
+    public Alignment AlignItem { get; set; } = Alignment.Left;
+
+    [Parameter]
+    public bool LeftToRight { get; set; } = false;
+
+    [Parameter]
+    public bool Vertical { get; set; } = false;
+    public string VerticalClass => Vertical? "row d-block mt-2" : "row mt-2";
+
+    public string LeftClass => $"col-md-{Left}";
+    public string RightClass => $"col-md-{Right} {textRight}";
+    public string textRight => LeftToRight ? "" : "text-right";
+
+    public string ColorClass => getColorClass();
+    public string getColorClass()
+    {
+        string strClass = "";
+        return strClass;
+    }
+
+    protected override void OnInitialized()
+    {
+        if (AlignItem == Alignment.Center)
+        {
+            Left = 6;
+            Right = 6;
+        }
+        else if(AlignItem == Alignment.Right)
+        {
+            Left = 8;
+            Right = 4;
+        }
+
+        if (Vertical)
+        {
+            Left = 12;
+            Right = 12;
+        }
+    }
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>RFIDSolution.WebAdmin</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="RFIDSolution.WebAdmin.styles.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="css/custom-bootstrap.css" rel="stylesheet" />
+    <link href="_content/Blazored.Modal/blazored-modal.css" rel="stylesheet" />
+    <style>
+        .loading {
+            background-image: url('images/loading-trans.gif');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: auto;
+            background-color: transparent;
+            position: absolute;
+            top: -100px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .m-text-center {
+            position: absolute;
+            top: calc(50% + 40px);
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .loading-text {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .title-text {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .logo {
+            position: absolute;
+            top: calc(18%);
+            left: calc(50% - 110px);
+            right: 0;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="loading"></div>
+        <div class="m-text-center">
+            <p class="title-text" style="color: midnightblue">Anora RFID System</p>
+            <p class="loading-text">Đang tải trang web, vui lòng đợi...</p>
+        </div>
+    </div>
+    <div id="blazor-error-ui">
+        Có lỗi xảy ra, bạn vui lòng tải lại trang và thử lại, nếu vẫn tiếp tục gặp lỗi vui lòng liên hệ với Phòng IT để được hỗ trợ, xin cảm ơn.
+        <a href="" class="reload text-success"><b><u>Tải lại trang</u></b></a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/Blazored.Modal/blazored.modal.js"></script>
+</body>
+
+</html>

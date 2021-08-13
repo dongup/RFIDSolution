@@ -1,0 +1,48 @@
+﻿using Blazored.Modal;
+using Blazored.Modal.Services;
+using RFIDSolution.WebAdmin.Modals;
+using RFIDSolution.WebAdmin.Shared;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace RFIDSolution.WebAdmin.Service
+{
+    public class DialogService
+    {
+        private IModalService _modal;
+        public DialogService(IModalService modal)
+        {
+            _modal = modal;
+        }
+
+        public async Task<bool> Confirm(string message)
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Message", message);
+
+            var modal = _modal.Show<ConfirmModal>("Confirm", parameters);
+            var res = await modal.Result;
+            return res.Cancelled ? false : true;
+        }
+
+        public async Task SuccessAlert(string message)
+        {
+            var dialog = MainLayout.Instance.AlertDialog;
+            dialog.Success(message);
+        }
+
+        public async Task ErrorAlert(string message)
+        {
+            var dialog = MainLayout.Instance.AlertDialog;
+            dialog.Error(message);
+        }
+
+        public async Task InfoAlert(string message)
+        {
+            var dialog = MainLayout.Instance.AlertDialog;
+            dialog.Info(message);
+        }
+    }
+}

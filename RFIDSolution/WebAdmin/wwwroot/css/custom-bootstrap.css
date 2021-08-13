@@ -1,0 +1,12 @@
+﻿.text-primary {
+    color: midnightblue !important;
+}
+
+.alert {
+    width: fit-content;
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    z-index: 1000;
+    font-size: 20px;
+}

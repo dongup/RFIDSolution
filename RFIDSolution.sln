@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31424.327
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RFIDSolution.Server", "RFIDSolution\Server\RFIDSolution.Server.csproj", "{A0D210CB-F122-45D0-BC93-2A8CB2B7954D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RFIDSolution.Shared", "RFIDSolution\Shared\RFIDSolution.Shared.csproj", "{0C2EDD72-3C1B-4F1F-84BF-C4E8A7B703DB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RFIDSolution.DataAccess", "RFIDSolution\DataAccess\RFIDSolution.DataAccess.csproj", "{5C7B0652-1BB8-4F15-A4FC-CB328EB3B0F6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RFIDSolution.WebAdmin", "RFIDSolution\WebAdmin\RFIDSolution.WebAdmin.csproj", "{FA567FD5-36CA-47C5-A30C-552B986262E5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A0D210CB-F122-45D0-BC93-2A8CB2B7954D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0D210CB-F122-45D0-BC93-2A8CB2B7954D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0D210CB-F122-45D0-BC93-2A8CB2B7954D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C2EDD72-3C1B-4F1F-84BF-C4E8A7B703DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C2EDD72-3C1B-4F1F-84BF-C4E8A7B703DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C2EDD72-3C1B-4F1F-84BF-C4E8A7B703DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C2EDD72-3C1B-4F1F-84BF-C4E8A7B703DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C7B0652-1BB8-4F15-A4FC-CB328EB3B0F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C7B0652-1BB8-4F15-A4FC-CB328EB3B0F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C7B0652-1BB8-4F15-A4FC-CB328EB3B0F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C7B0652-1BB8-4F15-A4FC-CB328EB3B0F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA567FD5-36CA-47C5-A30C-552B986262E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA567FD5-36CA-47C5-A30C-552B986262E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA567FD5-36CA-47C5-A30C-552B986262E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA567FD5-36CA-47C5-A30C-552B986262E5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FC289A14-43D1-4E1D-BF49-D4292BF161E7}
+	EndGlobalSection
+EndGlobal

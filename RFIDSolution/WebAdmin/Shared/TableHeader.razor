@@ -1,0 +1,30 @@
+﻿<div class="top-button px-3 d-flex">
+    @HeaderContent
+    <div class="spacer"></div>
+    <EditForm Model="showFilter">
+        <div class="form-check">
+            <InputCheckbox class="me-2 form-check-input hand" @bind-Value="@showFilter" id="filterCheck"></InputCheckbox>
+            <label class="form-check-label hand" for="filterCheck">
+                Show filter
+            </label>
+        </div>
+    </EditForm>
+</div>
+
+@if (showFilter) { 
+    <div class="py-2 px-2">
+        @FilterContent
+    </div>
+    <hr class="mt-0"/>
+}
+
+@code{
+    private bool showFilter { get; set; } = true;
+
+    [Parameter]
+    public RenderFragment FilterContent { get; set; }
+
+    [Parameter]
+    public RenderFragment HeaderContent { get; set; }
+
+}
