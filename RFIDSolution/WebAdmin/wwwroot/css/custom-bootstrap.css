@@ -1,5 +1,5 @@
 ﻿.text-primary {
-    color: midnightblue !important;
+    color: #1b6ec2 !important;
 }
 
 .alert {
@@ -7,6 +7,6 @@
     position: absolute;
     top: 32px;
     right: 32px;
-    z-index: 1000;
+    z-index: 10000;
     font-size: 20px;
 }

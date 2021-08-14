@@ -1,0 +1,47 @@
+﻿<EditForm class="@formClass" novalidate OnValidSubmit="() => ValidSubmit()" id="@(formId)"
+          OnInvalidSubmit="() => InValidSubmit()" @onreset="(e) => { Reset(); }" Context="context" Model="formClass">
+    @ChildContent
+</EditForm>
+
+@inject IJSRuntime _js
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+    public string Context { get; set; }
+
+    public string formId = Guid.NewGuid().ToString();
+    public string formValidClass = "row needs-validation";
+    public string formInValidClass = "row needs-validation was-validated";
+    public string formClass = "";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        formClass = formValidClass;
+    }
+
+    public async Task ValidSubmit()
+    {
+        formClass = formInValidClass;
+        bool valid = await _js.InvokeAsync<bool>("validForm", formId);
+
+        if (valid)
+        {
+            await OnValidSubmit.InvokeAsync();
+        }
+    }
+
+    public void InValidSubmit()
+    {
+        formClass = formInValidClass;
+    }
+
+    public void Reset()
+    {
+        formClass = formValidClass;
+    }
+}

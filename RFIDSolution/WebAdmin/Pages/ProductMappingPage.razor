@@ -1,60 +1,240 @@
-﻿<div class="top-button sticky-top d-flex">
-    <button class="btn btn-light"><span class="oi oi-inbox"></span> SAVE</button>
-</div>
+﻿<div class="card m-2 w-100">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-2 d-flex align-items-center flex-column text-center">
+                <button class="btn text-center w-100 mt-4" @onclick="toggleReader">
+                    @if (reading)
+                    {
+                        <span class="oi oi-media-pause text-primary w-100" style="font-size: 120px"></span>
+                    }
+                    else
+                    {
+                        <span class="oi oi-play-circle text-primary w-100" style="font-size: 120px"></span>
+                    }
+                </button>
+                <label class="text-center" style="font-size: 32px">@(reading? "STOP SCAN" : "START SCAN")</label>
+            </div>
+            <div class="col-md-10">
+                <Form OnValidSubmit="async () => { await addProduct(); }">
+                    <FormInputText @bind-Text="newProduct.SKU" Title="SKU" Size="2" Required="true" InValidFeedBack="Please provide a valid SKU."></FormInputText>
+                    <FormInputText @bind-Text="newProduct.Location" Title="Location" Size="2" Required="true" InValidFeedBack="Please provide a valid location."></FormInputText>
+                    <FormInputText @bind-Text="newProduct.Season" Title="Season" Size="2" Required="true" InValidFeedBack="Please provide a valid season."></FormInputText>
+                    <FormInputText @bind-Text="newProduct.Stage" Title="Stage" Size="2" Required="true" InValidFeedBack="Please provide a valid stage."></FormInputText>
 
+                    <div class="col-md-4">
+                        <label for="slt-model" class="form-label m-0">Model <Required></Required></label>
+                        <InputSelect class="form-select form-select-sm" id="slt-model" required @bind-Value="newProduct.ModelId">
+                            <option selected disabled value="">Choose model</option>
+                            @foreach (var item in models)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+                        </InputSelect>
+                        <div class="invalid-feedback">
+                            Please select a valid model.
+                        </div>
+                    </div>
 
-<div class="card m-2 w-100">
-    <div class="card-body row">
-        <div class="col-md-2 mb-3">
-            <label for="exampleInputEmail1" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+                    <div class="col-md-2">
+                        <label for="slt-model" class="form-label m-0">Left/Right <Required></Required></label>
+                        <InputSelect class="form-select form-select-sm" id="slt-model" required @bind-Value="newProduct.LR">
+                            <option value="@((int)ProductSide.Left)" selected>Left</option>
+                            <option value="@((int)ProductSide.Right)">Right</option>
+                        </InputSelect>
+                    </div>
+
+                    <FormInputText @bind-Text="@newProduct.DevStyleName" Title="Dev style number" Size="2" Required="true" InValidFeedBack="Please provide a valid dev style number."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.ColorWay" Title="Color way" Size="2" Required="true" InValidFeedBack="Please provide a valid color way."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.Size" Title="Size" Size="2" Required="true" InValidFeedBack="Please provide a valid size."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.Category" Title="Category" Size="4" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.RefDocNo" Title="Document no" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.RefDocDate" Title="Document date" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.POC" Title="POC" Size="8" Required="true" InValidFeedBack="Please provide a valid POC."></FormInputText>
+
+                    <div class="col-md-12 mb-1">
+                        <label for="ipt-cat" class="form-label m-0">Remarks</label>
+                        <InputTextArea @bind-Value="newProduct.Remarks" type="text" class="form-control" id="ipt-cat" rows="2"></InputTextArea>
+                    </div>
+
+                    <div class="col-12 d-flex mt-2">
+                        <button class="btn btn-success me-2" type="submit"><span class="oi oi-cloud-upload"></span>SAVE</button>
+                        <button class="btn btn-secondary me-2" type="reset" @onclick="() => newProduct = new ProductRequest()"><span class="oi oi-delete"></span>CLEAR</button>
+                    </div>
+                </Form>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="m-2 bg-white">
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <td>#</td>
-                <td>EPC</td>
-                <td>SKU</td>
-                <td>LOCATION</td>
-                <td>SEASON</td>
-                <td>STAGE</td>
-                <td>MODEL</td>
-                <td>DEV STYLE NUMBER</td>
-                <td>COLOR WAY</td>
-                <td>SIZE</td>
-                <td>QUANTITY</td>
-                <td>CATEGORY</td>
-                <td>POC</td>
-                <td>REMARKS</td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td>123123-3sdf1234-2354</td>
-                <td>DQ12313</td>
-                <td>G-L-12</td>
-                <td>SP22</td>
-                <td>KAPM</td>
-                <td>BLAZER MID JUMBO</td>
-                <td>DQ1234</td>
-                <td>123</td>
-                <td>M9</td>
-                <td>1</td>
-                <td>NSW</td>
-                <td>JENNY CHU</td>
-                <td>tests</td>
-            </tr>
-        </tbody>
-        <tfoot></tfoot>
-    </table>
+<div class="card m-2 bg-white">
+    <div class="card-header d-flex align-items-center">
+        <h5 class="text-body m-0">SCAN RESULTS - Total: <span class="text-success">@Tags.Count</span></h5>
+        <div class="spacer"></div>
+        <button class="float-end btn btn-secondary" @onclick="() => { Tags.Clear(); }"><span class="oi oi-delete"></span> CLEAR SCAN RESULT</button>
+    </div>
+    <div class="table-detail" style="max-height: 470px">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>EPC</td>
+                    <td>STATUS</td>
+                    <td>READ COUNT</td>
+                    <td>FIRST SEEN</td>
+                    <td>LAST SEEN</td>
+                    <td>SIGNAL STRENGHT</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Tags.Count > 0)
+                {
+                    int count = 1;
+                    @foreach (var item in Tags)
+                    {
+                        <tr>
+                            <td>@(count)</td>
+                            <td>@item.EPCID</td>
+                            <td>
+                                @if (item.Status == 1)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Away</span>
+                                }
+                            </td>
+                            <td>@item.Count</td>
+                            <td>@item.FirstSeen.ToTimeString()</td>
+                            <td>@item.LastSeen.ToTimeString()</td>
+                            <td>@item.RSSI</td>
+                            <td><button class="btn btn-icon" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></td>
+                        </tr>
+                        count++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10000" class="text-center" style="padding: 60px 80px"><h3>Press "START/STOP" to start scan</h3></td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot></tfoot>
+        </table>
+    </div>
 </div>
 
+@using static RFIDSolution.Shared.Protos.RFTagProto
+@using static RFIDSolution.Shared.Protos.ProductProto
+@using static RFIDSolution.Shared.Protos.ShoeModelProto
+@using Grpc.Core;
+
+@inject ShoeModelProtoClient modelClient
+@inject RFTagProtoClient client
+@inject ProductProtoClient product
+@inject DialogService _dialog
 @page "/mappingproduct"
 @code{
+    private string test = "";
+    private bool reading = false;
+    private List<RFTagResponse> Tags = new List<RFTagResponse>();
+    private List<ShoeModel> models = new List<ShoeModel>();
+    private ShoeModel sledMode => models.FirstOrDefault(x => x.Id == newProduct.ModelId);
 
+    private AsyncServerStreamingCall<RFTagResponse> _call;
+    private ProductRequest newProduct = new ProductRequest();
+
+    private async Task addProduct()
+    {
+        if (Tags.Count == 0)
+        {
+            await _dialog.ErrorAlert("Please scan at least a tag!");
+            return;
+        }
+
+        if (!await _dialog.Confirm($"Are you sure want to add {Tags.Count} shoe(s)?")) return;
+
+        newProduct.EPCS.AddRange(Tags.Select(x => x.EPCID));
+        var rspns = await product.PostAsync(newProduct);
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert("Add data succeed!");
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task toggleReader()
+    {
+        reading = !reading;
+        if (reading)
+        {
+            await _dialog.SuccessAlert("Reader started!");
+            await startReader();
+        }
+        else
+        {
+            stopReader();
+            await _dialog.ErrorAlert("Reader stoped!");
+        }
+    }
+
+    public async Task startReader()
+    {
+        var filter = new RFTagFilter();
+        filter.AntenId = 1;
+
+        _call = client.Get(filter);
+        _ = Task.Run(async () =>
+        {
+            await foreach (var response in _call.ResponseStream.ReadAllAsync())
+            {
+                var tag = _call.ResponseStream.Current;
+                tag.Status = 1;
+                var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
+                if (item == null)
+                {
+                    tag.FirstSeen = DateTime.Now.Ticks;
+                    Tags.Add(tag);
+                }
+                else
+                {
+                    item.Status = 1;
+                    item.LastSeen = tag.LastSeen;
+                    item.Count++;
+                    item.RSSI = tag.RSSI;
+                }
+
+                foreach(var readTag in Tags)
+                {
+                    DateTime lastSeen = readTag.LastSeen.ToDateTime();
+                    //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng sóng
+                    if((DateTime.Now -lastSeen).TotalSeconds >= 1)
+                    {
+                        readTag.Status = 2;
+                    }
+                }
+                StateHasChanged();
+            }
+        });
+    }
+
+    public void stopReader()
+    {
+        _call.Dispose();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        MainLayout.Instance.PageTitle = "Product mapping";
+        var rspns = await modelClient.GetAsync(new ShoeModelFilter());
+        models = rspns.Data.ToList();
+        newProduct.ModelId = models.FirstOrDefault().Id;
+        StateHasChanged();
+    }
 }

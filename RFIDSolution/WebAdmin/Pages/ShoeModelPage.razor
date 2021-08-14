@@ -1,6 +1,6 @@
 ﻿<TableHeader>
     <HeaderContent>
-        <button class="btn btn-light"><span class="oi oi-reload mr-2 text-primary" @onclick="async () => { await loadData(); }"></span>Refresh data</button>
+        <button class="btn btn-light" @onclick="async () => { await loadData(); }"><span class="oi oi-reload mr-2 text-primary"></span>Refresh data</button>
     </HeaderContent>
     <FilterContent>
         <div class="row">
@@ -11,72 +11,80 @@
     </FilterContent>
 </TableHeader>
 
-<div class="m-2 bg-white">
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Model Id</th>
-                <th>Model name</th>
-                <th>Product count</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var model in shoeModels)
-            {
-                @if (!model.IsEditing)
+@if (loading)
+{
+    <Loading></Loading>
+}
+else
+{
+
+    <div class="m-2 bg-white">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Model Id</th>
+                    <th>Model name</th>
+                    <th>Product count</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var model in shoeModels)
                 {
-                    <tr class="hand">
-                        <td class="wp-200">@model.Id</td>
-                        <td>@model.Name</td>
-                        <td class="wp-200">@model.ProductCount</td>
-                        <td class="wp-75 p-0">
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-icon" @onclick="() => model.IsEditing = true"><span class="oi oi-pencil text-warning"></span></button>
-                                <button type="button" class="btn btn-icon" @onclick="() => deleteModel(model)"><span class="oi oi-delete text-danger"></span></button>
-                            </div>
-                        </td>
-                    </tr>
+                    @if (!model.IsEditing)
+                    {
+                        <tr class="hand">
+                            <td class="wp-200">@model.Id</td>
+                            <td>@model.Name</td>
+                            <td class="wp-200">@model.ProductCount</td>
+                            <td class="wp-75 p-0">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-icon" @onclick="() => model.IsEditing = true"><span class="oi oi-pencil text-warning"></span></button>
+                                    <button type="button" class="btn btn-icon" @onclick="() => deleteModel(model)"><span class="oi oi-delete text-danger"></span></button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr class="new-row">
+                            <td class="wp-200">@model.Id</td>
+                            <td class="p-0"><input type="text" @bind-value="model.Name" class="form-control" /></td>
+                            <td class="wp-200">0</td>
+                            <td class="wp-75 p-0">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-icon" @onclick="() => editModel(model)"><span class="oi oi-check text-success"></span></button>
+                                    <button type="button" class="btn btn-icon" @onclick="async () => { model.IsEditing = false; await loadData(); }"><span class="oi oi-circle-x text-secondary"></span></button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
                 }
-                else
+                @if (addingItem)
                 {
                     <tr class="new-row">
-                        <td class="wp-200">@model.Id</td>
-                        <td class="p-0"><input type="text" @bind-value="model.Name" class="form-control" /></td>
-                        <td class="wp-200">0</td>
+                        <td class="p-0 ps-3 wp-200"></td>
+                        <td class="p-0"><input type="text" @bind-value="newShoeModel.Name" class="form-control" /></td>
+                        <td class="p-0 ps-3 wp-200">0</td>
                         <td class="wp-75 p-0">
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-icon" @onclick="() => editModel(model)"><span class="oi oi-check text-success"></span></button>
-                                <button type="button" class="btn btn-icon" @onclick="async () => { model.IsEditing = false; await loadData(); }"><span class="oi oi-circle-x text-secondary"></span></button>
+                                <button type="button" class="btn btn-icon" @onclick="addModel"><span class="oi oi-check text-success"></span></button>
+                                <button type="button" class="btn btn-icon" @onclick="() => addingItem = false"><span class="oi oi-circle-x text-danger"></span></button>
                             </div>
                         </td>
                     </tr>
                 }
-            }
-            @if (addingItem)
-            {
-                <tr class="new-row">
-                    <td class="p-0 ps-3 wp-200"></td>
-                    <td class="p-0"><input type="text" @bind-value="newShoeModel.Name" class="form-control" /></td>
-                    <td class="p-0 ps-3 wp-200">0</td>
-                    <td class="wp-75 p-0">
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-icon" @onclick="addModel"><span class="oi oi-check text-success"></span></button>
-                            <button type="button" class="btn btn-icon" @onclick="() => addingItem = false"><span class="oi oi-circle-x text-danger"></span></button>
-                        </div>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="1000">
+                        <a class="hand" @onclick="() => { addingItem = !addingItem; }"><span class="@addClass"></span>@addText</a>
                     </td>
                 </tr>
-            }
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="1000">
-                    <a class="hand" @onclick="() => { addingItem = !addingItem; }"><span class="@addClass"></span>@addText</a>
-                </td>
-            </tr>
-        </tfoot>
-    </table>
-</div>
+            </tfoot>
+        </table>
+    </div>
+}
 
 
 @page "/shoemodels"
@@ -172,9 +180,7 @@
     private async Task loadData()
     {
         loading = true;
-        StateHasChanged();
         reply = await client.GetAsync(filter);
         loading = false;
-        StateHasChanged();
     }
 }

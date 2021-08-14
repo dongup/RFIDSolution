@@ -1,0 +1,121 @@
+﻿<TableHeader>
+    <HeaderContent>
+        <button class="btn btn-light" @onclick="async () => { await loadData(); }"><span class="oi oi-reload mr-2 text-primary"></span>Refresh data</button>
+    </HeaderContent>
+    <FilterContent>
+        <div class="row">
+            <div class="col-md-4">
+                <InputSearch TextChanged='async (text) => { filter.Keyword = text??""; await loadData(); }' PlaceHolder="Model's name"></InputSearch>
+            </div>
+        </div>
+    </FilterContent>
+</TableHeader>
+
+@if (loading)
+{
+    <Loading></Loading>
+}
+else
+{
+
+    <div class="m-2 bg-white">
+        <div class="table-detail" style="max-height: 470px">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <td>Id</td>
+                        <td>EPC</td>
+                        <td>SKU</td>
+                        <td>LOCATION</td>
+                        <td>SEASON</td>
+                        <td>STAGE</td>
+                        <td>MODEL</td>
+                        <td>DEV STYLE NUMBER</td>
+                        <td>COLOR WAY</td>
+                        <td>SIZE</td>
+                        <td>CATEGORY</td>
+                        <td>POC</td>
+                        <td>REMARKS</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (products.Count > 0)
+                    {
+                        int count = 1;
+                        @foreach (var item in products)
+                        {
+                            <tr>
+                                <td>@item.ID</td>
+                                <td>@item.EPC</td>
+                                <td>@item.SKU</td>
+                                <td>@item.Location</td>
+                                <td>@item.Season</td>
+                                <td>@item.Stage</td>
+                                <td>@item.ModelName</td>
+                                <td>@item.DevStyleName</td>
+                                <td>@item.ColorWay</td>
+                                <td>@item.Size</td>
+                                <td>@item.Category</td>
+                                <td>@item.POC</td>
+                                <td>@item.Remarks</td>
+                            </tr>
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        <NoData></NoData>
+                    }
+                </tbody>
+                <tfoot></tfoot>
+            </table>
+        </div>
+    </div>
+}
+
+@using static RFIDSolution.Shared.Protos.RFTagProto
+@using static RFIDSolution.Shared.Protos.ProductProto
+@using static RFIDSolution.Shared.Protos.ShoeModelProto
+@using Grpc.Core;
+
+@inject ShoeModelProtoClient modelClient
+@inject ProductProtoClient productService
+@inject DialogService _dialog
+@page "/products"
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; }
+
+    private bool loading = true;
+    private bool addingItem = false;
+
+    private ProductResponse reply = new ProductResponse();
+    private ProductFilter filter = new ProductFilter();
+    private List<ProductModel> products => reply.Data.ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MainLayout.Instance.PageTitle = "Products";
+        await loadData();
+    }
+
+    private async Task addModel()
+    {
+    }
+
+    private async Task editModel(ProductModel item)
+    {
+
+    }
+
+    private async Task deleteModel(ProductModel item)
+    {
+        if (!await _dialog.Confirm("Are you sure you want to delete this shoe model?")) return;
+    }
+
+    private async Task loadData()
+    {
+        loading = true;
+        reply = await productService.GetAsync(filter);
+        loading = false;
+    }
+}

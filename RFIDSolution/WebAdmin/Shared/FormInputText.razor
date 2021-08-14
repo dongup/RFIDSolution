@@ -1,0 +1,58 @@
+﻿<div class="@SizeClass">
+    <label for="@(Id)" class="form-label m-0">
+        @Title 
+        @if (Required) 
+        { 
+            <Required />
+        }
+    </label>
+    <input type="text" value="@Text" @onchange="(e) => inputTextChanged(e.Value.ToString())" class="form-control form-control-sm" id="@(Id)" required=@Required>
+    <div class="invalid-feedback">
+        @InValidFeedBack
+    </div>
+    <div class="valid-feedback">
+        @ValidFeedBack
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string ValidFeedBack { get; set; }
+
+    [Parameter]
+    public string InValidFeedBack { get; set; }
+
+    [Parameter]
+    public int Size { get; set; } = 1;
+
+    [Parameter]
+    public string Text { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> OnTextChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> TextChanged { get; set; }
+
+    public string SizeClass => $"col-md-{Size} mb-1";
+
+    public string Id => "ipt-" + Title.RemoveUnicode();
+
+    public async Task inputTextChanged(string text)
+    {
+        Text = text;
+        await OnTextChanged.InvokeAsync(Text);
+        await TextChanged.InvokeAsync(Text);
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+}

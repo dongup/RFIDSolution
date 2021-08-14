@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using RFIDSolution.Shared.Protos;
 using Blazored.Modal;
 using RFIDSolution.WebAdmin.Service;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace RFIDSolution.WebAdmin
 {
@@ -19,17 +20,33 @@ namespace RFIDSolution.WebAdmin
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
+            var baseUri = "http://localhost:5000";
+            var channel = GrpcChannel.ForAddress(baseUri, new GrpcChannelOptions { HttpClient = httpClient });
+
             builder.Services.AddSingleton(services =>
             {
-                var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
-                var baseUri = "http://localhost:5000";
-                var channel = GrpcChannel.ForAddress(baseUri, new GrpcChannelOptions { HttpClient = httpClient });
+                httpClient.EnableIntercept(services);
                 return new ShoeModelProto.ShoeModelProtoClient(channel);
             });
+            builder.Services.AddSingleton(services =>
+            {
+                httpClient.EnableIntercept(services);
+                return new RFTagProto.RFTagProtoClient(channel);
+            });
+            builder.Services.AddSingleton(services =>
+            {
+                httpClient.EnableIntercept(services);
+                return new ProductProto.ProductProtoClient(channel);
+            });
+
             builder.Services.AddBlazoredModal();
             builder.Services.AddTransient<DialogService>();
+            builder.Services.AddLoadingBar(op => {
+                op.LoadingBarColor = "midnightblue";
+            });
 
-            await builder.Build().RunAsync();
+            await builder.Build().UseLoadingBar().RunAsync();
         }
     }
 }

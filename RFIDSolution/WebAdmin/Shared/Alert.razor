@@ -18,15 +18,29 @@
 
     public string AlertClass { get; set; } = "alert alert-primary d-flex align-items-center";
 
+    public List<Task> tasks = new List<Task>();
+
     private int Delay = 5000;
 
     public async Task Show()
     {
         IsShow = true;
         StateHasChanged();
-        await Task.Delay(Delay);
-        IsShow = false;
-        StateHasChanged();
+        var task = Task.Delay(Delay);
+        tasks.Add(task);
+
+        await Task.Run(async () =>
+        {
+            int count = 0;
+            while(tasks.Count > 0)
+            {
+                var t = tasks.FirstOrDefault();
+                await t;
+                tasks.Remove(t);
+            }
+            IsShow = false;
+            StateHasChanged();
+        });
     }
 
     public async Task Success(string message)

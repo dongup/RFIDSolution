@@ -1,0 +1,22 @@
+﻿syntax = "proto3"; 
+// replace namespace with your own
+option csharp_namespace = "RFIDSolution.Shared.Protos"; 
+package RFTag;  
+
+service RFTagProto { 
+	rpc Get (RFTagFilter) returns (stream RFTagResponse); 
+} 
+
+message RFTagFilter{ 
+    int32 antenId = 1;
+} 
+
+message RFTagResponse{ 
+    string EPCID = 1;
+    int32 RSSI = 2;
+    int32 Count = 3;
+    int64 FirstSeen = 4;
+    int64 LastSeen = 5;
+    int32 scanCount = 6;
+    int32 status = 7;
+} 

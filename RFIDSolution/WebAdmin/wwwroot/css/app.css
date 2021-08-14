@@ -1,5 +1,11 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+
+label {
+    font-weight: bold !important;
+    color: darkslategrey !important;
+}
+
 .btn-icon {
     padding: 10px 3px;
 }
@@ -21,13 +27,9 @@ a{
 }
 
 .new-row {
-    color: #212529 !important;
-    background-color: #f8f9fa !important;
-}
-
-.new-row:hover {
-    color: #212529 !important;
-    background-color: #f8f9fa !important;
+    color: #212529;
+    background-color: #fff;
+    pointer-events: none;
 }
 
 .oi{

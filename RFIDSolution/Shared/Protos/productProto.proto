@@ -1,0 +1,66 @@
+﻿syntax = "proto3"; 
+// replace namespace with your own
+option csharp_namespace = "RFIDSolution.Shared.Protos"; 
+package Product;  
+
+service ProductProto { 
+	rpc Get (ProductFilter) returns (ProductResponse); 
+    rpc Post (ProductRequest) returns (ProductResponse); 
+    rpc Put (ProductRequest) returns (ProductResponse); 
+    rpc Delete (ProductRequest) returns (ProductResponse); 
+} 
+
+message ProductResponse{ 
+    bool IsSuccess = 1;
+    string message = 2;
+    repeated ProductModel Data = 3;
+} 
+
+message ProductModel{ 
+    int32 ID = 1;
+    optional string SKU = 2;
+    optional string EPC = 3;
+    int32 modelId = 4;
+    optional string article = 5;
+    optional string size = 6;
+    optional string POC = 7;
+    optional string location = 8;
+    optional string remarks = 9;
+    optional string devStyleName = 10;
+    optional string season = 11;
+    optional string stage = 12;
+    optional string colorWay = 13;
+    optional string category = 14;
+    optional string modelName = 15;
+    optional string refDocNo = 16;
+    optional string refDocDate = 17;
+    int32 LR = 18;
+    optional string LRStr = 19;
+} 
+
+message ProductRequest{
+    int32 ID = 1;
+    string SKU = 2;
+    string EPC = 3;
+    int32 modelId = 4;
+    optional string article = 5;
+    string size = 6;
+    string POC = 7;
+    string location = 8;
+    string remarks = 9;
+    string devStyleName = 10;
+    string season = 11;
+    string stage = 12;
+    string colorWay = 13;
+    string category = 14;
+    string refDocNo = 15;
+    string refDocDate = 16;
+    int32 LR = 17;
+    repeated string EPCS = 50;
+}
+
+message ProductFilter { 
+    optional string keyword = 1;
+    int32 pageItem = 2;
+    int32 pageIndex = 3;
+}

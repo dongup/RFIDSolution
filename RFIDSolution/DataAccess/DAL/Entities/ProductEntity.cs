@@ -11,6 +11,8 @@ namespace RFIDSolution.WebAdmin.DAL.Entities
 {
     public class ProductEntity : BaseEntity
     {
+        private string pRODUCT_ARTICLE;
+
         public ProductEntity() : base()
         {
         }
@@ -18,7 +20,6 @@ namespace RFIDSolution.WebAdmin.DAL.Entities
         public int PRODUCT_ID { get; set; }
 
         [StringLength(50)]
-        [Required]
         public string PRODUCT_NAME { get; set; }
 
         [StringLength(50)]
@@ -32,12 +33,17 @@ namespace RFIDSolution.WebAdmin.DAL.Entities
         [Required]
         public int MODEL_ID { get; set; }
 
-        public string PRODUCT_ARTICLE { get; set; }
+        public string PRODUCT_ARTICLE { get => pRODUCT_ARTICLE; set => pRODUCT_ARTICLE = value; }
 
         [StringLength(10)]
         public string PRODUCT_SIZE { get; set; }
 
+        [StringLength(100)]
+        public string PRODUCT_CATEGORY { get; set; }
+
         public ProductStatus PRODUCT_STATUS { get; set; } = ProductStatus.Available;
+
+        public ProductSide LR { get; set; } = ProductSide.Left;
 
         [StringLength(50)]
         public string SAMPLE_NO { get; set; }
@@ -49,14 +55,12 @@ namespace RFIDSolution.WebAdmin.DAL.Entities
         public string SAMPLE_SIZE { get; set; }
 
         [StringLength(100)]
-        public string PRODUCT_CUSTODIAN { get; set; }
-
-        public ProductSide LR { get; set; } = ProductSide.Left;
+        public string PRODUCT_POC { get; set; }
 
         [StringLength(50)]
         public string PRODUCT_LOCATION { get; set; }
 
-        public string PRODUCT_DESCRIPTION { get; set; }
+        public string PRODUCT_REMARKS { get; set; }
 
         [StringLength(100)]
         public string DEV_TEAM { get; set; }
@@ -68,7 +72,7 @@ namespace RFIDSolution.WebAdmin.DAL.Entities
         public string PRODUCT_SEASON { get; set; }
 
         [StringLength(100)]
-        public string PRODUCT_TDCODE { get; set; }
+        public string PRODUCT_STAGE { get; set; }
 
         [StringLength(200)]
         public string COLOR_NAME { get; set; }
@@ -103,7 +107,7 @@ namespace RFIDSolution.WebAdmin.DAL.Entities
         [StringLength(100)]
         public string REF_DOC_NO { get; set; }
 
-        public DateTime REF_DOC_DATE { get; set; }
+        public string REF_DOC_DATE { get; set; }
 
         [StringLength(100)]
         public string PAIR_CODE { get; set; }

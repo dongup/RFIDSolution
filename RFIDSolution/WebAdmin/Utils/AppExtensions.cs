@@ -205,6 +205,18 @@ namespace RFIDSolution.WebAdmin.Utils
             }
         }
 
+        public static DateTime ToDateTime(this long ticks)
+        {
+            return new DateTime(ticks, DateTimeKind.Local);
+        }
+
+        public static string ToTimeString(this long ticks)
+        {
+            DateTime date = new DateTime(ticks, DateTimeKind.Local);
+            return date.ToString("HH:mm:ss:fff");
+        }
+
+
         /// <summary>
         /// Convert string qua datetime trả về ngày hiện tại nếu string null, quăng exception nếu string không đúng định dạng
         /// </summary>

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RFIDSolution.Server.Service;
 using RFIDSolution.WebAdmin.DAL;
 using RFIDSolution.WebAdmin.DAL.Entities.Identity;
 using System.Collections.Generic;
@@ -72,6 +73,9 @@ namespace RFIDSolution.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<ShoeModelService>().EnableGrpcWeb();
+                endpoints.MapGrpcService<RFIDReadService>().EnableGrpcWeb();
+                endpoints.MapGrpcService<ProductService>().EnableGrpcWeb();
+
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
                 endpoints.MapFallbackToFile("index.html");
