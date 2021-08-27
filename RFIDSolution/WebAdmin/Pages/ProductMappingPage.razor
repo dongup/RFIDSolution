@@ -1,19 +1,7 @@
 ﻿<div class="card m-2 w-100">
     <div class="card-body">
         <div class="row">
-            <div class="col-md-2 d-flex align-items-center flex-column text-center">
-                <button class="btn text-center w-100 mt-4" @onclick="toggleReader">
-                    @if (reading)
-                    {
-                        <span class="oi oi-media-pause text-primary w-100" style="font-size: 120px"></span>
-                    }
-                    else
-                    {
-                        <span class="oi oi-play-circle text-primary w-100" style="font-size: 120px"></span>
-                    }
-                </button>
-                <label class="text-center" style="font-size: 32px">@(reading? "STOP SCAN" : "START SCAN")</label>
-            </div>
+            <RFReaderConnect Size="2" OnRead="OnTagRead"></RFReaderConnect>
             <div class="col-md-10">
                 <Form OnValidSubmit="async () => { await addProduct(); }">
                     <FormInputSearch Text="@newProduct.SKU" Size="4" Title="SKU" TextChanged="async (e) => { newProduct.SKU = e; await searchSKU(); }"></FormInputSearch>
@@ -129,12 +117,10 @@
     </table>
 </div>
 
-@using static RFIDSolution.Shared.Protos.RFTagProto
 @using static RFIDSolution.Shared.Protos.ShoeModelProto
 @using Grpc.Core;
 
 @inject ShoeModelProtoClient modelClient
-@inject RFTagProtoClient rfClient
 @inject DialogService _dialog
 @inject HttpClient _httpClient
 @page "/mappingproduct"
@@ -150,7 +136,7 @@
 
     private async Task searchSKU()
     {
-        newProduct = new ProductModel() { 
+        newProduct = new ProductModel() {
             SKU = newProduct.SKU
         };
         if (string.IsNullOrEmpty(newProduct.SKU)) return;
@@ -197,66 +183,35 @@
         }
     }
 
-    private async Task toggleReader()
+    private void OnTagRead(RFTagResponse tag)
     {
-        reading = !reading;
-        if (reading)
+        tag.Status = 1;
+        var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
+        if (item == null)
         {
-            await _dialog.SuccessAlert("Reader started!");
-            startReader();
+            tag.FirstSeen = DateTime.Now.Ticks;
+            Tags.Add(tag);
         }
         else
         {
-            stopReader();
-            await _dialog.ErrorAlert("Reader stoped!");
+            item.Status = 1;
+            item.LastSeen = tag.LastSeen;
+            item.Count++;
+            item.RSSI = tag.RSSI;
         }
-    }
 
-    public void startReader()
-    {
-        var filter = new RFTagFilter();
-        filter.AntenId = 1;
-
-        _rfStream = rfClient.GetScanData(filter, null, null);
-        _ = Task.Run(async () =>
+        foreach (var readTag in Tags)
         {
-            await foreach (var response in _rfStream.ResponseStream.ReadAllAsync())
+            DateTime lastSeen = readTag.LastSeen.ToDateTime();
+            //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
+            if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
             {
-                var tag = _rfStream.ResponseStream.Current;
-                tag.Status = 1;
-                var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
-                if (item == null)
-                {
-                    tag.FirstSeen = DateTime.Now.Ticks;
-                    Tags.Add(tag);
-                }
-                else
-                {
-                    item.Status = 1;
-                    item.LastSeen = tag.LastSeen;
-                    item.Count++;
-                    item.RSSI = tag.RSSI;
-                }
-
-                foreach (var readTag in Tags)
-                {
-                    DateTime lastSeen = readTag.LastSeen.ToDateTime();
-                    //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
-                    if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
-                    {
-                        readTag.Status = 2;
-                        readTag.RSSI = 0;
-                        //Tags.Remove(readTag);
-                    }
-                }
-                StateHasChanged();
+                readTag.Status = 2;
+                readTag.RSSI = 0;
+                //Tags.Remove(readTag);
             }
-        });
-    }
-
-    public void stopReader()
-    {
-        _rfStream.Dispose();
+        }
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()

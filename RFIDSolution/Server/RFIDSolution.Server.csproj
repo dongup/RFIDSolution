@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Remove="Service\ProductService.cs" />
+    <Compile Remove="Service\RFIDReadService.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,12 +15,14 @@
 
   <ItemGroup>
     <None Include="..\..\.editorconfig" Link=".editorconfig" />
+    <None Include="Service\RFIDReadService.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.38.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.38.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.9">
@@ -47,7 +50,7 @@
 
   <ItemGroup>
     <None Update="RFIDAPI32PC.dll">
-      <CopyToOutputDirectory >Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>

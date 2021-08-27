@@ -11,13 +11,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RFIDSolution.Middlewares;
-using RFIDSolution.Server.Service;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities.Identity;
 using RFIDSolution.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TaiyoshaEPE.WebApi.Hubs;
 
 namespace RFIDSolution.Server
 {
@@ -35,8 +35,9 @@ namespace RFIDSolution.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
-            //var strConn = Configuration.GetConnectionString("default");
-            var strConn = Configuration.GetConnectionString("iot");
+            services.AddSignalR();
+            var strConn = Configuration.GetConnectionString("default");
+            //var strConn = Configuration.GetConnectionString("iot");
             System.Console.WriteLine(strConn);
             services.AddDbContext<AppDbContext>(sp => sp.UseSqlServer(strConn));
 
@@ -194,7 +195,7 @@ namespace RFIDSolution.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<ShoeModelService>().EnableGrpcWeb();
-                endpoints.MapGrpcService<RFIDReadService>().EnableGrpcWeb();
+                //endpoints.MapGrpcService<RFIDReadService>().EnableGrpcWeb();
                 //endpoints.MapGrpcService<ProductService>().EnableGrpcWeb();
 
                 endpoints.MapFallbackToFile("index.html");
@@ -202,6 +203,8 @@ namespace RFIDSolution.Server
                 endpoints.MapControllerRoute(
                    name: "default",
                    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+                endpoints.MapHub<ReaderHub>("/readerhub");
             });
         }
     }

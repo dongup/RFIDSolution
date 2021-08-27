@@ -15,32 +15,30 @@ namespace RFIDSolution.Shared
 {
     public class Program
     {
+        public static string RootApiUrl = "http://localhost:5000";
+        public static string ApiUrl = "http://localhost:5000/api/";
+
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
-            var baseUri = "http://localhost:5000";
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseUri + "/api/") });
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(ApiUrl) });
 
             var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
-            var channel = GrpcChannel.ForAddress(baseUri, new GrpcChannelOptions { HttpClient = httpClient });
+            var channel = GrpcChannel.ForAddress(RootApiUrl, new GrpcChannelOptions { HttpClient = httpClient });
 
             builder.Services.AddSingleton(services =>
             {
                 httpClient.EnableIntercept(services);
                 return new ShoeModelProto.ShoeModelProtoClient(channel);
             });
-            builder.Services.AddSingleton(services =>
-            {
-                httpClient.EnableIntercept(services);
-                return new RFTagProto.RFTagProtoClient(channel);
-            });
             //builder.Services.AddSingleton(services =>
             //{
             //    httpClient.EnableIntercept(services);
-            //    return new ProductProto.ProductProtoClient(channel);
+            //    return new RFTagProto.RFTagProtoClient(channel);
             //});
+          
 
             builder.Services.AddBlazoredModal();
             builder.Services.AddTransient<DialogService>();

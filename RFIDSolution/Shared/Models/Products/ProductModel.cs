@@ -1,4 +1,5 @@
-﻿using RFIDSolution.Shared.Protos;
+﻿using RFIDSolution.Shared.Models.Shared;
+using RFIDSolution.Shared.Protos;
 using System;
 using System.Collections.Generic;
 using System.Linq;

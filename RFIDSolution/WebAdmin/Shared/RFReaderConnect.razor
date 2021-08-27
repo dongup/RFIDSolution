@@ -1,0 +1,71 @@
+﻿<div class="@(SizeClass) d-flex align-items-center flex-column text-center">
+    <button class="btn text-center w-100 mt-4" @onclick="toggleReader">
+        @if (reading)
+        {
+            <span class="oi oi-media-pause text-primary w-100" style="font-size: 120px"></span>
+        }
+        else
+        {
+            <span class="oi oi-play-circle text-primary w-100" style="font-size: 120px"></span>
+        }
+    </button>
+    <label class="text-center" style="font-size: 32px">@(reading? "STOP SCAN" : "START SCAN")</label>
+</div>
+
+@using Microsoft.AspNetCore.SignalR.Client
+@inject DialogService _dialog
+@code {
+    [Parameter]
+    public int Size { get; set; }
+
+    [Parameter]
+    public EventCallback<RFTagResponse> OnRead { get; set; }
+
+    public string SizeClass => $"col-md-{Size}";
+
+    private bool reading = false;
+
+    private HubConnection hubConnection;
+    private bool HubStatus => hubConnection?.State == HubConnectionState.Connected;
+
+    private async Task ReceiveTag(RFTagResponse tag)
+    {
+        await OnRead.InvokeAsync(tag);
+    }
+
+    private async Task toggleReader()
+    {
+        reading = !reading;
+        if (reading)
+        {
+            await startReader();
+            await _dialog.SuccessAlert("Reader started!");
+        }
+        else
+        {
+            await stopReader();
+            await _dialog.ErrorAlert("Reader stoped!");
+        }
+    }
+
+    public async Task startReader()
+    {
+        if (hubConnection == null)
+        {
+            hubConnection = new HubConnectionBuilder()
+                  .WithUrl($"{Program.RootApiUrl}/readerhub")
+                  .Build();
+            if (hubConnection != null)
+            {
+                hubConnection.On<RFTagResponse>("ReceiveTag", ReceiveTag);
+                await hubConnection.StartAsync();
+                await hubConnection.InvokeAsync("StartScan", new RFTagRequest());
+            }
+        }
+    }
+
+    public async Task stopReader()
+    {
+        await hubConnection.DisposeAsync();
+    }
+}

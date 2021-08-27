@@ -6,16 +6,11 @@
 
   <ItemGroup>
     <None Remove="Protos\productProto.proto" />
-    <None Remove="Protos\RFTagproto.proto" />
     <None Remove="Protos\shoeModelProto.proto" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Protos\productProto.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="Protos\RFTagproto.proto" />
   </ItemGroup>
 
   <ItemGroup>

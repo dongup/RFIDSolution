@@ -115,9 +115,7 @@
 </div>
 
 @using Grpc.Core;
-@using static RFIDSolution.Shared.Protos.RFTagProto
 
-@inject RFTagProtoClient rfClient
 @inject DialogService _dialog
 @inject HttpClient _httpClient
 @inject HttpClient _client
@@ -162,62 +160,62 @@
 
     public void startReader()
     {
-        var filter = new RFTagFilter();
-        filter.AntenId = 1;
+        //var filter = new RFTagFilter();
+        //filter.AntenId = 1;
 
-        _rfStream = rfClient.GetDataDemo(filter);
-        _ = Task.Run(async () =>
-        {
-            await foreach (var response in _rfStream.ResponseStream.ReadAllAsync())
-            {
-                var tag = _rfStream.ResponseStream.Current;
-                tag.Status = 1;
-                var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
-                if (item == null)
-                {
-                    tag.FirstSeen = DateTime.Now.Ticks;
-                    //Tags.Add(tag);
-                    item = tag;
-                }
-                else
-                {
-                    item.Status = 1;
-                    item.LastSeen = tag.LastSeen;
-                    item.Count++;
-                    item.RSSI = tag.RSSI;
-                }
+        //_rfStream = rfClient.GetDataDemo(filter);
+        //_ = Task.Run(async () =>
+        //{
+        //    await foreach (var response in _rfStream.ResponseStream.ReadAllAsync())
+        //    {
+        //        var tag = _rfStream.ResponseStream.Current;
+        //        tag.Status = 1;
+        //        var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
+        //        if (item == null)
+        //        {
+        //            tag.FirstSeen = DateTime.Now.Ticks;
+        //            //Tags.Add(tag);
+        //            item = tag;
+        //        }
+        //        else
+        //        {
+        //            item.Status = 1;
+        //            item.LastSeen = tag.LastSeen;
+        //            item.Count++;
+        //            item.RSSI = tag.RSSI;
+        //        }
 
-                if(!products.Any(x => x.EPC == item.EPCID && !string.IsNullOrEmpty(x.EPC))) {
-                    var newProduct = await findProductByEPC(tag.EPCID.Trim());
-                    newProduct.TagResponse = item;
-                    products.Add(newProduct);
-                    StateHasChanged();
-                }
-                else
-                {
-                    var product = products.FirstOrDefault(x => x.EPC == tag.EPCID);
-                    if(product != null)
-                    {
-                        product.TagResponse = item;
-                    }
-                }
+        //        if(!products.Any(x => x.EPC == item.EPCID && !string.IsNullOrEmpty(x.EPC))) {
+        //            var newProduct = await findProductByEPC(tag.EPCID.Trim());
+        //            newProduct.TagResponse = item;
+        //            products.Add(newProduct);
+        //            StateHasChanged();
+        //        }
+        //        else
+        //        {
+        //            var product = products.FirstOrDefault(x => x.EPC == tag.EPCID);
+        //            if(product != null)
+        //            {
+        //                product.TagResponse = item;
+        //            }
+        //        }
 
-                foreach (var product in products)
-                {
-                    var readTag = product.TagResponse;
-                    DateTime lastSeen = readTag.LastSeen.ToDateTime();
-                    //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
-                    if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
-                    {
-                        readTag.Status = 2;
-                        readTag.RSSI = 0;
-                        //Tags.Remove(readTag);
-                    }
-                }
-                products = products.Where(x => x.TagResponse.Status != 2).ToList();
-                StateHasChanged();
-            }
-        });
+        //        foreach (var product in products)
+        //        {
+        //            var readTag = product.TagResponse;
+        //            DateTime lastSeen = readTag.LastSeen.ToDateTime();
+        //            //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
+        //            if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
+        //            {
+        //                readTag.Status = 2;
+        //                readTag.RSSI = 0;
+        //                //Tags.Remove(readTag);
+        //            }
+        //        }
+        //        products = products.Where(x => x.TagResponse.Status != 2).ToList();
+        //        StateHasChanged();
+        //    }
+        //});
     }
 
     private async Task<ProductModel> findProductByEPC(string EPC)
