@@ -19,7 +19,7 @@ namespace RFIDSolution.DataAccess.Migrations
                 .HasAnnotation("ProductVersion", "5.0.9")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.RoleClaimEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.RoleClaimEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -45,7 +45,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("AspNetRoleClaims");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.RoleEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.RoleEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +80,7 @@ namespace RFIDSolution.DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyStamp = "db042179-39f0-48cc-bf74-272e9937e7a0",
+                            ConcurrencyStamp = "6ec9e633-fb30-43c5-a1c9-c2fb080f8134",
                             IsDeleted = false,
                             Name = "Admin",
                             NormalizedName = "ADMIN"
@@ -88,14 +88,14 @@ namespace RFIDSolution.DataAccess.Migrations
                         new
                         {
                             Id = 2,
-                            ConcurrencyStamp = "bc60b423-498f-4ac4-ac86-5de26a369c92",
+                            ConcurrencyStamp = "d7916e0e-170c-4f90-b754-585d483807ad",
                             IsDeleted = false,
                             Name = "User",
                             NormalizedName = "USER"
                         });
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserClaimEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserClaimEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -121,7 +121,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("AspNetUserClaims");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -221,7 +221,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserLoginEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserLoginEntity", b =>
                 {
                     b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
@@ -245,7 +245,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("AspNetUserLogins");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserRoleEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserRoleEntity", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -263,7 +263,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("AspNetUserRoles");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserTokenEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserTokenEntity", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -285,7 +285,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.InventoryDetailEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.InventoryDetailEntity", b =>
                 {
                     b.Property<int>("DTL_ID")
                         .ValueGeneratedOnAdd()
@@ -329,7 +329,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("INVENTORY_DTL");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.InventoryEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.InventoryEntity", b =>
                 {
                     b.Property<int>("IVENTORY_ID")
                         .ValueGeneratedOnAdd()
@@ -381,7 +381,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("INVENTORY");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.LogEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.LogEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -451,7 +451,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("Logs");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.ModelEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.ModelEntity", b =>
                 {
                     b.Property<int>("MODEL_ID")
                         .ValueGeneratedOnAdd()
@@ -485,7 +485,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("MODEL");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.ProductAlertEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.ProductAlertEntity", b =>
                 {
                     b.Property<int>("ALERT_ID")
                         .ValueGeneratedOnAdd()
@@ -546,7 +546,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("PRODUCT_ALTER");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.ProductEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.ProductEntity", b =>
                 {
                     b.Property<int>("PRODUCT_ID")
                         .ValueGeneratedOnAdd()
@@ -631,7 +631,6 @@ namespace RFIDSolution.DataAccess.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("PRODUCT_NAME")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -670,8 +669,8 @@ namespace RFIDSolution.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("REF_DOC_DATE")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("REF_DOC_DATE")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("REF_DOC_NO")
                         .HasMaxLength(100)
@@ -706,7 +705,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("PRODUCT");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.ProductInoutDetailEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.ProductInoutDetailEntity", b =>
                 {
                     b.Property<int>("IO_DTL_ID")
                         .ValueGeneratedOnAdd()
@@ -775,7 +774,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("PRODUCT_IO_DTL");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.ProductInoutEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.ProductInoutEntity", b =>
                 {
                     b.Property<int>("IO_ID")
                         .ValueGeneratedOnAdd()
@@ -806,7 +805,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("PRODUCT_IO");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.RFIDTagEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.RFIDTagEntity", b =>
                 {
                     b.Property<int>("RFID_TAG_ID")
                         .ValueGeneratedOnAdd()
@@ -844,7 +843,7 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("RFID_TAG");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Shared.ConfigurationEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Shared.ConfigurationEntity", b =>
                 {
                     b.Property<int>("CONFIG_ID")
                         .ValueGeneratedOnAdd()
@@ -865,42 +864,42 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.ToTable("CONFIG");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.RoleClaimEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.RoleClaimEntity", b =>
                 {
-                    b.HasOne("RFIDSolution.WebAdmin.DAL.Entities.Identity.RoleEntity", null)
+                    b.HasOne("RFIDSolution.Shared.DAL.Entities.Identity.RoleEntity", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserClaimEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserClaimEntity", b =>
                 {
-                    b.HasOne("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserEntity", null)
+                    b.HasOne("RFIDSolution.Shared.DAL.Entities.Identity.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserLoginEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserLoginEntity", b =>
                 {
-                    b.HasOne("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserEntity", null)
+                    b.HasOne("RFIDSolution.Shared.DAL.Entities.Identity.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserRoleEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserRoleEntity", b =>
                 {
-                    b.HasOne("RFIDSolution.WebAdmin.DAL.Entities.Identity.RoleEntity", "Role")
+                    b.HasOne("RFIDSolution.Shared.DAL.Entities.Identity.RoleEntity", "Role")
                         .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserEntity", "User")
+                    b.HasOne("RFIDSolution.Shared.DAL.Entities.Identity.UserEntity", "User")
                         .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -911,18 +910,18 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserTokenEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserTokenEntity", b =>
                 {
-                    b.HasOne("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserEntity", null)
+                    b.HasOne("RFIDSolution.Shared.DAL.Entities.Identity.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.ProductEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.ProductEntity", b =>
                 {
-                    b.HasOne("RFIDSolution.WebAdmin.DAL.Entities.ModelEntity", "Model")
+                    b.HasOne("RFIDSolution.Shared.DAL.Entities.ModelEntity", "Model")
                         .WithMany("Products")
                         .HasForeignKey("MODEL_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -931,17 +930,17 @@ namespace RFIDSolution.DataAccess.Migrations
                     b.Navigation("Model");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.RoleEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.RoleEntity", b =>
                 {
                     b.Navigation("UserRoles");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.Identity.UserEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.Identity.UserEntity", b =>
                 {
                     b.Navigation("UserRoles");
                 });
 
-            modelBuilder.Entity("RFIDSolution.WebAdmin.DAL.Entities.ModelEntity", b =>
+            modelBuilder.Entity("RFIDSolution.Shared.DAL.Entities.ModelEntity", b =>
                 {
                     b.Navigation("Products");
                 });

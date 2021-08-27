@@ -35,7 +35,8 @@ namespace RFIDSolution.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
-            var strConn = Configuration.GetConnectionString("default");
+            //var strConn = Configuration.GetConnectionString("default");
+            var strConn = Configuration.GetConnectionString("iot");
             System.Console.WriteLine(strConn);
             services.AddDbContext<AppDbContext>(sp => sp.UseSqlServer(strConn));
 

@@ -38,4 +38,16 @@
     <ProjectReference Include="..\DataAccess\RFIDSolution.DataAccess.csproj" />
     <ProjectReference Include="..\Shared\RFIDSolution.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Symbol.RFID3.Host">
+      <HintPath>..\..\RFIDSolution.TestReader\Symbol.RFID3.Host.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="RFIDAPI32PC.dll">
+      <CopyToOutputDirectory >Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

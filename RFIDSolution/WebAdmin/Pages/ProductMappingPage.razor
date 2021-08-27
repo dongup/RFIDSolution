@@ -217,7 +217,7 @@
         var filter = new RFTagFilter();
         filter.AntenId = 1;
 
-        _rfStream = rfClient.Get(filter);
+        _rfStream = rfClient.GetScanData(filter, null, null);
         _ = Task.Run(async () =>
         {
             await foreach (var response in _rfStream.ResponseStream.ReadAllAsync())
@@ -246,7 +246,7 @@
                     {
                         readTag.Status = 2;
                         readTag.RSSI = 0;
-                        Tags.Remove(readTag);
+                        //Tags.Remove(readTag);
                     }
                 }
                 StateHasChanged();

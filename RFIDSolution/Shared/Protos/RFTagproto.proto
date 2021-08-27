@@ -4,7 +4,9 @@ option csharp_namespace = "RFIDSolution.Shared.Protos";
 package RFTag;  
 
 service RFTagProto { 
-	rpc Get (RFTagFilter) returns (stream RFTagResponse); 
+    rpc GetScanData (RFTagFilter) returns (stream RFTagResponse); 
+
+	rpc GetDemoMapping (RFTagFilter) returns (stream RFTagResponse); 
 
     rpc GetDataDemo (RFTagFilter) returns (stream RFTagResponse); 
 } 

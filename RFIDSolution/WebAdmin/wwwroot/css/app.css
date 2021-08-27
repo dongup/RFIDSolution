@@ -33,7 +33,6 @@ a{
 .new-row {
     color: #212529;
     background-color: #fff;
-    pointer-events: none;
 }
 
 .oi{
