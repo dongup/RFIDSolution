@@ -1,9 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace RFIDSolution.WebAdmin.Utils
+namespace RFIDSolution.Shared.Utils
 {
     public static class ModelUtils
     {
@@ -44,11 +43,9 @@ namespace RFIDSolution.WebAdmin.Utils
             }
         }
 
-        public static void CopyPropertyJson<TParent, TChild>(TParent parent, TChild child)
-        {
-            string json = JsonConvert.SerializeObject(parent);
-            var newChild = JsonConvert.DeserializeObject<TChild>(json);
-            CopyProperty(newChild, child);
-        }
+        //public static void CopyPropertyJson<TParent, TChild>(TParent parent, TChild child)
+        //{
+        //    CopyProperty(newChild, child);
+        //}
     }
 }

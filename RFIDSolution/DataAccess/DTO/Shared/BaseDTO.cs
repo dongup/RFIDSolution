@@ -1,10 +1,10 @@
-﻿using RFIDSolution.WebAdmin.DAL.Entities;
+﻿using RFIDSolution.Shared.DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.DTO
+namespace RFIDSolution.Shared.DTO
 {
     public class BaseDTO
     {

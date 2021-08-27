@@ -1,5 +1,9 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+.table th {
+    color: white;
+    background-color: #0277bd;
+}
 
 label {
     font-weight: bold !important;
@@ -479,7 +483,7 @@ label {
 }
 
 .table-detail th {
-    z-index: 1000;
+    z-index: 1;
     position: sticky;
     top: 0;
     color: white !important;

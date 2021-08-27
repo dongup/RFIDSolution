@@ -1,4 +1,4 @@
-﻿using RFIDSolution.WebAdmin.DAL.Entities;
+﻿using RFIDSolution.Shared.DAL.Entities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.Models
+namespace RFIDSolution.Shared.Models
 {
     public class LogResponse : LogEntity
     {

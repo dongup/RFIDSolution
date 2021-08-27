@@ -34,8 +34,10 @@ message ProductModel{
     optional string modelName = 15;
     optional string refDocNo = 16;
     optional string refDocDate = 17;
-    int32 LR = 18;
+    int32 LR = 18;   
     optional string LRStr = 19;
+    optional string StatusStr = 20;
+    optional int StatusId = 21;
 } 
 
 message ProductRequest{

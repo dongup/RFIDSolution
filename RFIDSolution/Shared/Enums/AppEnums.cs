@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.Enums
+namespace RFIDSolution.Shared.Enums
 {
     public class AppEnums
     {
@@ -19,8 +20,14 @@ namespace RFIDSolution.WebAdmin.Enums
 
         public enum ProductStatus
         {
+            //Đang trong kho
+            [Description("Available")]
             Available = 1,
+            //Đã cho mượn
+            [Description("Not Available")]
             NotAvailable = 2,
+            //Không được phép mượn
+            [Description("On Hold")]
             OnHold = 3
         }
 
@@ -66,5 +73,11 @@ namespace RFIDSolution.WebAdmin.Enums
             Discarded = 2
         }
 
+        public enum Alignment
+        {
+            Left,
+            Right,
+            Center
+        }
     }
 }

@@ -1,0 +1,42 @@
+﻿<div class="progress">
+    <div style="width: @width" class="@BarColor">
+        <span class="text-center" style="height: 100%; vertical-align: central">
+            @Strenght
+        </span>
+    </div>
+    @*<div class="@BarColor" role="progressbar" aria-valuenow="@Strenght" aria-valuemin="@Min" aria-valuemax="@Max"></div>*@
+</div>
+
+@code {
+    [Parameter]
+    public int Strenght { get; set; }
+
+    public string width => $"{Strenght}%";
+
+    [Parameter]
+    public int Max { get; set; } = 100;
+
+    [Parameter]
+    public int Min { get; set; } = 0;
+
+    public string BarColor => getColor();
+
+    private string getColor()
+    {
+        string color = "progress-bar ";
+        if(Strenght < 33)
+        {
+            color += "bg-danger";
+        }
+        else if(Strenght >= 33 && Strenght < 66)
+        {
+            color = "bg-warning";
+        }
+        else
+        {
+            color += "bg-success";
+        }
+
+        return color;
+    }
+}

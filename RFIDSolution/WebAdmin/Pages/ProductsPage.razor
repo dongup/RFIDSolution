@@ -5,7 +5,7 @@
     <FilterContent>
         <div class="row">
             <div class="col-md-4">
-                <InputSearch TextChanged='async (text) => { filter.Keyword = text??""; await loadData(); }' PlaceHolder="Model's name"></InputSearch>
+                <InputSearch TextChanged='async (text) => { keyword = text??""; await loadData(); }' PlaceHolder="Search SKU, EPC"></InputSearch>
             </div>
         </div>
     </FilterContent>
@@ -17,25 +17,25 @@
 }
 else
 {
-
     <div class="m-2 bg-white">
-        <div class="table-detail" style="max-height: 470px">
+        <div>
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
-                        <td>Id</td>
-                        <td>EPC</td>
-                        <td>SKU</td>
-                        <td>LOCATION</td>
-                        <td>SEASON</td>
-                        <td>STAGE</td>
-                        <td>MODEL</td>
-                        <td>DEV STYLE NUMBER</td>
-                        <td>COLOR WAY</td>
-                        <td>SIZE</td>
-                        <td>CATEGORY</td>
-                        <td>POC</td>
-                        <td>REMARKS</td>
+                        <th>Id</th>
+                        <th>EPC</th>
+                        <th>SKU</th>
+                        <th>STATUS</th>
+                        <th>LOCATION</th>
+                        <th>SEASON</th>
+                        <th>STAGE</th>
+                        <th>MODEL</th>
+                        <th>DEV STYLE NUMBER</th>
+                        <th>COLOR WAY</th>
+                        <th>SIZE</th>
+                        <th>CATEGORY</th>
+                        <th>POC</th>
+                        <th>REMARKS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,6 +48,9 @@ else
                                 <td>@item.ID</td>
                                 <td>@item.EPC</td>
                                 <td>@item.SKU</td>
+                                <td>
+                                    @item.ProductStatus.ToStringVN()
+                                </td>
                                 <td>@item.Location</td>
                                 <td>@item.Season</td>
                                 <td>@item.Stage</td>
@@ -73,13 +76,11 @@ else
     </div>
 }
 
-@using static RFIDSolution.Shared.Protos.RFTagProto
-@using static RFIDSolution.Shared.Protos.ProductProto
 @using static RFIDSolution.Shared.Protos.ShoeModelProto
 @using Grpc.Core;
 
+@inject HttpClient _client
 @inject ShoeModelProtoClient modelClient
-@inject ProductProtoClient productService
 @inject DialogService _dialog
 @page "/products"
 @code {
@@ -87,10 +88,10 @@ else
 
     private bool loading = true;
     private bool addingItem = false;
+    private string keyword = "";
 
-    private ProductResponse reply = new ProductResponse();
-    private ProductFilter filter = new ProductFilter();
-    private List<ProductModel> products => reply.Data.ToList();
+    private ProductModel reply = new ProductModel();
+    private List<ProductModel> products = new List<ProductModel>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,6 +101,7 @@ else
 
     private async Task addModel()
     {
+
     }
 
     private async Task editModel(ProductModel item)
@@ -115,7 +117,16 @@ else
     private async Task loadData()
     {
         loading = true;
-        reply = await productService.GetAsync(filter);
+        //reply = await productService.GetAsync(filter);
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductModel>>>($"products?keyword={keyword}&pageItem={10}&pageIndex={0}");
+        if (rspns.IsSucceed)
+        {
+            products = rspns.Result.Data;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
         loading = false;
     }
 }

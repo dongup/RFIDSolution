@@ -1,7 +1,7 @@
-﻿using RFIDSolution.WebAdmin.DAL.Entities;
-using RFIDSolution.WebAdmin.DAL.Entities.Identity;
-using RFIDSolution.WebAdmin.DAL.Shared;
-using RFIDSolution.WebAdmin.Models;
+﻿using RFIDSolution.Shared.DAL.Entities;
+using RFIDSolution.Shared.DAL.Entities.Identity;
+using RFIDSolution.Shared.DAL.Shared;
+using RFIDSolution.Shared.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.DAL
+namespace RFIDSolution.Shared.DAL
 {
     public class AppDbContext : IdentityDbContext<UserEntity, RoleEntity, int, UserClaimEntity, UserRoleEntity,
         UserLoginEntity, RoleClaimEntity, UserTokenEntity>

@@ -1,5 +1,5 @@
-﻿using RFIDSolution.WebAdmin.DAL.Entities;
-using RFIDSolution.WebAdmin.DAL.Entities.Identity;
+﻿using RFIDSolution.Shared.DAL.Entities;
+using RFIDSolution.Shared.DAL.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.DTO
+namespace RFIDSolution.Shared.DTO
 {
     public class RoleModel : BaseDTO
     {

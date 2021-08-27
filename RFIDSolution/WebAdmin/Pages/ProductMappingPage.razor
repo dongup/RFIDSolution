@@ -16,10 +16,21 @@
             </div>
             <div class="col-md-10">
                 <Form OnValidSubmit="async () => { await addProduct(); }">
-                    <FormInputText @bind-Text="newProduct.SKU" Title="SKU" Size="2" Required="true" InValidFeedBack="Please provide a valid SKU."></FormInputText>
+                    <FormInputSearch Text="@newProduct.SKU" Size="4" Title="SKU" TextChanged="async (e) => { newProduct.SKU = e; await searchSKU(); }"></FormInputSearch>
                     <FormInputText @bind-Text="newProduct.Location" Title="Location" Size="2" Required="true" InValidFeedBack="Please provide a valid location."></FormInputText>
                     <FormInputText @bind-Text="newProduct.Season" Title="Season" Size="2" Required="true" InValidFeedBack="Please provide a valid season."></FormInputText>
                     <FormInputText @bind-Text="newProduct.Stage" Title="Stage" Size="2" Required="true" InValidFeedBack="Please provide a valid stage."></FormInputText>
+
+                    <div class="col-md-2">
+                        <label for="slt-lr" class="form-label m-0">Left/Right <Required></Required></label>
+                        <InputSelect class="form-select form-select-sm" id="slt-lr" required @bind-Value="newProduct.LR">
+                            <option value="@((int)ProductSide.Left)" selected>Left</option>
+                            <option value="@((int)ProductSide.Right)">Right</option>
+                        </InputSelect>
+                        <div class="invalid-feedback">
+                            Please select a side.
+                        </div>
+                    </div>
 
                     <div class="col-md-4">
                         <label for="slt-model" class="form-label m-0">Model <Required></Required></label>
@@ -35,21 +46,13 @@
                         </div>
                     </div>
 
-                    <div class="col-md-2">
-                        <label for="slt-model" class="form-label m-0">Left/Right <Required></Required></label>
-                        <InputSelect class="form-select form-select-sm" id="slt-model" required @bind-Value="newProduct.LR">
-                            <option value="@((int)ProductSide.Left)" selected>Left</option>
-                            <option value="@((int)ProductSide.Right)">Right</option>
-                        </InputSelect>
-                    </div>
-
                     <FormInputText @bind-Text="@newProduct.DevStyleName" Title="Dev style number" Size="2" Required="true" InValidFeedBack="Please provide a valid dev style number."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.ColorWay" Title="Color way" Size="2" Required="true" InValidFeedBack="Please provide a valid color way."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.Size" Title="Size" Size="2" Required="true" InValidFeedBack="Please provide a valid size."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.Category" Title="Category" Size="4" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.RefDocNo" Title="Document no" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.RefDocDate" Title="Document date" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
-                    <FormInputText @bind-Text="@newProduct.POC" Title="POC" Size="8" Required="true" InValidFeedBack="Please provide a valid POC."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.POC" Title="POC" Size="6" Required="true" InValidFeedBack="Please provide a valid POC."></FormInputText>
 
                     <div class="col-md-12 mb-1">
                         <label for="ipt-cat" class="form-label m-0">Remarks</label>
@@ -58,7 +61,7 @@
 
                     <div class="col-12 d-flex mt-2">
                         <button class="btn btn-success me-2" type="submit"><span class="oi oi-cloud-upload"></span>SAVE</button>
-                        <button class="btn btn-secondary me-2" type="reset" @onclick="() => newProduct = new ProductRequest()"><span class="oi oi-delete"></span>CLEAR</button>
+                        <button class="btn btn-secondary me-2" type="reset" @onclick="() => newProduct = new ProductModel()"><span class="oi oi-delete"></span>CLEAR</button>
                     </div>
                 </Form>
             </div>
@@ -72,69 +75,68 @@
         <div class="spacer"></div>
         <button class="float-end btn btn-secondary" @onclick="() => { Tags.Clear(); }"><span class="oi oi-delete"></span> CLEAR SCAN RESULT</button>
     </div>
-    <div class="table-detail" style="max-height: 470px">
-        <table class="table table-bordered table-hover">
-            <thead>
-                <tr>
-                    <td>#</td>
-                    <td>EPC</td>
-                    <td>STATUS</td>
-                    <td>READ COUNT</td>
-                    <td>FIRST SEEN</td>
-                    <td>LAST SEEN</td>
-                    <td>SIGNAL STRENGHT</td>
-                    <td></td>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Tags.Count > 0)
-                {
-                    int count = 1;
-                    @foreach (var item in Tags)
-                    {
-                        <tr>
-                            <td>@(count)</td>
-                            <td>@item.EPCID</td>
-                            <td>
-                                @if (item.Status == 1)
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Away</span>
-                                }
-                            </td>
-                            <td>@item.Count</td>
-                            <td>@item.FirstSeen.ToTimeString()</td>
-                            <td>@item.LastSeen.ToTimeString()</td>
-                            <td>@item.RSSI</td>
-                            <td><button class="btn btn-icon" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></td>
-                        </tr>
-                        count++;
-                    }
-                }
-                else
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>EPC</th>
+                <th>STATUS</th>
+                <th>READ COUNT</th>
+                <th>FIRST SEEN</th>
+                <th>LAST SEEN</th>
+                <th>SIGNAL STRENGHT</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Tags.Count > 0)
+            {
+                int count = 1;
+                @foreach (var item in Tags)
                 {
                     <tr>
-                        <td colspan="10000" class="text-center" style="padding: 60px 80px"><h3>Press "START/STOP" to start scan</h3></td>
+                        <td>@(count)</td>
+                        <td>@item.EPCID</td>
+                        <td>
+                            @if (item.Status == 1)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Away</span>
+                            }
+                        </td>
+                        <td>@item.Count</td>
+                        <td>@item.FirstSeen.ToTimeString()</td>
+                        <td>@item.LastSeen.ToTimeString()</td>
+                        <td>
+                            <SignalStrenghtBar Strenght="item.RSSI"></SignalStrenghtBar>
+                        </td>
+                        <td><button class="btn btn-icon" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></td>
                     </tr>
+                    count++;
                 }
-            </tbody>
-            <tfoot></tfoot>
-        </table>
-    </div>
+            }
+            else
+            {
+                <tr>
+                    <td colspan="10000" class="text-center" style="padding: 60px 80px"><h3>Press "START/STOP" to start scan</h3></td>
+                </tr>
+            }
+        </tbody>
+        <tfoot></tfoot>
+    </table>
 </div>
 
 @using static RFIDSolution.Shared.Protos.RFTagProto
-@using static RFIDSolution.Shared.Protos.ProductProto
 @using static RFIDSolution.Shared.Protos.ShoeModelProto
 @using Grpc.Core;
 
 @inject ShoeModelProtoClient modelClient
-@inject RFTagProtoClient client
-@inject ProductProtoClient product
+@inject RFTagProtoClient rfClient
 @inject DialogService _dialog
+@inject HttpClient _httpClient
 @page "/mappingproduct"
 @code{
     private string test = "";
@@ -143,24 +145,51 @@
     private List<ShoeModel> models = new List<ShoeModel>();
     private ShoeModel sledMode => models.FirstOrDefault(x => x.Id == newProduct.ModelId);
 
-    private AsyncServerStreamingCall<RFTagResponse> _call;
-    private ProductRequest newProduct = new ProductRequest();
+    private AsyncServerStreamingCall<RFTagResponse> _rfStream;
+    private ProductModel newProduct = new ProductModel();
+
+    private async Task searchSKU()
+    {
+        newProduct = new ProductModel() { 
+            SKU = newProduct.SKU
+        };
+        if (string.IsNullOrEmpty(newProduct.SKU)) return;
+        var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ProductModel>>("products/bySKU?SKU=" + newProduct.SKU);
+        if (rspns.IsSucceed)
+        {
+            newProduct = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
 
     private async Task addProduct()
     {
         if (Tags.Count == 0)
         {
-            await _dialog.ErrorAlert("Please scan at least a tag!");
+            await _dialog.ErrorAlert("Please scan at least one shoe!");
             return;
         }
 
-        if (!await _dialog.Confirm($"Are you sure want to add {Tags.Count} shoe(s)?")) return;
-
-        newProduct.EPCS.AddRange(Tags.Select(x => x.EPCID));
-        var rspns = await product.PostAsync(newProduct);
-        if (rspns.IsSuccess)
+        if (Tags.Count > 1)
         {
-            await _dialog.SuccessAlert("Add data succeed!");
+            await _dialog.ErrorAlert("Please scan only one shoe at a time!");
+            return;
+        }
+
+        if (!await _dialog.Confirm($"Are you sure want to add this shoe?")) return;
+
+        newProduct.EPC = Tags.FirstOrDefault().EPCID;
+        var req = await _httpClient.PostAsJsonAsync<ProductModel>("products", newProduct);
+        var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<bool>>();
+        if (rspns.IsSucceed)
+        {
+            await _dialog.SuccessAlert("Shoe added!");
+
+            Tags.Clear();
+            StateHasChanged();
         }
         else
         {
@@ -174,7 +203,7 @@
         if (reading)
         {
             await _dialog.SuccessAlert("Reader started!");
-            await startReader();
+            startReader();
         }
         else
         {
@@ -183,17 +212,17 @@
         }
     }
 
-    public async Task startReader()
+    public void startReader()
     {
         var filter = new RFTagFilter();
         filter.AntenId = 1;
 
-        _call = client.Get(filter);
+        _rfStream = rfClient.Get(filter);
         _ = Task.Run(async () =>
         {
-            await foreach (var response in _call.ResponseStream.ReadAllAsync())
+            await foreach (var response in _rfStream.ResponseStream.ReadAllAsync())
             {
-                var tag = _call.ResponseStream.Current;
+                var tag = _rfStream.ResponseStream.Current;
                 tag.Status = 1;
                 var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
                 if (item == null)
@@ -209,13 +238,15 @@
                     item.RSSI = tag.RSSI;
                 }
 
-                foreach(var readTag in Tags)
+                foreach (var readTag in Tags)
                 {
                     DateTime lastSeen = readTag.LastSeen.ToDateTime();
-                    //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng sóng
-                    if((DateTime.Now -lastSeen).TotalSeconds >= 1)
+                    //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
+                    if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
                     {
                         readTag.Status = 2;
+                        readTag.RSSI = 0;
+                        Tags.Remove(readTag);
                     }
                 }
                 StateHasChanged();
@@ -225,7 +256,7 @@
 
     public void stopReader()
     {
-        _call.Dispose();
+        _rfStream.Dispose();
     }
 
     protected override async Task OnInitializedAsync()

@@ -1,0 +1,242 @@
+﻿<div class="card m-2 w-100">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-2 d-flex align-items-center flex-column text-center">
+                <button class="btn text-center w-100 mt-4" @onclick="toggleReader">
+                    @if (reading)
+                    {
+                        <span class="oi oi-media-pause text-primary w-100" style="font-size: 120px"></span>
+                    }
+                    else
+                    {
+                        <span class="oi oi-play-circle text-primary w-100" style="font-size: 120px"></span>
+                    }
+                </button>
+                <label class="text-center" style="font-size: 32px">@(reading? "STOP SCAN" : "START SCAN")</label>
+            </div>
+            <div class="col-md-10">
+                <Form OnValidSubmit="() => { }">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="row">
+                                <FormInputText Title="Transfer reason" @bind-Text="@newProductInout.IO_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
+                                <FormInputText Title="Transfer to" @bind-Text="@newProductInout.IO_DEPART" Size="6"></FormInputText>
+                                <FormInputText Title="Transfer by" @bind-Text="@newProductInout.TAKE_USER" Required="true" Size="6"  InValidFeedBack="Please enter transfer user"></FormInputText>
+                                <FormInputText Title="Document no" @bind-Text="@newProductInout.REF_DOC_NO" Size="6"></FormInputText>
+                                <FormInputText Title="Document date" @bind-Text="@newProductInout.REF_DOC_DATE" Size="6"></FormInputText>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-12 d-flex">
+                            <button type="submit" class="btn btn-primary btn-lg me-4">Transfer In</button>
+                            <button type="submit" class="btn btn-primary btn-lg">Transfer Out</button>
+                        </div>
+                    </div>
+                </Form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card m-2 bg-white">
+    <div class="card-header d-flex align-items-center">
+        <h5 class="text-body m-0">SCAN RESULTS - Total: <span class="text-success">@products.Count</span></h5>
+        <div class="spacer"></div>
+        <button class="float-end btn btn-secondary" @onclick="() => { products.Clear(); }"><span class="oi oi-delete"></span> CLEAR SCAN RESULT</button>
+    </div>
+    <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>EPC</th>
+                    <th>SKU</th>
+                    <th>SHOE STATUS</th>
+                    <th>MODEL</th>
+                    <th>LOCATION</th>
+                    <th>COLOR WAY</th>
+                    <th>SIZE</th>
+                    <th>POC</th>
+                    <th>DEV STYLE NUMBER</th>
+                    <th>TAG STATUS</th>
+                    <th>LAST SEEN</th>
+                    <th>SIGNAL STRENGHT</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (products.Count > 0)
+                {
+                    int count = 1;
+                    @foreach (var item in products)
+                    {
+                        <tr>
+                            <td>@item.ID</td>
+                            <td>@item.EPC</td>
+                            <td>@item.SKU</td>
+                            <td>
+                                <span class="@item.StatusColor">
+                                    @item.ProductStatus.ToStringVN()
+                                </span>
+                            </td>
+                            <td>@item.ModelName</td>
+                            <td>@item.Location</td>
+                            <td>@item.ColorWay</td>
+                            <td>@item.Size</td>
+                            <td>@item.POC</td>
+                            <td>@item.DevStyleName</td>
+                            <td>
+                                @if (item.TagResponse.Status == 1)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Away</span>
+                                }
+                            </td>
+                            <td>@item.TagResponse.LastSeen.ToTimeString()</td>
+                            <td>
+                                <SignalStrenghtBar Strenght="@item.TagResponse.RSSI"></SignalStrenghtBar>
+                            </td>
+                        </tr>
+                        count++;
+                    }
+                }
+                else
+                {
+                    <NoData></NoData>
+                }
+            </tbody>
+            <tfoot></tfoot>
+        </table>
+</div>
+
+@using Grpc.Core;
+@using static RFIDSolution.Shared.Protos.RFTagProto
+
+@inject RFTagProtoClient rfClient
+@inject DialogService _dialog
+@inject HttpClient _httpClient
+@inject HttpClient _client
+@inject DialogService _dialog
+@page "/transfer"
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; }
+
+    private string test = "";
+    private bool reading = false;
+
+    private List<RFTagResponse> Tags = new List<RFTagResponse>();
+    private AsyncServerStreamingCall<RFTagResponse> _rfStream;
+    private ProductInoutModel newProductInout = new ProductInoutModel();
+
+    private bool loading = true;
+    private bool addingItem = false;
+    private string keyword = "";
+
+    private ProductModel reply = new ProductModel();
+    private List<ProductModel> products = new List<ProductModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MainLayout.Instance.PageTitle = "Products";
+    }
+
+    private async Task toggleReader()
+    {
+        reading = !reading;
+        if (reading)
+        {
+            await _dialog.SuccessAlert("Reader started!");
+            startReader();
+        }
+        else
+        {
+            stopReader();
+            await _dialog.ErrorAlert("Reader stoped!");
+        }
+    }
+
+    public void startReader()
+    {
+        var filter = new RFTagFilter();
+        filter.AntenId = 1;
+
+        _rfStream = rfClient.GetDataDemo(filter);
+        _ = Task.Run(async () =>
+        {
+            await foreach (var response in _rfStream.ResponseStream.ReadAllAsync())
+            {
+                var tag = _rfStream.ResponseStream.Current;
+                tag.Status = 1;
+                var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
+                if (item == null)
+                {
+                    tag.FirstSeen = DateTime.Now.Ticks;
+                    //Tags.Add(tag);
+                    item = tag;
+                }
+                else
+                {
+                    item.Status = 1;
+                    item.LastSeen = tag.LastSeen;
+                    item.Count++;
+                    item.RSSI = tag.RSSI;
+                }
+
+                if(!products.Any(x => x.EPC == item.EPCID && !string.IsNullOrEmpty(x.EPC))) {
+                    var newProduct = await findProductByEPC(tag.EPCID.Trim());
+                    newProduct.TagResponse = item;
+                    products.Add(newProduct);
+                    StateHasChanged();
+                }
+                else
+                {
+                    var product = products.FirstOrDefault(x => x.EPC == tag.EPCID);
+                    if(product != null)
+                    {
+                        product.TagResponse = item;
+                    }
+                }
+
+                foreach (var product in products)
+                {
+                    var readTag = product.TagResponse;
+                    DateTime lastSeen = readTag.LastSeen.ToDateTime();
+                    //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
+                    if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
+                    {
+                        readTag.Status = 2;
+                        readTag.RSSI = 0;
+                        //Tags.Remove(readTag);
+                    }
+                }
+                products = products.Where(x => x.TagResponse.Status != 2).ToList();
+                StateHasChanged();
+            }
+        });
+    }
+
+    private async Task<ProductModel> findProductByEPC(string EPC)
+    {
+        ProductModel product = new ProductModel();
+        var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ProductModel>>("products/byepc?epc=" + EPC);
+        if (rspns.IsSucceed)
+        {
+            product = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+        return product;
+    }
+
+    public void stopReader()
+    {
+        _rfStream.Dispose();
+    }
+}

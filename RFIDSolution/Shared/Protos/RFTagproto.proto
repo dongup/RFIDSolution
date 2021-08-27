@@ -5,6 +5,8 @@ package RFTag;
 
 service RFTagProto { 
 	rpc Get (RFTagFilter) returns (stream RFTagResponse); 
+
+    rpc GetDataDemo (RFTagFilter) returns (stream RFTagResponse); 
 } 
 
 message RFTagFilter{ 

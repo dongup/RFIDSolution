@@ -4,9 +4,9 @@ using System;
 using System.Linq;
 using RFIDSolution.Shared.Protos;
 using System.Collections.Generic;
-using RFIDSolution.WebAdmin.DAL;
-using RFIDSolution.WebAdmin.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
+using RFIDSolution.Shared.DAL;
+using RFIDSolution.Shared.DAL.Entities;
 
 public class ShoeModelService : ShoeModelProto.ShoeModelProtoBase
 {

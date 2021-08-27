@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.Utils
+namespace RFIDSolution.Shared.Utils
 {
     public static class AppExtensions
     {
@@ -206,6 +206,55 @@ namespace RFIDSolution.WebAdmin.Utils
         }
 
         /// <summary>
+        /// Convert ticks qua datetime trả về ngày hiện tại nếu string null, quăng exception nếu string không đúng định dạng
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="culture"></param>
+        /// <returns></returns>
+        public static DateTime ToDateTime(this long ticks)
+        {
+            var localTime = new DateTime(ticks, DateTimeKind.Utc);
+            return localTime;
+        }
+
+        /// <summary>
+        /// Convert ticks qua string
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="culture"></param>
+        /// <returns></returns>
+        public static string ToTimeString(this long ticks)
+        {
+            var localTime = new DateTime(ticks, DateTimeKind.Utc);
+            return localTime.ToString("HH:mm:ss:fff");
+        }
+
+        /// <summary>
+        /// Convert ticks qua string
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="culture"></param>
+        /// <returns></returns>
+        public static string ToDateTimeString(this long ticks)
+        {
+            var localTime = new DateTime(ticks, DateTimeKind.Utc).ToLocalTime();
+            return localTime.ToString("HH:mm dd/MM/yyyy");
+        }
+
+
+        /// <summary>
+        /// Convert ticks qua string
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="culture"></param>
+        /// <returns></returns>
+        public static string ToDateString(this long ticks)
+        {
+            var localTime = new DateTime(ticks, DateTimeKind.Utc).ToLocalTime();
+            return localTime.ToString("dd/MM/yyyy");
+        }
+
+        /// <summary>
         /// Convert string qua datetime trả về ngày hiện tại nếu string null, quăng exception nếu string không đúng định dạng
         /// </summary>
         /// <param name="date"></param>
@@ -230,7 +279,6 @@ namespace RFIDSolution.WebAdmin.Utils
                 return DateTime.Now;
             }
         }
-
 
         /// <summary>
         /// Convert string qua datetime trả về ngày hiện tại nếu string null, quăng exception nếu string không đúng định dạng

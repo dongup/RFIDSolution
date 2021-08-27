@@ -24,7 +24,8 @@ public class ProductService : ProductProto.ProductProtoBase
         var reply = new List<ProductModel>();
         reply = await _context.PRODUCT
             .Where(x => (string.IsNullOrEmpty(keyword)
-                        || x.PRODUCT_CODE.Contains(keyword)))
+                        || x.PRODUCT_CODE.Contains(keyword)
+                        || x.EPC == keyword))
             .Select(x => new ProductModel()
             {
                 ID = x.PRODUCT_ID,
@@ -44,7 +45,10 @@ public class ProductService : ProductProto.ProductProtoBase
                 Season = x.PRODUCT_SEASON,
                 Size = x.PRODUCT_SIZE,
                 SKU = x.PRODUCT_CODE,
-                Stage = x.PRODUCT_STAGE
+                Stage = x.PRODUCT_STAGE,
+                Article = "",
+                StatusStr = x.PRODUCT_STATUS.ToStringVN(),
+                StatusId = (int)x.PRODUCT_STATUS
             }).ToListAsync();
 
         var rspns = new ProductResponse();

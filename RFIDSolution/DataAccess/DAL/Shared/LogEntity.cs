@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace RFIDSolution.WebAdmin.DAL.Entities
+namespace RFIDSolution.Shared.DAL.Entities
 {
     [Table("Logs")]
     public class LogEntity : BaseEntity

@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static RFIDSolution.WebAdmin.Enums.AppEnums;
+using static RFIDSolution.Shared.Enums.AppEnums;
 
-namespace RFIDSolution.WebAdmin.DAL.Entities
+namespace RFIDSolution.Shared.DAL.Entities
 {
     public class ProductInoutEntity
     {

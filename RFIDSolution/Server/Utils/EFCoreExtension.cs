@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace RFIDSolution.WebAdmin.Utils
+namespace RFIDSolution.Shared.Utils
 {
     public static class EFCoreExtension
     {

@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RFIDSolution.WebAdmin.Models.Products
+namespace RFIDSolution.Shared.Models.Products
 {
-    public class ModelResponse
+    public class ModelRequest
     {
-        public ModelResponse()
+        public ModelRequest()
         {
 
         }
-
-        public int MODEL_ID { get; set; }
 
         public string MODEL_NAME { get; set; }
     }

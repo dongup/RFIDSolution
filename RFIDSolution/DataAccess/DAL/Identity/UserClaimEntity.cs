@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace RFIDSolution.WebAdmin.DAL.Entities.Identity
+namespace RFIDSolution.Shared.DAL.Entities.Identity
 {
     public class UserClaimEntity : IdentityUserClaim<int>
     {

@@ -6,7 +6,7 @@
             <Required />
         }
     </label>
-    <input type="text" value="@Text" @onchange="(e) => inputTextChanged(e.Value.ToString())" class="form-control form-control-sm" id="@(Id)" required=@Required>
+    <input type="text" value="@Text" @onchange="(e) => inputTextChanged(e.Value.ToString())" placeholder="@PlaceHolder" class="form-control form-control-sm" id="@(Id)" required=@Required>
     <div class="invalid-feedback">
         @InValidFeedBack
     </div>
@@ -21,6 +21,9 @@
 
     [Parameter]
     public string Title { get; set; }
+
+    [Parameter]
+    public string PlaceHolder { get; set; }
 
     [Parameter]
     public string ValidFeedBack { get; set; }

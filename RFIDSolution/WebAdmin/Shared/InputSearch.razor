@@ -1,8 +1,7 @@
 ﻿<div class="input-group">
-    <div class="input-group">
-        <input type="text" value="@Text" @onchange="InputTextChanged" class="form-control" placeholder="@PlaceHolder" aria-label="Recipient's username" aria-describedby="button-addon2">
-        <button class="btn btn-outline-secondary" @onclick="SearchClicked" type="button"><span class="oi oi-magnifying-glass mr-1"></span>Search</button>
-    </div>
+    @*<FormInputText Text="@Text" TextChanged="InputTextChanged" PlaceHolder="@PlaceHolder"></FormInputText>*@
+    <input type="text" value="@Text" @onchange="InputTextChanged" class="form-control" placeholder="@PlaceHolder">
+    <button class="btn btn-outline-secondary" @onclick="SearchClicked" type="button"><span class="oi oi-magnifying-glass mr-1"></span>Search</button>
 </div>
 
 @code {
@@ -18,6 +17,12 @@
     public async Task InputTextChanged(ChangeEventArgs e)
     {
         Text = e.Value?.ToString();
+        await TextChanged.InvokeAsync(Text);
+    }
+
+    public async Task InputTextChanged(string e)
+    {
+        Text = e;
         await TextChanged.InvokeAsync(Text);
     }
 

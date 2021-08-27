@@ -2,7 +2,7 @@
 using System.Buffers;
 using System.Text.Json;
 
-namespace RFIDSolution.WebAdmin.Utils
+namespace RFIDSolution.Shared.Utils
 {
     public static partial class JsonExtensions
     {

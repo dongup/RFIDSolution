@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RFIDSolution.WebAdmin.DAL;
+using RFIDSolution.Shared.DAL;
 
 namespace RFIDSolution.DataAccess.Migrations
 {

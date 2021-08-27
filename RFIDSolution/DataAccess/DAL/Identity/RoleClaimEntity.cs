@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.DAL.Entities.Identity
+namespace RFIDSolution.Shared.DAL.Entities.Identity
 {
     public class RoleClaimEntity : IdentityRoleClaim<int>
     {

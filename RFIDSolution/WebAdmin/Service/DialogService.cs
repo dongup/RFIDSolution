@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.Service
+namespace RFIDSolution.Shared.Service
 {
     public class DialogService
     {

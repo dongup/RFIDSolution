@@ -1,10 +1,10 @@
-﻿using RFIDSolution.WebAdmin.Utils;
+﻿using RFIDSolution.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin
+namespace RFIDSolution.Shared.Models
 {
     public class PaginationResponse<T>
     {

@@ -1,9 +1,9 @@
-﻿using RFIDSolution.WebAdmin.DAL.Entities.Identity;
+﻿using RFIDSolution.Shared.DAL.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace RFIDSolution.WebAdmin.DAL.Entities
+namespace RFIDSolution.Shared.DAL.Entities
 {
     public class BaseEntity
     {

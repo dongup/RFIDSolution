@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.DAL.Entities
+namespace RFIDSolution.Shared.DAL.Entities
 {
     public class ModelEntity : BaseEntity
     {

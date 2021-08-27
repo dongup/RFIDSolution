@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RFIDSolution.WebAdmin.DAL.Shared
+namespace RFIDSolution.Shared.DAL.Shared
 {
     public class ConfigurationEntity
     {
