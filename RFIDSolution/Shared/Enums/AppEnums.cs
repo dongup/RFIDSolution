@@ -79,5 +79,11 @@ namespace RFIDSolution.Shared.Enums
             Right,
             Center
         }
+
+        public enum AntennaLoction
+        {
+            Table = 1,
+            CheckPoint = 2
+        }
     }
 }

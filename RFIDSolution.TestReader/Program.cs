@@ -19,6 +19,10 @@ namespace RFIDSolution.TestReader
             m_ReaderAPI = new RFIDReader(ip, port, 0);
             m_ReaderAPI.Connect();
             m_ReaderAPI.Actions.PurgeTags();
+            Antennas.Config antennaConfig = m_ReaderAPI.Config.Antennas[1].GetConfig();
+            antennaConfig.TransmitPowerIndex = 132;
+            m_ReaderAPI.Config.Antennas[1].SetConfig(antennaConfig);
+
             //readTag();
             mInventory();
             Console.ReadLine();

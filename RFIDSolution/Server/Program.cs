@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RFIDSolution.Server.SignalRHubs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,8 @@ namespace RFIDSolution.Server
 {
     public class Program
     {
+        public static ReaderHepler Reader = new ReaderHepler();
+
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();

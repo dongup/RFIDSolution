@@ -12,6 +12,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using RFIDSolution.DataAccess.DAL.Entities;
 
 namespace RFIDSolution.Shared.DAL
 {
@@ -21,6 +22,7 @@ namespace RFIDSolution.Shared.DAL
     {
         public DbSet<LogEntity> LOG { get; set; }
         public DbSet<ConfigurationEntity> CONFIG { get; set; }
+        public DbSet<AntennaEntity> ANTENNAS { get; set; }
 
         public DbSet<ProductEntity> PRODUCT { get; set; }
         public DbSet<ProductInoutEntity> PRODUCT_IO { get; set; }

@@ -1,103 +1,76 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using RFIDSolution.Server;
+using RFIDSolution.Server.SignalRHubs;
 using RFIDSolution.Shared.Models.Shared;
 using Symbol.RFID3;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static RFIDSolution.Server.SignalRHubs.ReaderHepler;
 using static Symbol.RFID3.Events;
 
 namespace TaiyoshaEPE.WebApi.Hubs
 {
     public class ReaderHub : Hub
     {
-        public static RFIDReader readerApi;
-        private static bool connected = false;
+        public ReaderHepler readerApi => Program.Reader;
+        /// <summary>
+        /// List các thiết bị đang đọc tín hiệu
+        /// </summary>
+        public static List<RFClient> RFClients = new List<RFClient>();
 
-        public async Task StartScan(RFTagRequest request)
+        /// <summary>
+        /// Thêm handler cho sự kiện đọc tag khi một client bắt đầu đọc
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task StartInventory(RFTagRequest request)
         {
-            string ip = "192.168.0.111";
-            uint port = 5084;
-
-            PostFilter postFilter = null;
-            AntennaInfo antennaInfo = null;
-            TriggerInfo triggerInfo = new TriggerInfo();
-            triggerInfo.StartTrigger.Type = START_TRIGGER_TYPE.START_TRIGGER_TYPE_IMMEDIATE;
-            triggerInfo.StopTrigger.Type = STOP_TRIGGER_TYPE.STOP_TRIGGER_TYPE_IMMEDIATE;
-            triggerInfo.TagReportTrigger = 1;
-            triggerInfo.ReportTriggers.Period = 0;
-
-
-            if (readerApi == null)
+            var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
+            //Nếu là người mới thì thêm vào danh sách
+            if(client == null)
             {
-                readerApi = new RFIDReader(ip, port, 0);
-                if (!connected)
-                {
-                    readerApi.Connect();
-                    connected = true;
-                    Console.WriteLine("Connected reader " + ip);
-                }
-                if (readerApi.ReaderCapabilities.IsTagEventReportingSupported)
-                {
-                    triggerInfo.TagEventReportInfo.ReportNewTagEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
-                    triggerInfo.TagEventReportInfo.ReportTagBackToVisibilityEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
-                    triggerInfo.TagEventReportInfo.ReportTagInvisibleEvent = TAG_EVENT_REPORT_TRIGGER.MODERATED;
-                    triggerInfo.TagEventReportInfo.NewTagEventModeratedTimeoutMilliseconds = 500;
-                    triggerInfo.TagEventReportInfo.TagBackToVisibilityModeratedTimeoutMilliseconds = 500;
-                    triggerInfo.TagEventReportInfo.TagInvisibleEventModeratedTimeoutMilliseconds = 500;
-                }
-
-                readerApi.Events.ReadNotify += async (s, e) => await scanDataReceived(Clients.Caller, e);
-
+                client = new RFClient();
+                client.Id = Context.ConnectionId;
+                client.ReadHandler = new TagReadHandler(async (e) => await OnTagRead(e, client));
+                client.TagRequest = request;
+                client.ClientProxy = Clients.Caller;
+                RFClients.Add(client);
             }
-
-            //Console.WriteLine("EPC | AntenId | Last seen");
-            readerApi.Actions.Inventory.Perform(
-                   postFilter,
-                   triggerInfo,
-                   antennaInfo);
+            readerApi.OnTagRead += client.ReadHandler;
         }
 
-        private async Task scanDataReceived(IClientProxy client, ReadEventArgs e)
+        public async Task StopInventory()
         {
-            try
+            var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
+            Console.WriteLine("Connection Id: " + Context.ConnectionId);
+            if (client != null)
             {
-                if (!connected)
-                {
-                    readerApi.Actions.Inventory.Stop();
-                    Console.WriteLine("inventory stoped");
-                    return;
-                }
-
-                //TagData tagEvent = e.ReadEventData.TagData;
-                //sendTag(tagEvent);
-
-                TagData[] tagData = readerApi.Actions.GetReadTags(1000);
-                if (tagData == null) return;
-
-                for (int tagIndex = 0; tagIndex < tagData.Length; tagIndex++)
-                {
-                    TagData tag = tagData[tagIndex];
-                    await sendTag(tag, client);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                readerApi.Actions.Inventory.Stop();
+                readerApi.OnTagRead -= client.ReadHandler;
             }
         }
 
-        public static async Task sendTag(TagData tag, IClientProxy client)
+        private async Task OnTagRead(RFTagResponse tag, RFClient client)
         {
-            if (tag == null) return;
-            Console.WriteLine($"{tag.TagID} | {tag.AntennaID}");
-            var tagResponse = new RFTagResponse();
-            tagResponse.EPCID = tag.TagID;
-            tagResponse.RSSI = tag.PeakRSSI + 100;
-            tagResponse.LastSeen = DateTime.Now.Ticks;
+            //Console.WriteLine("Tag antennaId: " + tag.AntennaID);
+            if (client == null) return;
+            if (tag.AntennaID == client.TagRequest.AntenId)
+            {
+                Console.WriteLine($"[{DateTime.Now.Ticks}] Sending to: " + client.Id);
+                client.ClientProxy.SendAsync("ReceiveTag", tag);
+            }
+        }
 
-            await client.SendAsync("ReceiveTag", tag);
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            Console.WriteLine(String.Format("Client {0} explicitly closed the connection.", Context.ConnectionId));
+            var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
+            if (client != null)
+            {
+                readerApi.OnTagRead -= client.ReadHandler;
+                RFClients.Remove(client);
+            }
         }
     }
 }

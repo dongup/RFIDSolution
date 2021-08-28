@@ -68,10 +68,13 @@
             <tr>
                 <th>#</th>
                 <th>EPC</th>
+                <th>ANTENNA ID</th>
                 <th>STATUS</th>
                 <th>READ COUNT</th>
                 <th>FIRST SEEN</th>
                 <th>LAST SEEN</th>
+                <th>RELATIVE DISTANCE</th>
+                <th>RSSI</th>
                 <th>SIGNAL STRENGHT</th>
                 <th></th>
             </tr>
@@ -85,6 +88,7 @@
                     <tr>
                         <td>@(count)</td>
                         <td>@item.EPCID</td>
+                        <td>@item.AntennaID</td>
                         <td>
                             @if (item.Status == 1)
                             {
@@ -98,8 +102,10 @@
                         <td>@item.Count</td>
                         <td>@item.FirstSeen.ToTimeString()</td>
                         <td>@item.LastSeen.ToTimeString()</td>
+                        <td>@item.RelativeDistance</td>
+                        <td>@item.RSSI</td>
                         <td>
-                            <SignalStrenghtBar Strenght="item.RSSI"></SignalStrenghtBar>
+                            <SignalStrenghtBar Strenght="item.SignalStrenght"></SignalStrenghtBar>
                         </td>
                         <td><button class="btn btn-icon" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></td>
                     </tr>
@@ -198,17 +204,23 @@
             item.LastSeen = tag.LastSeen;
             item.Count++;
             item.RSSI = tag.RSSI;
+            item.SignalStrenght = tag.SignalStrenght;
+            item.AntennaID = tag.AntennaID;
         }
 
         foreach (var readTag in Tags)
         {
             DateTime lastSeen = readTag.LastSeen.ToDateTime();
-            //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
-            if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
+            //Nếu tag đã không được đọc trong 3 giây thì coi như đã đi ra khỏi vùng phủ sóng
+            if ((DateTime.Now - lastSeen).TotalSeconds >= 3)
             {
                 readTag.Status = 2;
                 readTag.RSSI = 0;
                 //Tags.Remove(readTag);
+            }
+            else
+            {
+                readTag.Status = 1;
             }
         }
         StateHasChanged();

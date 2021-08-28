@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -11,12 +11,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RFIDSolution.Middlewares;
+using RFIDSolution.Server.SignalRHubs;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities.Identity;
 using RFIDSolution.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using TaiyoshaEPE.WebApi.Hubs;
 
 namespace RFIDSolution.Server
@@ -34,10 +36,11 @@ namespace RFIDSolution.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+           
             services.AddGrpc();
             services.AddSignalR();
-            var strConn = Configuration.GetConnectionString("default");
-            //var strConn = Configuration.GetConnectionString("iot");
+            //var strConn = Configuration.GetConnectionString("default");
+            var strConn = Configuration.GetConnectionString("iot");
             System.Console.WriteLine(strConn);
             services.AddDbContext<AppDbContext>(sp => sp.UseSqlServer(strConn));
 
@@ -153,6 +156,24 @@ namespace RFIDSolution.Server
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     new[] { "application/octet-stream" });
             });
+
+            //Kết nối reader ngay khi mở api
+            Task.Run(() => { 
+                var context = services.BuildServiceProvider()
+                           .GetService<AppDbContext>();
+                Program.Reader = new ReaderHepler(context);
+                Program.Reader.Connect();
+                //Hàm handle sự kiện khi có tag không hợp lệ đi qua cổng
+                Program.Reader.OnTagRead += (tag) =>
+                {
+                    //Check tag và thêm vào database
+                    //Console.WriteLine($"[{DateTime.Now.Ticks}] Read data from gate");
+                };
+                if (Program.Reader.ReaderStatus.IsConnected)
+                {
+                    _ = Program.Reader.StartInventory();
+                }
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -205,6 +226,7 @@ namespace RFIDSolution.Server
                    pattern: "{controller=Home}/{action=Index}/{id?}");
 
                 endpoints.MapHub<ReaderHub>("/readerhub");
+                endpoints.MapHub<ReaderStatusHub>("/ReaderStatusHub");
             });
         }
     }

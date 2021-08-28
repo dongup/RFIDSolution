@@ -15,6 +15,9 @@ namespace RFIDSolution.Shared.Models.Shared
 
         public string EPCID { get; set; }
         public int RSSI { get; set; }
+        public int SignalStrenght { get; set; }
+        public short RelativeDistance { get; set; }
+        public int AntennaID { get; set; }
         public int Count { get; set; }
         public long FirstSeen { get; set; }
         public long LastSeen { get; set; }

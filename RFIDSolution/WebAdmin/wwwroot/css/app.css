@@ -5,6 +5,10 @@
     background-color: #0277bd;
 }
 
+.icon-xl{
+    font-size: 148px !important;
+}
+
 label {
     font-weight: bold !important;
     color: darkslategrey !important;

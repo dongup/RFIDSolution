@@ -1,0 +1,161 @@
+﻿<div class="m-2 card">
+    <div class="card-body">
+        <Form OnValidSubmit="() => updateConfig()">
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="w-100 flex-column align-content-center">
+                        <span class="w-100 text-center @(IsConnected? "text-success" : "text-danger")" style="font-size: 18px; font-weight: bold">
+                            @(IsConnected? "READER CONNECTED" : "READER DISCONNECTED")
+                        </span>
+                        @if (IsConnected)
+                        {
+                            <span class="oi oi-link-intact icon-xl text-success mt-4 w-100 text-center"></span>
+                        }
+                        else
+                        {
+                            <span class="oi oi-link-broken icon-xl text-danger mt-4 w-100 text-center"></span>
+                        }
+                        <button class="btn @(IsConnected? "btn-outline-danger" : "btn-outline-success") w-100 mt-4" @onclick="() => Reconnect()" 
+                                type="button" disabled=@connecting>
+                            <span class="text-center w-100 h-100">
+                                PING
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-10">
+                    <div class="row flex-column">
+                        <FormInputText @bind-Text="@config.READER_IP" InValidFeedBack="Please enter reader's ip address" Title="IP address" PlaceHolder="Enter reader's ip address" Required="true" Size="6"></FormInputText>
+                        <FormInputNumber @bind-Value="@config.READER_PORT" InValidFeedBack="Please enter reader's port number" Title="Port" PlaceHolder="Enter reader's port" Required="true" Size="6"></FormInputNumber>
+                        <FormInputNumber @bind-Value="@config.READER_PERIOD" InValidFeedBack="Please enter reader's period" Title="Trigger period" PlaceHolder="Enter reader's period" Required="true" Size="6"></FormInputNumber>
+                        <FormInputNumber @bind-Value="@config.READER_TIMEOUT" InValidFeedBack="Please enter reader's time out" Title="Time out" PlaceHolder="Enter reader's time out" Required="true" Size="6"></FormInputNumber>
+                        <div class="col-md-12 d-flex mt-2">
+                            <button class="btn btn-primary me-4" type="submit"><span class="oi oi-check me-2"></span> SAVE</button>
+                            <button class="btn btn-secondary me-4" type="submit"><span class="oi oi-reload me-2"></span> REFRESH DATA</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Form>
+    </div>
+</div>
+
+<div class="m-2 mt-4 card">
+    <div class="card-header">
+        <h3 class="m-0">Antenna status</h3>
+    </div>
+    <div class="card-body">
+
+    </div>
+</div>
+
+@page "/config"
+@inject HttpClient _client
+@using Microsoft.AspNetCore.SignalR.Client
+@inject DialogService _dialog
+@code {
+    private HubConnection hubConnection;
+    private bool HubStatus => hubConnection?.State == HubConnectionState.Connected;
+
+    private bool IsConnected => ReaderStatus.IsConnected;
+    private ReaderStatusModel ReaderStatus = new ReaderStatusModel();
+    private ConfigurationModel config = new ConfigurationModel();
+    private bool connecting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        MainLayout.Instance.PageTitle = "Reader config";
+        await loadConfig();
+
+        if (hubConnection == null)
+        {
+            hubConnection = new HubConnectionBuilder()
+                  .WithUrl($"{Program.RootApiUrl}/ReaderStatusHub")
+                  .Build();
+            hubConnection.On<ReaderStatusModel>("StatusChanged", ReaderStatusChanged);
+        }
+
+        await hubConnection.StartAsync();
+        await hubConnection.InvokeAsync("CheckStatus");
+    }
+
+    private async Task ReaderStatusChanged(ReaderStatusModel readerStatus)
+    {
+        connecting = false;
+        if (readerStatus.IsSuccess)
+        {
+            await _dialog.SuccessAlert(readerStatus.Message);
+        }
+        else
+        {
+            await _dialog.ErrorAlert(readerStatus.Message);
+        }
+        ReaderStatus = readerStatus;
+        StateHasChanged();
+    }
+
+    private async Task toogleReader()
+    {
+        if (ReaderStatus.IsConnected)
+        {
+            if (!await _dialog.Confirm("Are you sure want to disconnect reader???")) return;
+
+            await Disconnect();
+        }
+        else
+        {
+            await Reconnect();
+        }
+    }
+
+    private async Task Reconnect()
+    {
+        connecting = true;
+        if (!HubStatus)
+        {
+            await hubConnection.StartAsync();
+        }
+
+        await hubConnection.InvokeAsync("ConnectReader");
+    }
+
+    private async Task Disconnect()
+    {
+        if (!HubStatus)
+        {
+            await hubConnection.StartAsync();
+        }
+
+        await hubConnection.InvokeAsync("DisconnectReader", config);
+    }
+
+    private async Task loadConfig()
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<ConfigurationModel>>("config");
+        if (rspns.IsSucceed)
+        {
+            config = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task updateConfig()
+    {
+        var req = await _client.PutAsJsonAsync<ConfigurationModel>("config", config);
+        var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<bool>>();
+        if (rspns.IsSucceed)
+        {
+            await _dialog.SuccessAlert("Config values updated");
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+
+}
