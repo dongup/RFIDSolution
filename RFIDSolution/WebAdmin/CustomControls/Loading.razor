@@ -1,0 +1,19 @@
+﻿@if (Visible)
+{
+    <div style="height: @(Height); width: @(Width)" class="d-flex flex-row align-items-center">
+        <div class="w-100 text-center" style="vertical-align: middle">
+            <div class="spinner-border text-success text-center" role="status">
+            </div>
+        </div>
+    </div>
+}
+@code {
+    [Parameter]
+    public bool Visible { get; set; } = true;
+
+    [Parameter]
+    public string Height { get; set; } = "600px";
+
+    [Parameter]
+    public string Width { get; set; } = "600px";
+}

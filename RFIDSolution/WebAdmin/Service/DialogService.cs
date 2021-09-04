@@ -29,6 +29,7 @@ namespace RFIDSolution.Shared.Service
 
         public async Task SuccessAlert(string message)
         {
+            if (string.IsNullOrEmpty(message)) return;
             var dialog = MainLayout.Instance.AlertDialog;
             dialog.Success(message);
         }
@@ -36,11 +37,13 @@ namespace RFIDSolution.Shared.Service
         public async Task ErrorAlert(string message)
         {
             var dialog = MainLayout.Instance.AlertDialog;
+            if (string.IsNullOrEmpty(message)) return;
             dialog.Error(message);
         }
 
         public async Task InfoAlert(string message)
         {
+            if (string.IsNullOrEmpty(message)) return;
             var dialog = MainLayout.Instance.AlertDialog;
             dialog.Info(message);
         }

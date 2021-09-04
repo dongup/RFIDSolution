@@ -15,10 +15,11 @@
                         {
                             <span class="oi oi-link-broken icon-xl text-danger mt-4 w-100 text-center"></span>
                         }
-                        <button class="btn @(IsConnected? "btn-outline-danger" : "btn-outline-success") w-100 mt-4" @onclick="() => Reconnect()" 
+                        <button class="btn @(IsConnected? "btn-outline-danger" : "btn-outline-success") w-100 mt-4" @onclick="() => toogleReader()"
                                 type="button" disabled=@connecting>
+                            <Loading Visible="connecting" Width="36px" Height="36px"></Loading>
                             <span class="text-center w-100 h-100">
-                                PING
+                                @(IsConnected? "DISCONNECT" : "RECONNECT")
                             </span>
                         </button>
                     </div>
@@ -42,7 +43,16 @@
 
 <div class="m-2 mt-4 card">
     <div class="card-header">
-        <h3 class="m-0">Antenna status</h3>
+        <h3 class="m-0">GPI STATUS</h3>
+    </div>
+    <div class="card-body">
+
+    </div>
+</div>
+
+<div class="m-2 mt-4 card">
+    <div class="card-header">
+        <h3 class="m-0">ANTENNA CONFIG</h3>
     </div>
     <div class="card-body">
 
@@ -127,7 +137,7 @@
             await hubConnection.StartAsync();
         }
 
-        await hubConnection.InvokeAsync("DisconnectReader", config);
+        await hubConnection.InvokeAsync("DisconnectReader");
     }
 
     private async Task loadConfig()
@@ -149,13 +159,11 @@
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<bool>>();
         if (rspns.IsSucceed)
         {
-            await _dialog.SuccessAlert("Config values updated");
+            await _dialog.SuccessAlert("Reader configs updated, please disconnect and reconnect to apply your changes!");
         }
         else
         {
             await _dialog.ErrorAlert(rspns.Message);
         }
     }
-
-
 }

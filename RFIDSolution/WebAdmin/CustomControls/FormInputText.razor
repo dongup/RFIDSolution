@@ -1,5 +1,5 @@
 ﻿<div class="@SizeClass">
-    <label for="@(Id)" class="form-label m-0">
+    <label for="@(Id)" class="form-label m-0 @(TitleColor)">
         @Title 
         @if (Required) 
         { 
@@ -21,6 +21,9 @@
 
     [Parameter]
     public string Title { get; set; }
+
+    [Parameter]
+    public string TitleColor { get; set; }
 
     [Parameter]
     public string PlaceHolder { get; set; }

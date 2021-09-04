@@ -33,10 +33,14 @@ namespace RFIDSolution.Shared.Models
         public string ModelName { get; set; }
         public string RefDocNo { get; set; }
         public string RefDocDate { get; set; }
-        public int LR { get; set; }
+        public ProductSide LR { get; set; }
         public string LRStr { get; set; }
         public ProductStatus ProductStatus { get; set; }
-        public string StatusColor => ProductStatus == ProductStatus.Available ? "badge bg-success" : "badge bg-error";
+        public string StatusColor => ProductStatus == ProductStatus.Available ? "badge bg-success" : "badge bg-danger";
+        public string Note { get; set; }
+
+        public string WarningClass => IsWarning? "bg-warning" : "";
+        public bool IsWarning = false;
 
         public RFTagResponse TagResponse { get; set; } = new RFTagResponse();
     }

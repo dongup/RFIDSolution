@@ -1,7 +1,7 @@
 ﻿<div class="card m-2 w-100">
     <div class="card-body">
         <div class="row">
-            <RFReaderConnect Size="2" OnRead="OnTagRead"></RFReaderConnect>
+            <RFReaderConnect Size="2" OnRead="OnTagRead" AntennaId="@AntenaId"></RFReaderConnect>
             <div class="col-md-10">
                 <Form OnValidSubmit="async () => { await addProduct(); }">
                     <FormInputSearch Text="@newProduct.SKU" Size="4" Title="SKU" TextChanged="async (e) => { newProduct.SKU = e; await searchSKU(); }"></FormInputSearch>
@@ -34,13 +34,13 @@
                         </div>
                     </div>
 
-                    <FormInputText @bind-Text="@newProduct.DevStyleName" Title="Dev style number" Size="2" Required="true" InValidFeedBack="Please provide a valid dev style number."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.DevStyleName" Title="Dev style number" Size="4" Required="true" InValidFeedBack="Please provide a valid dev style number."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.ColorWay" Title="Color way" Size="2" Required="true" InValidFeedBack="Please provide a valid color way."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.Size" Title="Size" Size="2" Required="true" InValidFeedBack="Please provide a valid size."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.Category" Title="Category" Size="4" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.RefDocNo" Title="Document no" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.RefDocDate" Title="Document date" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
-                    <FormInputText @bind-Text="@newProduct.POC" Title="POC" Size="6" Required="true" InValidFeedBack="Please provide a valid POC."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.POC" Title="POC" Size="4" Required="true" InValidFeedBack="Please provide a valid POC."></FormInputText>
 
                     <div class="col-md-12 mb-1">
                         <label for="ipt-cat" class="form-label m-0">Remarks</label>
@@ -73,8 +73,7 @@
                 <th>READ COUNT</th>
                 <th>FIRST SEEN</th>
                 <th>LAST SEEN</th>
-                <th>RELATIVE DISTANCE</th>
-                <th>RSSI</th>
+                @*<th>RSSI</th>*@
                 <th>SIGNAL STRENGHT</th>
                 <th></th>
             </tr>
@@ -102,8 +101,7 @@
                         <td>@item.Count</td>
                         <td>@item.FirstSeen.ToTimeString()</td>
                         <td>@item.LastSeen.ToTimeString()</td>
-                        <td>@item.RelativeDistance</td>
-                        <td>@item.RSSI</td>
+                        @*<td>@item.RSSI</td>*@
                         <td>
                             <SignalStrenghtBar Strenght="item.SignalStrenght"></SignalStrenghtBar>
                         </td>
@@ -133,6 +131,8 @@
 @code{
     private string test = "";
     private bool reading = false;
+
+    private int AntenaId = 1;
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
     private List<ShoeModel> models = new List<ShoeModel>();
     private ShoeModel sledMode => models.FirstOrDefault(x => x.Id == newProduct.ModelId);
@@ -142,13 +142,14 @@
 
     private async Task searchSKU()
     {
-        newProduct = new ProductModel() {
-            SKU = newProduct.SKU
-        };
         if (string.IsNullOrEmpty(newProduct.SKU)) return;
         var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ProductModel>>("products/bySKU?SKU=" + newProduct.SKU);
         if (rspns.IsSucceed)
         {
+            newProduct = new ProductModel()
+            {
+                SKU = newProduct.SKU
+            };
             newProduct = rspns.Result;
         }
         else
@@ -180,6 +181,7 @@
         {
             await _dialog.SuccessAlert("Shoe added!");
 
+            newProduct = new ProductModel();
             Tags.Clear();
             StateHasChanged();
         }
@@ -216,7 +218,7 @@
             {
                 readTag.Status = 2;
                 readTag.RSSI = 0;
-                //Tags.Remove(readTag);
+                Tags.Remove(readTag);
             }
             else
             {

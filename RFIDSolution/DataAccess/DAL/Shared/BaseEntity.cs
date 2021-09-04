@@ -12,6 +12,8 @@ namespace RFIDSolution.Shared.DAL.Entities
             CREATED_DATE = DateTime.Now;
         }
 
+        public string NOTE { get; set; }
+
         public DateTime CREATED_DATE { get; set; }
         public int CREATED_USER_ID { get; set; }
 

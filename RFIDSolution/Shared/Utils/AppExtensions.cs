@@ -13,7 +13,7 @@ namespace RFIDSolution.Shared.Utils
 {
     public static class AppExtensions
     {
-        public static string ToStringVN<T>(this T enumerationValue)
+        public static string GetDescription<T>(this T enumerationValue)
     where T : struct
         {
             Type type = enumerationValue.GetType();
@@ -218,7 +218,7 @@ namespace RFIDSolution.Shared.Utils
         }
 
         /// <summary>
-        /// Convert ticks qua string
+        /// Convert ticks qua string giờ:phút:giây:milisec
         /// </summary>
         /// <param name="date"></param>
         /// <param name="culture"></param>
@@ -230,7 +230,7 @@ namespace RFIDSolution.Shared.Utils
         }
 
         /// <summary>
-        /// Convert ticks qua string
+        /// Convert ticks qua string giờ:phút ngày/tháng/năm
         /// </summary>
         /// <param name="date"></param>
         /// <param name="culture"></param>

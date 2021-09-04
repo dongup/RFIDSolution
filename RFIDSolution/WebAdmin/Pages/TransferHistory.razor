@@ -23,44 +23,40 @@ else
                 <thead>
                     <tr>
                         <th>Id</th>
-                        <th>EPC</th>
-                        <th>SKU</th>
+                        <th>TRANSFER DATE</th>
+                        <th>TRANSFER REASON</th>
+                        <th>TRANSFER TO</th>
+                        <th>TRANSFER BY</th>
                         <th>STATUS</th>
-                        <th>LOCATION</th>
-                        <th>SEASON</th>
-                        <th>STAGE</th>
-                        <th>MODEL</th>
-                        <th>DEV STYLE NUMBER</th>
-                        <th>COLOR WAY</th>
-                        <th>SIZE</th>
-                        <th>CATEGORY</th>
-                        <th>POC</th>
-                        <th>REMARKS</th>
+                        <th>RETURN DATE</th>
+                        <th>RETURN BY</th>
+                        <th>DOCUMENT NO</th>
+                        <th>DOCUMENT DATE</th>
+                        <th>NOTE</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (products.Count > 0)
+                    @if (transfers.Count > 0)
                     {
                         int count = 1;
-                        @foreach (var item in products)
+                        @foreach (var item in transfers)
                         {
                             <tr>
-                                <td>@item.ID</td>
-                                <td>@item.EPC</td>
-                                <td>@item.SKU</td>
+                                <td>@item.TRANSFER_ID</td>
+                                <td>@item.TIME_START.ToVNString()</td>
+                                <td>@item.TRANSFER_REASON</td>
+                                <td>@item.TRANSFER_TO</td>
+                                <td>@item.TRANSFER_BY</td>
                                 <td>
-                                    @item.ProductStatus.GetDescription()
+                                    <span class="@item.statusClass">
+                                        @item.TRANSFER_STATUS.GetDescription()
+                                    </span>
                                 </td>
-                                <td>@item.Location</td>
-                                <td>@item.Season</td>
-                                <td>@item.Stage</td>
-                                <td>@item.ModelName</td>
-                                <td>@item.DevStyleName</td>
-                                <td>@item.ColorWay</td>
-                                <td>@item.Size</td>
-                                <td>@item.Category</td>
-                                <td>@item.POC</td>
-                                <td>@item.Remarks</td>
+                                <td>@item.TIME_END</td>
+                                <td>@item.RETURN_BY</td>
+                                <td>@item.REF_DOC_NO</td>
+                                <td>@item.REF_DOC_DATE</td>
+                                <td>@item.NOTE</td>
                             </tr>
                             count++;
                         }
@@ -82,46 +78,31 @@ else
 @inject HttpClient _client
 @inject ShoeModelProtoClient modelClient
 @inject DialogService _dialog
-@page "/products"
+@page "/transferhistory"
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
 
     private bool loading = true;
     private bool addingItem = false;
     private string keyword = "";
+    private string baseUrl = "ProductTransfers";
 
-    private ProductModel reply = new ProductModel();
-    private List<ProductModel> products = new List<ProductModel>();
+    private List<TransferInoutModel> transfers = new List<TransferInoutModel>();
 
     protected override async Task OnInitializedAsync()
     {
-        MainLayout.Instance.PageTitle = "Products";
+        MainLayout.Instance.PageTitle = "Transfer history";
         await loadData();
-    }
-
-    private async Task addModel()
-    {
-
-    }
-
-    private async Task editModel(ProductModel item)
-    {
-
-    }
-
-    private async Task deleteModel(ProductModel item)
-    {
-        if (!await _dialog.Confirm("Are you sure you want to delete this shoe model?")) return;
     }
 
     private async Task loadData()
     {
         loading = true;
         //reply = await productService.GetAsync(filter);
-        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductModel>>>($"products?keyword={keyword}&pageItem={10}&pageIndex={0}");
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<TransferInoutModel>>>($"{baseUrl}?keyword={keyword}&pageItem={10}&pageIndex={0}");
         if (rspns.IsSucceed)
         {
-            products = rspns.Result.Data;
+            transfers = rspns.Result.Data;
         }
         else
         {

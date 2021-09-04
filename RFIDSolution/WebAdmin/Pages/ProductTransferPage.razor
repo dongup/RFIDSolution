@@ -1,227 +1,423 @@
 ﻿<div class="card m-2 w-100">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-2 d-flex align-items-center flex-column text-center">
-                <button class="btn text-center w-100 mt-4" @onclick="toggleReader">
-                    @if (reading)
+    <div class="row">
+        <div class="col-md-2">
+            <div class="row h-100 align-items-center">
+                <RFReaderConnect @ref="readerConnecter" AntennaId="1" Size="12" OnRead="OnTagRead"></RFReaderConnect>
+            </div>
+        </div>
+        <div class="col-md-10 card card-body">
+            <ul class="nav nav-tabs w-100 mb-2">
+                <li class="nav-item p-0 hand" @onclick="() => transferIn = false">
+                    <a class="nav-link text-danger @(transferIn? "" : "active")"><span class="oi oi-arrow-circle-right me-1"></span> TRANSFER OUT</a>
+                </li>
+                <li class="nav-item p-0 hand" @onclick="() => transferIn = true">
+                    <a class="nav-link text-success @(transferIn? "active" : "")">
+                        <span class="oi oi-arrow-circle-left me-1"></span>TRANSFER IN
+                    </a>
+                </li>
+            </ul>
+            @if (transferIn)
+            {
+                <h3 class="text-success" style="font-weight: bold">TRANSFER IN</h3>
+                <!--Transfer in-->
+                <div class="row">
+                    @if (products.Count > 0)
                     {
-                        <span class="oi oi-media-pause text-primary w-100" style="font-size: 120px"></span>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="row">
+                                        <FormInputText Title="Return by" @bind-Text="@newProductInout.RETURN_BY" Size="12" Required="true" InValidFeedBack="Please enter return user"></FormInputText>
+                                        <div class="col-md-12">
+                                            <label>Note</label>
+                                            <textarea value="@newProductInout.RETURN_NOTE" @onchange="(e) => newProductInout.RETURN_NOTE = e.Value.ToString()" rows="3" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <ListItem Title="Transfer reason" AlignItem="Alignment.Right" Bordered="false">@newProductInout.TRANSFER_REASON</ListItem>
+                                    <ListItem Title="Transfer to" AlignItem="Alignment.Right" Bordered="false">@newProductInout.TRANSFER_TO</ListItem>
+                                    <ListItem Title="Transfer by" AlignItem="Alignment.Right" Bordered="false">@newProductInout.TRANSFER_BY</ListItem>
+                                
+                                    <ListItem Title="Document no" Bordered="false">@newProductInout.REF_DOC_NO</ListItem>
+                                    <ListItem Title="Document date" AlignItem="Alignment.Center" Bordered="false">@newProductInout.REF_DOC_DATE</ListItem>
+                                    <ListItem Title="Transfer out note" AlignItem="Alignment.Left" Bordered="false">@newProductInout.TRANSFER_NOTE</ListItem>
+                                </div>
+
+                                <div class="col-md-12 mt-2 d-flex">
+                                    <button class="btn btn-success btn-lg me-4"><span class="oi oi-arrow-circle-left me-1"></span> Transfer In</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label>All shoe transfered</label>
+
+                        </div>
                     }
                     else
                     {
-                        <span class="oi oi-play-circle text-primary w-100" style="font-size: 120px"></span>
+                        <p>Scan a product to view transfer information</p>
                     }
-                </button>
-                <label class="text-center" style="font-size: 32px">@(reading? "STOP SCAN" : "START SCAN")</label>
-            </div>
-            <div class="col-md-10">
+                </div>
+            }
+            else
+            {
+                <h3 class="text-danger" style="font-weight: bold">TRANSFER OUT</h3>
+                <!--Transfer out-->
                 <Form OnValidSubmit="() => { }">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="row">
-                                <FormInputText Title="Transfer reason" @bind-Text="@newProductInout.IO_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
-                                <FormInputText Title="Transfer to" @bind-Text="@newProductInout.IO_DEPART" Size="6"></FormInputText>
-                                <FormInputText Title="Transfer by" @bind-Text="@newProductInout.TAKE_USER" Required="true" Size="6"  InValidFeedBack="Please enter transfer user"></FormInputText>
-                                <FormInputText Title="Document no" @bind-Text="@newProductInout.REF_DOC_NO" Size="6"></FormInputText>
-                                <FormInputText Title="Document date" @bind-Text="@newProductInout.REF_DOC_DATE" Size="6"></FormInputText>
+                                <FormInputText Title="Transfer reason" @bind-Text="@newProductInout.TRANSFER_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
+                                <FormInputText Title="Transfer to" @bind-Text="@newProductInout.TRANSFER_TO" Size="3"></FormInputText>
+                                <FormInputText Title="Transfer by" @bind-Text="@newProductInout.TRANSFER_BY" Required="true" Size="3" InValidFeedBack="Please enter transfer user"></FormInputText>
+                                <FormInputText Title="Document no" @bind-Text="@newProductInout.REF_DOC_NO" Size="3"></FormInputText>
+                                <FormInputText Title="Document date" @bind-Text="@newProductInout.REF_DOC_DATE" Size="3"></FormInputText>
+                                <div>
+                                    <label>Note</label>
+                                    <textarea value="@newProductInout.TRANSFER_NOTE" @onchange="(e) => newProductInout.NOTE = e.Value.ToString()" rows="3" class="form-control"></textarea>
+                                </div>
+                                <div class="col-md-12 mt-2 d-flex">
+                                    <button type="submit" class="btn btn-danger btn-lg" @onclick="async () => { await transferOut(); }"><span class="oi oi-arrow-circle-right me-1"></span> Transfer Out</button>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
-
-                        </div>
-                    </div>
-                    <div class="row mt-4">
-                        <div class="col-md-12 d-flex">
-                            <button type="submit" class="btn btn-primary btn-lg me-4">Transfer In</button>
-                            <button type="submit" class="btn btn-primary btn-lg">Transfer Out</button>
+                            <label class="text-success">Reason list</label>
+                            <div class="list-group w-100" style="max-height: 200px; overflow-y: auto; border: 1px solid gray">
+                                @foreach (string reason in reasonsList)
+                                {
+                                    <button type="button" @onclick="() => { newProductInout.TRANSFER_REASON = reason; }"
+                                            class="list-group-item list-group-item-action @(newProductInout.TRANSFER_REASON == reason? "active" : "")">
+                                        @reason
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 </Form>
-            </div>
+            }
         </div>
     </div>
 </div>
 
-<div class="card m-2 bg-white">
-    <div class="card-header d-flex align-items-center">
-        <h5 class="text-body m-0">SCAN RESULTS - Total: <span class="text-success">@products.Count</span></h5>
-        <div class="spacer"></div>
-        <button class="float-end btn btn-secondary" @onclick="() => { products.Clear(); }"><span class="oi oi-delete"></span> CLEAR SCAN RESULT</button>
-    </div>
-    <table class="table table-bordered table-hover">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>EPC</th>
-                    <th>SKU</th>
-                    <th>SHOE STATUS</th>
-                    <th>MODEL</th>
-                    <th>LOCATION</th>
-                    <th>COLOR WAY</th>
-                    <th>SIZE</th>
-                    <th>POC</th>
-                    <th>DEV STYLE NUMBER</th>
-                    <th>TAG STATUS</th>
-                    <th>LAST SEEN</th>
-                    <th>SIGNAL STRENGHT</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (products.Count > 0)
-                {
-                    int count = 1;
-                    @foreach (var item in products)
-                    {
+<div class="m-2">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <h5 class="text-body m-0">SCAN RESULTS - Total: <span class="text-success">@products.Count</span></h5>
+                    <div class="spacer"></div>
+                    <button class="float-end btn btn-secondary" @onclick="() => { products.Clear(); }"><span class="oi oi-delete"></span> CLEAR SCAN RESULT</button>
+                </div>
+                <table class="table table-bordered table-hover">
+                    <thead>
                         <tr>
-                            <td>@item.ID</td>
-                            <td>@item.EPC</td>
-                            <td>@item.SKU</td>
-                            <td>
-                                <span class="@item.StatusColor">
-                                    @item.ProductStatus.ToStringVN()
-                                </span>
-                            </td>
-                            <td>@item.ModelName</td>
-                            <td>@item.Location</td>
-                            <td>@item.ColorWay</td>
-                            <td>@item.Size</td>
-                            <td>@item.POC</td>
-                            <td>@item.DevStyleName</td>
-                            <td>
-                                @if (item.TagResponse.Status == 1)
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Away</span>
-                                }
-                            </td>
-                            <td>@item.TagResponse.LastSeen.ToTimeString()</td>
-                            <td>
-                                <SignalStrenghtBar Strenght="@item.TagResponse.RSSI"></SignalStrenghtBar>
-                            </td>
+                            <th>Id</th>
+                            <th>EPC</th>
+                            <th>SKU</th>
+                            <th>SHOE STATUS</th>
+                            <th>MODEL</th>
+                            <th></th>
                         </tr>
-                        count++;
+                    </thead>
+                    <tbody>
+                        @if (products.Count > 0)
+                        {
+                            int count = 1;
+                            @foreach (var item in products)
+                            {
+                                <tr class="hand @(item.WarningClass) @(sledProduct.ID == item.ID? "bg-info" : "")" @onclick="() => showProductDetail(item)">
+                                    <td>@item.ID</td>
+                                    <td>@item.EPC</td>
+                                    <td>@item.SKU</td>
+                                    <td>
+                                        <span class="@item.StatusColor">
+                                            @item.ProductStatus.GetDescription()
+                                        </span>
+                                    </td>
+                                    <td>@item.ModelName</td>
+                                    <td><span class="oi oi-delete text-danger" title="Remove item" @onclick="() => deleteScanItem(item)"></span></td>
+                                </tr>
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                            <NoData></NoData>
+                        }
+                    </tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6 ps-0">
+            <div class="card">
+                <div class="card-header d-none">
+                    <h4 class="m-0">SHOE DETAIL</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs w-100 mb-2">
+                        <li class="nav-item p-0 hand" @onclick="() => shoeTabActive = true">
+                            <a class="nav-link text-success @(shoeTabActive? "active" : "")">SHOE INFORMATIONS</a>
+                        </li>
+                        <li class="nav-item p-0 hand" @onclick="() => shoeTabActive = false">
+                            <a class="nav-link text-success @(shoeTabActive? "" : "active")">
+                                TAG INFORMATIONS
+                            </a>
+                        </li>
+                    </ul>
+                    @if (sledProduct.ID == 0)
+                    {
+                        <p class="text-center p-4">Select a shoe to view detail information!</p>
                     }
-                }
-                else
-                {
-                    <NoData></NoData>
-                }
-            </tbody>
-            <tfoot></tfoot>
-        </table>
+                    else
+                    {
+                        @if (shoeTabActive)
+                        {
+                            <div class="row">
+                                <!--Thông tin giầy-->
+                                <div class="col-md-6">
+                                    <ListItem Title="EPC" Bordered="false">@sledProduct.EPC</ListItem>
+                                    <ListItem Title="SKU" Bordered="false">@sledProduct.SKU</ListItem>
+                                    <ListItem Title="Model" Bordered="false">@sledProduct.SKU</ListItem>
+                                    <ListItem Title="Shoe status" Bordered="false">
+                                        <span class="@sledProduct.StatusColor">
+                                            @sledProduct.ProductStatus.GetDescription()
+                                        </span>
+                                    </ListItem>
+                                    <ListItem Title="L/R" Bordered="false">
+                                        @sledProduct.LR.GetDescription()
+                                </ListItem>
+                                <ListItem Title="Location" Bordered="false">@sledProduct.LR.GetDescription()</ListItem>
+                                <ListItem Title="Season" Bordered="false">@sledProduct.Location</ListItem>
+                            </div>
+                            <div class="col-md-6">
+                                <ListItem Title="Stage" Bordered="false">@sledProduct.Season</ListItem>
+                                <ListItem Title="Dev style number" Bordered="false">@sledProduct.Stage</ListItem>
+                                <ListItem Title="Color way" Bordered="false">@sledProduct.Season</ListItem>
+                                <ListItem Title="Size" Bordered="false">@sledProduct.ColorWay</ListItem>
+                                <ListItem Title="Category" Bordered="false">@sledProduct.Size</ListItem>
+                                <ListItem Title="POC" Bordered="false">@sledProduct.Category</ListItem>
+                                <ListItem Title="Remarks" Bordered="false">@sledProduct.POC</ListItem>
+                            </div>
+                            <!--Ghi chú-->
+                            <div class="col-md-12">
+                                <div>
+                                    <label>Note</label>
+                                    <textarea value="@sledProduct.Note" @onchange="(e) => sledProduct.Note = e.Value.ToString()" rows="3" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!--Thông tin tín hiệu tag-->
+                        <div class="row">
+                            <!--Thông tin tín hiệu tag-->
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <ListItem Title="Tag status" Bordered="false">
+                                        @if (sledProduct.TagResponse.Status == 1)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Away</span>
+                                        }
+                                    </ListItem>
+                                    <ListItem Title="Last seen" Bordered="false">@sledProduct.TagResponse.LastSeen.ToTimeString()</ListItem>
+                                    <ListItem Title="RSSI" Bordered="false">@sledProduct.TagResponse.RSSI</ListItem>
+                                    <ListItem Title="Signal strenght" Bordered="false">
+                                        <SignalStrenghtBar Strenght="sledProduct.TagResponse.SignalStrenght"></SignalStrenghtBar>
+                                    </ListItem>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
 @using Grpc.Core;
+@using RFIDSolution.Shared.Models.ProductInout;
 
 @inject DialogService _dialog
-@inject HttpClient _httpClient
 @inject HttpClient _client
 @inject DialogService _dialog
+@implements IDisposable
 @page "/transfer"
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
 
-    private string test = "";
+    private RFReaderConnect readerConnecter = new RFReaderConnect();
     private bool reading = false;
+    private string baseUrl = "ProductTransfers";
 
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
     private AsyncServerStreamingCall<RFTagResponse> _rfStream;
-    private ProductInoutModel newProductInout = new ProductInoutModel();
+    private TransferInoutModel newProductInout = new TransferInoutModel();
+
+    private bool transferIn { get; set; } = false;
+    private bool shoeTabActive { get; set; } = true;
 
     private bool loading = true;
     private bool addingItem = false;
     private string keyword = "";
 
-    private ProductModel reply = new ProductModel();
+    private ProductModel sledProduct = new ProductModel();
     private List<ProductModel> products = new List<ProductModel>();
+    private List<string> reasonsList = new List<string>();
 
     protected override async Task OnInitializedAsync()
     {
-        MainLayout.Instance.PageTitle = "Products";
+        MainLayout.Instance.PageTitle = "Transfer shoe";
+        await getReasonList();
     }
 
-    private async Task toggleReader()
+    private async Task showProductDetail(ProductModel product)
     {
-        reading = !reading;
-        if (reading)
+        if (sledProduct.ID == product.ID)
         {
-            await _dialog.SuccessAlert("Reader started!");
-            startReader();
+            sledProduct = new ProductModel();
         }
         else
         {
-            stopReader();
-            await _dialog.ErrorAlert("Reader stoped!");
+            sledProduct = product;
+        }
+
+        //Nếu đang transfer in thì show thêm thông tin transfer out
+        if (transferIn)
+        {
+            var findResult = await findTransferInformation(product.ID);
+            if(findResult != null)
+            {
+                newProductInout = findResult;
+            }
         }
     }
 
-    public void startReader()
+    private void deleteScanItem(ProductModel item)
     {
-        //var filter = new RFTagFilter();
-        //filter.AntenId = 1;
+        products.Remove(item);
+        if (item.ID == sledProduct.ID) sledProduct = new ProductModel();
+    }
 
-        //_rfStream = rfClient.GetDataDemo(filter);
-        //_ = Task.Run(async () =>
-        //{
-        //    await foreach (var response in _rfStream.ResponseStream.ReadAllAsync())
-        //    {
-        //        var tag = _rfStream.ResponseStream.Current;
-        //        tag.Status = 1;
-        //        var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
-        //        if (item == null)
-        //        {
-        //            tag.FirstSeen = DateTime.Now.Ticks;
-        //            //Tags.Add(tag);
-        //            item = tag;
-        //        }
-        //        else
-        //        {
-        //            item.Status = 1;
-        //            item.LastSeen = tag.LastSeen;
-        //            item.Count++;
-        //            item.RSSI = tag.RSSI;
-        //        }
+    private async Task transferOut()
+    {
+        //Yêu cầu mật khẩu xác nhận
+        //Để sau
 
-        //        if(!products.Any(x => x.EPC == item.EPCID && !string.IsNullOrEmpty(x.EPC))) {
-        //            var newProduct = await findProductByEPC(tag.EPCID.Trim());
-        //            newProduct.TagResponse = item;
-        //            products.Add(newProduct);
-        //            StateHasChanged();
-        //        }
-        //        else
-        //        {
-        //            var product = products.FirstOrDefault(x => x.EPC == tag.EPCID);
-        //            if(product != null)
-        //            {
-        //                product.TagResponse = item;
-        //            }
-        //        }
+        //Kiểm tra số lượng giày đã scan
+        if (products.Count <= 0)
+        {
+            await _dialog.ErrorAlert("Please scan at least one shoe!");
+            return;
+        }
 
-        //        foreach (var product in products)
-        //        {
-        //            var readTag = product.TagResponse;
-        //            DateTime lastSeen = readTag.LastSeen.ToDateTime();
-        //            //Nếu tag đã không được đọc trong 1 giây thì coi như đã đi ra khỏi vùng phủ sóng
-        //            if ((DateTime.Now - lastSeen).TotalSeconds >= 1)
-        //            {
-        //                readTag.Status = 2;
-        //                readTag.RSSI = 0;
-        //                //Tags.Remove(readTag);
-        //            }
-        //        }
-        //        products = products.Where(x => x.TagResponse.Status != 2).ToList();
-        //        StateHasChanged();
-        //    }
-        //});
+        //Kiểm tra trạng thái của những giày đã scan, nếu có giày đang được mượn thì không cho transfer
+        var notAvaiableShoes = products.Where(x => x.ProductStatus == ProductStatus.NotAvailable);
+        foreach (var item in notAvaiableShoes)
+        {
+            item.IsWarning = true;
+        }
+        if (notAvaiableShoes.Count() > 0)
+        {
+            await _dialog.ErrorAlert("One or more shoe is already transfered out, please remove them and try again!");
+            return;
+        }
+
+        //Xác nhận xuất
+        if (!await _dialog.Confirm($"Are you sure want to transfer {products.Count} shoe(s) out!")) return;
+
+        //Request server
+        var requestModel = new TransferOutRequest(newProductInout);
+        requestModel.Products = products.Select(x => new ProductTransferRequest(x)).ToList();
+        var req = await _client.PostAsJsonAsync<TransferOutRequest>($"{baseUrl}/transferOut", requestModel);
+        var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSucceed)
+        {
+            await _dialog.SuccessAlert("Transfer out succeed!");
+            products = new List<ProductModel>();
+            newProductInout = new TransferInoutModel();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task OnTagRead(RFTagResponse tag)
+    {
+        Console.WriteLine("Tag read");
+        tag.Status = 1;
+        var product = products.FirstOrDefault(x => x.EPC == tag.EPCID);
+
+        if (product == null)
+        {
+            var searchProduct = await findProductByEPC(tag.EPCID.Trim());
+            product = searchProduct;
+
+            tag.FirstSeen = DateTime.Now.Ticks;
+            product.TagResponse = tag;
+            products.Add(product);
+
+            //Nếu chưa chọn product nào thì tự động chọn product đầu tiên scan được
+            if(sledProduct.ID == 0)
+            {
+                sledProduct = product;
+            }
+        }
+        else
+        {
+            product.TagResponse = tag;
+        }
+
+        var awayProducts = new List<ProductModel>();
+        foreach (var item in products)
+        {
+            var readTag = item.TagResponse;
+            DateTime lastSeen = readTag.LastSeen.ToDateTime();
+            //Nếu tag đã không được đọc trong 3 giây thì coi như đã đi ra khỏi vùng phủ sóng
+            if ((DateTime.Now - lastSeen).TotalSeconds >= 3)
+            {
+                readTag.Status = 2;
+                readTag.RSSI = 0;
+                awayProducts.Add(item);
+                //Nếu item đang show chi tiết đã ra ngoài vùng phủ sóng thì không show nữa
+                if (item.ID == sledProduct.ID) sledProduct = new ProductModel();
+            }
+        }
+
+        foreach (var item in awayProducts)
+        {
+            products.Remove(item);
+        }
+        //products = products.Where(x => x.TagResponse.Status != 2).ToList();
+        //StateHasChanged();
+    }
+
+    private async Task getReasonList()
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<List<string>>>($"{baseUrl}/reasons");
+        if (rspns.IsSucceed)
+        {
+            reasonsList = rspns.Result;
+            StateHasChanged();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
     }
 
     private async Task<ProductModel> findProductByEPC(string EPC)
     {
         ProductModel product = new ProductModel();
-        var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ProductModel>>("products/byepc?epc=" + EPC);
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<ProductModel>>("products/byepc?epc=" + EPC);
         if (rspns.IsSucceed)
         {
             product = rspns.Result;
@@ -233,8 +429,23 @@
         return product;
     }
 
-    public void stopReader()
+    private async Task<TransferInoutModel> findTransferInformation(int productId)
     {
-        _rfStream.Dispose();
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<TransferInoutModel>>($"{baseUrl}/byProductId/{productId}");
+        if (rspns.IsSucceed)
+        {
+            return rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+            return new TransferInoutModel();
+        }
+    }
+
+    async void IDisposable.Dispose()
+    {
+        //Console.WriteLine("Compoent disposed");
+        await readerConnecter.stopReader();
     }
 }

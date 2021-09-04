@@ -36,7 +36,9 @@ namespace RFIDSolution.Shared.Enums
         /// </summary>
         public enum InoutStatus
         {
+            [Description("Borrowing")]
             Borrowing = 1,
+            [Description("Returned")]
             Returned = 2
         }
 
@@ -85,5 +87,12 @@ namespace RFIDSolution.Shared.Enums
             Table = 1,
             CheckPoint = 2
         }
+
+        public enum GPIPortStatus
+        {
+            High = 1,
+            Low = 2,
+            Unknown = 3
+        }    
     }
 }

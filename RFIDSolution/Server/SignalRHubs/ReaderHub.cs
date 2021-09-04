@@ -53,18 +53,25 @@ namespace TaiyoshaEPE.WebApi.Hubs
 
         private async Task OnTagRead(RFTagResponse tag, RFClient client)
         {
-            //Console.WriteLine("Tag antennaId: " + tag.AntennaID);
+            //Nếu client đã disconnect thì bỏ handler ngùng send data
+            if(!RFClients.Any(x => x.Id == client.Id))
+            {
+                readerApi.OnTagRead -= client.ReadHandler;
+                return;
+            }    
+
             if (client == null) return;
             if (tag.AntennaID == client.TagRequest.AntenId)
             {
-                Console.WriteLine($"[{DateTime.Now.Ticks}] Sending to: " + client.Id);
-                client.ClientProxy.SendAsync("ReceiveTag", tag);
+                //Console.WriteLine($"[{DateTime.Now.Ticks}] Sending to: " + client.Id);
+                await client.ClientProxy.SendAsync("ReceiveTag", tag);
             }
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             Console.WriteLine(String.Format("Client {0} explicitly closed the connection.", Context.ConnectionId));
+            if (Context != null) return;
             var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
             if (client != null)
             {

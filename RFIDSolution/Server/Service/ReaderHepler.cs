@@ -13,13 +13,14 @@ namespace RFIDSolution.Server.SignalRHubs
     public class ReaderHepler
     {
         private AppDbContext _context;
-        public ConfigurationEntity SysConfig => _context?.CONFIG.ToList().FirstOrDefault();
+        public ConfigurationEntity SysConfig = new ConfigurationEntity();
         public RFIDReader readerApi;
         public ReadNotifyHandler readNotify;
         private static PostFilter postFilter = null;
         private static AntennaInfo antennaInfo = null;
         private static TriggerInfo triggerInfo = new TriggerInfo();
         public ReaderStatusModel ReaderStatus = new ReaderStatusModel();
+        public bool connecting = false;
 
         //Handler sự kiện đọc tag
         public delegate void TagReadHandler(RFTagResponse tag);
@@ -37,6 +38,7 @@ namespace RFIDSolution.Server.SignalRHubs
         public ReaderHepler(AppDbContext context)
         {
             _context = context;
+            SysConfig = _context.CONFIG.FirstOrDefault();
         }
 
         /// <summary>
@@ -76,7 +78,10 @@ namespace RFIDSolution.Server.SignalRHubs
         /// </summary>
         public void Connect()
         {
-            Console.WriteLine("Connecting reader: " + _context.CONFIG.FirstOrDefault().READER_IP);
+            connecting = true;
+            _context.Entry(SysConfig).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+            SysConfig = _context.CONFIG.FirstOrDefault();
+            Console.WriteLine("Connecting reader: " + SysConfig.READER_IP);
             string ip = SysConfig.READER_IP;
             uint port = (uint)SysConfig.READER_PORT;
 
@@ -85,10 +90,8 @@ namespace RFIDSolution.Server.SignalRHubs
             triggerInfo.TagReportTrigger = 1;
             triggerInfo.ReportTriggers.Period = (uint)SysConfig.READER_PERIOD;
 
-            if (readerApi == null)
-            {
-                readerApi = new RFIDReader(ip, port, (uint)SysConfig.READER_TIMEOUT);
-            }
+            readerApi = null;
+            readerApi = new RFIDReader(ip, port, (uint)SysConfig.READER_TIMEOUT);
 
             if (!ReaderStatus.IsConnected)
             {
@@ -97,16 +100,21 @@ namespace RFIDSolution.Server.SignalRHubs
                     //Console.WriteLine("Connecting reader " + ip);
                     readerApi.Connect();
                     ReaderStatus.IsConnected = true;
+                    ReaderStatus.IsSuccess = true;
                     ReaderStatus.Message = "Reader connected at " + ip;
                     Console.WriteLine("Connected reader " + ip);
+                    connecting = false;
                 }
                 catch (Exception ex)
                 {
                     ReaderStatus.IsSuccess = false;
-                    ReaderStatus.Message = "Connected reader failed, error: "  + ex.InnerException?.Message;
+                    ReaderStatus.IsConnected = false;
+                    ReaderStatus.Message = "Reader connection failed, please try again!";
                     Console.WriteLine("Connected reader failed, error: " + ex.InnerException?.Message);
+                    connecting = false;
                     return;
                 }
+                connecting = false;
             }
             readerApi.Actions.PurgeTags();
             Antennas.Config antennaConfig = readerApi.Config.Antennas[1].GetConfig();
@@ -131,8 +139,22 @@ namespace RFIDSolution.Server.SignalRHubs
             readerApi.Events.StatusNotify += StatusChanged;
         }
 
+        public void ReConnect()
+        {
+            readerApi.Reconnect();
+        }
+
         private void StatusChanged(object sender, StatusEventArgs e)
         {
+            //Handle sự kiện reader bị mất kết nối
+            if (e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.CONNECTION_LOST)
+            {
+                //readerApi.ReaderStatus.IsConnected = false;
+                //readerApi.ReaderStatus.Message = "Reader connection lost!";
+                //Console.WriteLine("Reader connection lost");
+                //clientProxy.SendAsync("StatusChanged", ReaderStatus);
+            }
+
             OnStatusChanged.Invoke(e);
         }
 
@@ -142,9 +164,17 @@ namespace RFIDSolution.Server.SignalRHubs
             {
                 try
                 {
+                    Console.WriteLine("Disconnecting reader");
+                    if (ReaderStatus.IsInventoring)
+                    {
+                        readerApi.Actions.Inventory.Stop();
+                    }
                     readerApi.Disconnect();
+                    ReaderStatus.IsConnected = false;
+                    ReaderStatus.IsInventoring = false;
                     ReaderStatus.IsSuccess = true;
                     ReaderStatus.Message = "Reader disconnected";
+                    Console.WriteLine("Reader disconnected");
                 }
                 catch (Exception ex)
                 {
@@ -163,6 +193,8 @@ namespace RFIDSolution.Server.SignalRHubs
         {
             try
             {
+                if (readerApi == null) return;
+
                 if (!ReaderStatus.IsConnected)
                 {
                     readerApi.Actions.Inventory.Stop();
@@ -212,6 +244,5 @@ namespace RFIDSolution.Server.SignalRHubs
             //Console.WriteLine($"{tagResponse.EPCID} | {tagResponse.AntennaID} | {tagResponse.LastSeen}");
             OnTagRead.Invoke(tagResponse);
         }
-
     }
 }

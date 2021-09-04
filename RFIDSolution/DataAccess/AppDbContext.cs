@@ -25,9 +25,9 @@ namespace RFIDSolution.Shared.DAL
         public DbSet<AntennaEntity> ANTENNAS { get; set; }
 
         public DbSet<ProductEntity> PRODUCT { get; set; }
-        public DbSet<ProductInoutEntity> PRODUCT_IO { get; set; }
-        public DbSet<ProductInoutDetailEntity> PRODUCT_IO_DTL { get; set; }
-        public DbSet<ProductAlertEntity> PRODUCT_ALTER { get; set; }
+        public DbSet<TransferEntity> PRODUCT_TRANSFER { get; set; }
+        public DbSet<TransferDetailEntity> PRODUCT_TRANSFER_DTL { get; set; }
+        public DbSet<ProductAlertEntity> PRODUCT_ALERT { get; set; }
         public DbSet<ModelEntity> MODEL { get; set; }
         public DbSet<InventoryEntity> INVENTORY { get; set; }
         public DbSet<InventoryDetailEntity> INVENTORY_DTL { get; set; }
@@ -71,16 +71,16 @@ namespace RFIDSolution.Shared.DAL
                 .Property(x => x.PRODUCT_STATUS)
                 .HasComment("Trạng thái của giầy: 1 - Available; 2 - NotAvailable; 3 - OnHold");
 
-            builder.Entity<ProductInoutEntity>()
-               .Property(x => x.IO_STATUS)
+            builder.Entity<TransferEntity>()
+               .Property(x => x.TRANSFER_STATUS)
                .HasComment("Trạng thái của inout: 1 - chưa trả; 2 - đã trả");
 
-            builder.Entity<ProductInoutDetailEntity>()
-               .Property(x => x.IO_GET_STATUS)
+            builder.Entity<TransferDetailEntity>()
+               .Property(x => x.TRANSFER_STATUS)
                .HasComment("Trạng thái giầy lấy: 1 - Ok; 2 - không ok");
 
-            builder.Entity<ProductInoutDetailEntity>()
-               .Property(x => x.IO_RET_STATUS)
+            builder.Entity<TransferDetailEntity>()
+               .Property(x => x.RETURN_STATUS)
                .HasComment("Trạng thái giầy trả: 1 - Ok; 2 - không ok");
 
             builder.Entity<ProductAlertEntity>()

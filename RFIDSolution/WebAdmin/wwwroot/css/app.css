@@ -1,11 +1,19 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+aside{
+    position: fixed !important;
+}
+
 .table th {
     color: white;
     background-color: #0277bd;
 }
 
-.icon-xl{
+.bg-danger{
+    color: white !important;
+}
+
+.icon-xl {
     font-size: 148px !important;
 }
 
@@ -58,6 +66,10 @@ tr .active {
 .top-row {
     height: 3.5rem;
     background-color: rgba(0,0,0,0.4);
+    position: fixed !important;
+    top: 0 !important;
+    right: 0;
+    left: 250px;
 }
 
 .btn .oi{
@@ -435,8 +447,13 @@ input {
     background-color: #f4f5f8;
 }
 
+.main-content{
+    margin-top: 60px;
+    margin-left: 250px;
+}
+
 html, body {
-    background-color: #f1f1f1;
+    background-color: #f4f5f8;
 }
 
 .mud-main-content {

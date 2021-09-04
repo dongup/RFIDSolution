@@ -5,17 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Service\ProductService.cs" />
-    <Compile Remove="Service\RFIDReadService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Service\ProductService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\..\.editorconfig" Link=".editorconfig" />
-    <None Include="Service\RFIDReadService.cs" />
   </ItemGroup>
 
   <ItemGroup>

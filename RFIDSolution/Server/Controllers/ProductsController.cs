@@ -39,8 +39,8 @@ namespace RFIDSolution.Server.Controllers
                     DevStyleName = x.DEV_NAME,
                     EPC = x.EPC,
                     Location = x.PRODUCT_LOCATION,
-                    LR = (int)x.LR,
-                    LRStr = x.LR.ToStringVN(),
+                    LR = x.LR,
+                    LRStr = x.LR.GetDescription(),
                     ModelId = x.MODEL_ID,
                     ModelName = x.Model.MODEL_NAME,
                     POC = x.PRODUCT_POC,
@@ -73,8 +73,8 @@ namespace RFIDSolution.Server.Controllers
                     DevStyleName = x.DEV_NAME,
                     EPC = x.EPC,
                     Location = x.PRODUCT_LOCATION,
-                    LR = (int)x.LR,
-                    LRStr = x.LR.ToStringVN(),
+                    LR = x.LR,
+                    LRStr = x.LR.GetDescription(),
                     ModelId = x.MODEL_ID,
                     ModelName = x.Model.MODEL_NAME,
                     POC = x.PRODUCT_POC,
@@ -88,7 +88,7 @@ namespace RFIDSolution.Server.Controllers
                     Article = "",
                     ProductStatus = x.PRODUCT_STATUS
                 }).FirstOrDefault();
-
+            if (query == null) return rspns.NotFound("");
             return rspns.Succeed(query);
         }
 
@@ -107,8 +107,8 @@ namespace RFIDSolution.Server.Controllers
                     DevStyleName = x.DEV_NAME,
                     EPC = x.EPC,
                     Location = x.PRODUCT_LOCATION,
-                    LR = (int)x.LR,
-                    LRStr = x.LR.ToStringVN(),
+                    LR = x.LR,
+                    LRStr = x.LR.GetDescription(),
                     ModelId = x.MODEL_ID,
                     ModelName = x.Model.MODEL_NAME,
                     POC = x.PRODUCT_POC,
@@ -130,7 +130,13 @@ namespace RFIDSolution.Server.Controllers
         public async Task<ResponseModel<bool>> Post(ProductModel item)
         {
             var rspns = new ResponseModel<bool>();
-           
+         
+            //Nếu tag đã tồn tại thì không cho lưu
+            if(_context.PRODUCT.Any(x => x.EPC == item.EPC))
+            {
+                return rspns.Failed($"Shoe's EPC {item.EPC} is already exist!");
+            }
+
             var entity = new ProductEntity();
             entity.PRODUCT_CODE = item.SKU;
             entity.EPC = item.EPC;
