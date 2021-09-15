@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static RFIDSolution.Shared.Enums.AppEnums;
 
 namespace RFIDSolution.Shared.Models.ProductInout
 {
@@ -25,16 +26,20 @@ namespace RFIDSolution.Shared.Models.ProductInout
 
         public string ModelName { get; set; }
 
-        public DateTime TRANSFER_TIME { get; set; }
-
-        public DateTime RETURN_TIME { get; set; }
-
         public string TRANSFER_BY { get; set; }
-
-        public string RETURN_BY { get; set; }
 
         public string TRANSFER_NOTE { get; set; }
 
+        public DateTime TRANSFER_TIME { get; set; }
+
+        public InoutStatus STATUS { get; set; } = InoutStatus.Borrowing;
+
+        public string statusClass => STATUS == InoutStatus.Borrowing? "badge bg-danger" : "badge bg-success";
+
+        public string RETURN_BY { get; set; }
+
         public string RETURN_NOTE { get; set; }
+
+        public DateTime RETURN_TIME { get; set; }
     }
 }

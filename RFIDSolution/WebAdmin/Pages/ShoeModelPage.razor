@@ -141,7 +141,7 @@ else
             return;
         }
 
-        if (!await _dialog.Confirm("Are you sure you want to save changed?")) return;
+        if (!await _dialog.Confirm("Are you sure you want to save changes?")) return;
 
         var req = new ShoeModelRequest();
         req.Id = item.Id;

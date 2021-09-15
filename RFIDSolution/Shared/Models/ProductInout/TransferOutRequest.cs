@@ -20,6 +20,7 @@ namespace RFIDSolution.Shared.Models.ProductInout
             TRANSFER_BY = model.TRANSFER_BY;
             REF_DOC_NO = model.REF_DOC_NO;
             REF_DOC_DATE = model.REF_DOC_DATE;
+            TRANSFER_NOTE = model.NOTE;
         }
 
         public string TRANSFER_REASON { get; set; }
@@ -34,6 +35,8 @@ namespace RFIDSolution.Shared.Models.ProductInout
         public string REF_DOC_NO { get; set; }
 
         public string REF_DOC_DATE { get; set; }
+
+        public string TRANSFER_NOTE { get; set; }
 
         public List<ProductTransferRequest> Products { get; set; } = new List<ProductTransferRequest>();
     }

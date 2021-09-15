@@ -63,6 +63,7 @@ public class ShoeModelService : ShoeModelProto.ShoeModelProtoBase
         {
             var newItem = _context.MODEL.Find(item.Id);
             newItem.MODEL_NAME = item.Name;
+            newItem.UPDATED_DATE = DateTime.Now;
             await _context.SaveChangesAsync();
             rspns.IsSuccess = true;
         }

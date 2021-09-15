@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities;
 using RFIDSolution.Shared.Models;
@@ -26,25 +27,68 @@ namespace RFIDSolution.Server.Controllers
         {
             var rspns = new ResponseModel<PaginationResponse<TransferInoutModel>>();
 
-            var result = _context.PRODUCT_TRANSFER.Select(x => new TransferInoutModel() { 
-                TRANSFER_TO = x.TRANSFER_TO,
-                TRANSFER_REASON = x.TRANSFER_REASON,
-                TRANSFER_STATUS = x.TRANSFER_STATUS,
-                REF_DOC_DATE = x.REF_DOC_DATE.ToVNString(),
-                REF_DOC_NO = x.REF_DOC_NO,
-                RETURN_BY = x.RETURN_BY,
-                TRANSFER_BY = x.TRANSFER_BY,
-                TRANSFER_ID = x.TRANSFER_ID,
-                TIME_START = x.TIME_START,
-                TIME_END = x.TIME_END,
-                NOTE = x.NOTE
-            });
+            var result = _context.PRODUCT_TRANSFER
+                .OrderByDescending(x => x.TIME_START)
+                .Where(x => (string.IsNullOrEmpty(keyword) || x.TRANSFER_TO.Contains(keyword)))
+                .Select(x => new TransferInoutModel() { 
+                    TRANSFER_TO = x.TRANSFER_TO,
+                    TRANSFER_REASON = x.TRANSFER_REASON,
+                    TRANSFER_STATUS = x.TRANSFER_STATUS,
+                    REF_DOC_DATE = x.REF_DOC_DATE.ToVNString(),
+                    REF_DOC_NO = x.REF_DOC_NO,
+                    RETURN_BY = x.RETURN_BY,
+                    TRANSFER_BY = x.TRANSFER_BY,
+                    TRANSFER_ID = x.TRANSFER_ID,
+                    TIME_START = x.TIME_START,
+                    TIME_END = x.TIME_END,
+                    NOTE = x.NOTE
+                });
 
             return rspns.Succeed(new PaginationResponse<TransferInoutModel>(result, pageItem, pageIndex));
         }
 
+        [HttpGet("{id}")]
+        public async Task<ResponseModel<TransferInoutModel>> GetById(int id)
+        {
+            var rspns = new ResponseModel<TransferInoutModel>();
+
+            var result = _context.PRODUCT_TRANSFER
+                .OrderByDescending(x => x.TIME_START)
+                .Where(x => x.TRANSFER_ID == id)
+                .Select(x => new TransferInoutModel()
+                {
+                    TRANSFER_TO = x.TRANSFER_TO,
+                    TRANSFER_REASON = x.TRANSFER_REASON,
+                    TRANSFER_STATUS = x.TRANSFER_STATUS,
+                    REF_DOC_DATE = x.REF_DOC_DATE.ToVNString(),
+                    REF_DOC_NO = x.REF_DOC_NO,
+                    RETURN_BY = x.RETURN_BY,
+                    TRANSFER_BY = x.TRANSFER_BY,
+                    TRANSFER_ID = x.TRANSFER_ID,
+                    TIME_START = x.TIME_START,
+                    TIME_END = x.TIME_END,
+                    NOTE = x.NOTE,
+                    Products = x.TransferDetails.Select(a => new ProductTransferModel()
+                    {
+                        EPC = a.Product.EPC,
+                        ModelName = a.Product.Model.MODEL_NAME,
+                        ProductId = a.PRODUCT_ID,
+                        TRANSFER_BY = a.TRANSFER_BY,
+                        TRANSFER_NOTE = a.TRANSFER_NOTE,
+                        TRANSFER_TIME = a.TRANSFER_TIME,
+                        STATUS = a.STATUS,
+                        RETURN_BY = a.RETURN_BY,
+                        RETURN_NOTE = a.RETURN_NOTE,
+                        RETURN_TIME = a.RETURN_TIME,
+                        SKU = a.Product.PRODUCT_CODE,
+                    }).ToList()
+                }).FirstOrDefault();
+
+            return rspns.Succeed(result);
+        }
+
         [HttpGet("byProductId/{id}")]
-        public async Task<ResponseModel<TransferInoutModel>> Get(int id)
+        public async Task<ResponseModel<TransferInoutModel>> GetByProductId(int id)
         {
             var rspns = new ResponseModel<TransferInoutModel>();
 
@@ -69,13 +113,14 @@ namespace RFIDSolution.Server.Controllers
                        EPC = a.Product.EPC,
                        ModelName = a.Product.Model.MODEL_NAME,
                        ProductId = a.PRODUCT_ID,
+                       TRANSFER_BY = a.TRANSFER_BY,
+                       TRANSFER_NOTE = a.TRANSFER_NOTE,
+                       TRANSFER_TIME = a.TRANSFER_TIME,
+                       STATUS = a.STATUS,
                        RETURN_BY = a.RETURN_BY,
                        RETURN_NOTE = a.RETURN_NOTE,
                        RETURN_TIME = a.RETURN_TIME,
                        SKU = a.Product.PRODUCT_CODE,
-                       TRANSFER_BY = a.TRANSFER_BY,
-                       TRANSFER_NOTE = a.TRANSFER_NOTE,
-                       TRANSFER_TIME = a.TRANSFER_TIME
                     }).ToList()
                 }).FirstOrDefault();
 
@@ -83,7 +128,6 @@ namespace RFIDSolution.Server.Controllers
             //Trả kết quả về
             return rspns.Succeed(result);
         }
-
 
         [HttpGet("reasons")]
         public ResponseModel<List<string>> GetReasons()
@@ -129,6 +173,7 @@ namespace RFIDSolution.Server.Controllers
             newTransfer.REF_DOC_DATE = value.REF_DOC_DATE.ToDateTime();
             newTransfer.REF_DOC_NO = value.REF_DOC_NO;
             newTransfer.CREATED_DATE = DateTime.Now;
+            newTransfer.TRANSFER_NOTE = value.REF_DOC_NO;
             _context.PRODUCT_TRANSFER.Add(newTransfer);
             _context.SaveChanges();
 
@@ -147,7 +192,7 @@ namespace RFIDSolution.Server.Controllers
             //Đổi trạng thái của các item được transfer sau khi đã lưu dữ liệu thành công
             foreach (var prod in products)
             {
-                prod.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.NotAvailable;
+                prod.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.Transfered;
             }
             await _context.SaveChangesAsync();
 
@@ -174,17 +219,34 @@ namespace RFIDSolution.Server.Controllers
 
             foreach (var prod in products)
             {
-                //Tìm transfer detail mới nhất của các product được scan
-                var transferDetail = _context.PRODUCT_TRANSFER_DTL.Where(x => x.PRODUCT_ID == prod.PRODUCT_ID).OrderByDescending(x => x.TRANSFER_TIME);
+                //Tìm transfer detail mới nhất của product được scan
+                var transferDetail = _context.PRODUCT_TRANSFER_DTL.Where(x => x.PRODUCT_ID == prod.PRODUCT_ID).OrderByDescending(x => x.TRANSFER_TIME).FirstOrDefault();
 
                 //Đổi trạng thái và cập nhập thông tin 
+                transferDetail.STATUS = Shared.Enums.AppEnums.InoutStatus.Returned;
+                transferDetail.RETURN_NOTE = prod.NOTE;
+                transferDetail.RETURN_TIME = DateTime.Now;
+                transferDetail.RETURN_BY = value.RETURN_BY;
 
-                //Tìm lần inout của những inout detail tìm được
+                //Tìm lần transfer của transfer detail tìm được
+                var transfer = _context.PRODUCT_TRANSFER
+                    .Include(x => x.TransferDetails)
+                    .Where(x => x.TRANSFER_ID == transferDetail.TRANSFER_ID).FirstOrDefault();
 
                 //Đếm số lượng giày đã trả, nếu đã trả hết thì đổi trạng thái của lần inout và cập nhập thông tin
+                var okShoe = transfer.TransferDetails
+                    .Where(x => x.STATUS == Shared.Enums.AppEnums.InoutStatus.Returned).Count();
+                if(okShoe == transfer.TransferDetails.Count)
+                {
+                    transfer.TRANSFER_STATUS = Shared.Enums.AppEnums.InoutStatus.Returned;
+                    transfer.RETURN_NOTE += "\r\n" + value.RETURN_NOTE;
+                    transfer.RETURN_BY = string.Join(", ", transfer.TransferDetails.Select(x => x.RETURN_BY).Distinct());
+                    transfer.TIME_END = DateTime.Now;
+                }
 
                 //Đổi trạng thái của các item được transfer sau khi đã lưu dữ liệu thành công
                 prod.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.Available;
+                Console.WriteLine("Returned shoe: " + prod.EPC);
             }
             await _context.SaveChangesAsync();
 

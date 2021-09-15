@@ -192,5 +192,6 @@ namespace RFIDSolution.Shared.DAL
             foreach (var entry in changedEntriesCopy)
                 entry.State = EntityState.Detached;
         }
+
     }
 }

@@ -49,7 +49,7 @@ else
                                 <td>@item.EPC</td>
                                 <td>@item.SKU</td>
                                 <td>
-                                    @item.ProductStatus.GetDescription()
+                                    <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
                                 </td>
                                 <td>@item.Location</td>
                                 <td>@item.Season</td>

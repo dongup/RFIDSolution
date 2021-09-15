@@ -1,0 +1,44 @@
+﻿<span class="@GetStatusClass()">
+    @ChildContent
+</span>
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool Info { get; set; }
+
+    [Parameter]
+    public bool Success { get; set; }
+
+    [Parameter]
+    public bool Warning { get; set; }
+
+    [Parameter]
+    public bool Error { get; set; }
+
+    [Parameter]
+    public bool Default { get; set; } = true;
+
+    public string GetStatusClass()
+    {
+        string statusClass = "badge ";
+        if (Error)
+        {
+            statusClass += "bg-danger";
+        }
+        else if (Warning)
+        {
+            statusClass += "bg-warning";
+        }
+        else if (Success)
+        {
+            statusClass += "bg-success";
+        }
+        else if (Info)
+        {
+            statusClass += "bg-primary";
+        }
+        return statusClass;
+    }
+}

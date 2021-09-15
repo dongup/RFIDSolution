@@ -1,0 +1,8 @@
+﻿<StatusBadge Warning="Status == InoutStatus.Borrowing"
+             Success="Status == InoutStatus.Returned">
+    @Status.GetDescription()
+</StatusBadge>
+@code {
+    [Parameter]
+    public InoutStatus Status { get; set; }
+}

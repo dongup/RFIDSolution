@@ -18,7 +18,7 @@
 else
 {
     <div class="m-2 bg-white">
-        <div>
+        <div> 
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
@@ -41,23 +41,92 @@ else
                         int count = 1;
                         @foreach (var item in transfers)
                         {
-                            <tr>
-                                <td>@item.TRANSFER_ID</td>
-                                <td>@item.TIME_START.ToVNString()</td>
-                                <td>@item.TRANSFER_REASON</td>
-                                <td>@item.TRANSFER_TO</td>
-                                <td>@item.TRANSFER_BY</td>
-                                <td>
-                                    <span class="@item.statusClass">
-                                        @item.TRANSFER_STATUS.GetDescription()
-                                    </span>
-                                </td>
-                                <td>@item.TIME_END</td>
-                                <td>@item.RETURN_BY</td>
-                                <td>@item.REF_DOC_NO</td>
-                                <td>@item.REF_DOC_DATE</td>
-                                <td>@item.NOTE</td>
-                            </tr>
+                            <SelectableRow @bind-Selected="item.showDetail" OnClick="async () => { await loadItemDetail(item); }">
+                                <MyTd>@item.TRANSFER_ID</MyTd>
+                                <MyTd>@item.TIME_START.ToVNString()</MyTd>
+                                <MyTd>@item.TRANSFER_REASON</MyTd>
+                                <MyTd>@item.TRANSFER_TO</MyTd>
+                                <MyTd>@item.TRANSFER_BY</MyTd>
+                                <MyTd>
+                                    <TransferStatusBadge Status="item.TRANSFER_STATUS"></TransferStatusBadge>
+                                </MyTd>
+                                <MyTd>@item.TIME_END</MyTd>
+                                <MyTd>@item.RETURN_BY</MyTd>
+                                <MyTd>@item.REF_DOC_NO</MyTd>
+                                <MyTd>@item.REF_DOC_DATE</MyTd>
+                                <MyTd>@item.NOTE</MyTd>
+                            </SelectableRow>
+                            <TableRowDetail Show="item.showDetail">
+                                <div class="card">
+                                    <!--Hiển thị thông tin mượn trả và danh sách giầy đã mượn trả-->
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <!--Thông tin mượn trả-->
+                                            <div class="col-md-3">
+                                                <ListItem Title="Transfer reason" Bordered="false" LeftToRight="false">@item.TRANSFER_REASON</ListItem>
+                                                <ListItem Title="Transfer date" Bordered="false" LeftToRight="false">@item.TIME_START</ListItem>
+                                                <ListItem Title="Time ago" Bordered="false" LeftToRight="false">@item.TIME_START.TimeAgo()</ListItem>
+                                                <ListItem Title="Transfer to" Bordered="false" LeftToRight="false">@item.TRANSFER_TO</ListItem>
+                                                <ListItem Title="Transfer by" Bordered="false" LeftToRight="false">@item.TRANSFER_BY</ListItem>
+                                                <ListItem Title="Status" Bordered="false" LeftToRight="false"><TransferStatusBadge Status="item.TRANSFER_STATUS"></TransferStatusBadge></ListItem>
+                                                <ListItem Title="Document No" Bordered="false" LeftToRight="false">@item.REF_DOC_NO</ListItem>
+                                                <ListItem Title="Document date" Bordered="false" LeftToRight="false">@item.REF_DOC_DATE</ListItem>
+                                                <ListItem Title="Transfer note" Bordered="false" LeftToRight="false">@item.TRANSFER_NOTE</ListItem>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <ListItem Title="Return date" Bordered="false" LeftToRight="false">@item.TIME_END</ListItem>
+                                                <ListItem Title="Return by" Bordered="false" LeftToRight="false">@item.RETURN_BY</ListItem>
+                                                <ListItem Title="Total time"  Bordered="false" LeftToRight="false">@item.totalTransferTime</ListItem>
+                                                <ListItem Title="Return note" Bordered="false" LeftToRight="false">@item.RETURN_NOTE</ListItem>
+                                            </div>
+
+                                            <!--Thông tin giày đã mượn/trả-->
+                                            <div class="col-md-6">
+                                                <label>All shoe transfered</label>
+                                                <table class="table table-bordered table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>EPC</th>
+                                                            <th>SKU</th>
+                                                            <th>MODEL</th>
+                                                            <th>STATUS</th>
+                                                            <th>TRANSFER NOTE</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (item.Products.Count > 0)
+                                                        {
+                                                            int count = 1;
+                                                            @foreach (var item in item.Products)
+                                                            {
+                                                                <tr class="hand">
+                                                                    <td>@item.EPC</td>
+                                                                    <td>@item.SKU</td>
+                                                                    <td>@item.ModelName</td>
+                                                                    <td>
+                                                                        <span class="@item.statusClass">
+                                                                            @item.STATUS.GetDescription()
+                                                                        </span>
+                                                                    </td>
+                                                                    <td>@item.TRANSFER_NOTE</td>
+                                                                </tr>
+                                                                count++;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <NoData></NoData>
+                                                        }
+                                                    </tbody>
+                                                    <tfoot></tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableRowDetail>
                             count++;
                         }
                     }
@@ -93,6 +162,23 @@ else
     {
         MainLayout.Instance.PageTitle = "Transfer history";
         await loadData();
+    }
+
+    private async Task loadItemDetail(TransferInoutModel item)
+    {
+        //reply = await productService.GetAsync(filter);
+        if (!item.showDetail) return;
+        Console.WriteLine("loading detail");
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<TransferInoutModel>>($"{baseUrl}/{item.TRANSFER_ID}");
+        if (rspns.IsSucceed)
+        {
+            item.Products = rspns.Result.Products;
+            StateHasChanged();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
     }
 
     private async Task loadData()

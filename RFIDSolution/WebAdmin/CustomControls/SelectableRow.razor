@@ -1,0 +1,23 @@
+﻿<tr class='@(Selected? "bg-success hand" : "hand")' @onclick="async () => await onRowClicked()">
+    @ChildContent
+</tr>
+@code {
+    [Parameter]
+    public bool Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> SelectedChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    public async Task onRowClicked()
+    {
+        Selected = !Selected;
+        await SelectedChanged.InvokeAsync(Selected);
+        await OnClick.InvokeAsync();
+    }
+}

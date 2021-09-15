@@ -20,5 +20,7 @@ namespace RFIDSolution.Shared.Models.Shared
         public string Message { get; set; }
 
         public bool IsSuccess { get; set; } = false;
+
+        public List<AntenaModel> AvaiableAntennas { get; set; } = new List<AntenaModel>();
     }
 }

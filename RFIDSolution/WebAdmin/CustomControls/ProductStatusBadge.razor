@@ -1,0 +1,10 @@
+﻿<StatusBadge Success="ProductStatus == ProductStatus.Available"
+             Warning="ProductStatus == ProductStatus.Transfered"
+             Error="ProductStatus == ProductStatus.Unavailable || ProductStatus == ProductStatus.Unknown">
+    @ProductStatus.GetDescription()
+</StatusBadge>
+
+@code {
+    [Parameter]
+    public ProductStatus ProductStatus { get; set; }
+}

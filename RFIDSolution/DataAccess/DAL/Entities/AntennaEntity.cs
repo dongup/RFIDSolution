@@ -25,7 +25,7 @@ namespace RFIDSolution.DataAccess.DAL.Entities
         /// <summary>
         /// Id của anten trên đầu đọc
         /// </summary>
-        public string ANTENNA_ID { get; set; }
+        public int ANTENNA_ID { get; set; }
 
         /// <summary>
         /// Tên anten do người dùng đặt
@@ -35,7 +35,7 @@ namespace RFIDSolution.DataAccess.DAL.Entities
         /// <summary>
         /// Vị trí đặt anten do người dùng config
         /// </summary>
-        public AntennaLoction LOCATION { get; set; } = AntennaLoction.Table;
+        public AntennaLocation LOCATION { get; set; } = AntennaLocation.Table;
 
         /// <summary>
         /// Cường độ của anten

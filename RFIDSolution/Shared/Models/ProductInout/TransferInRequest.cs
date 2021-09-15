@@ -13,10 +13,15 @@ namespace RFIDSolution.Shared.Models.ProductInout
 
         }
 
-        public TransferInRequest(TransferInoutModel model)
+        public TransferInRequest(TransferInoutModel model, List<ProductModel> products)
         {
-            RETURN_NOTE = model.NOTE;
+            RETURN_NOTE = model.RETURN_NOTE;
             RETURN_BY = model.RETURN_BY;
+            this.Products = products.Select(x => new ProductTransferModel()
+            {
+                ProductId = x.ID,
+                RETURN_NOTE = x.Note,
+            }).ToList();
         }
 
         /// <summary>

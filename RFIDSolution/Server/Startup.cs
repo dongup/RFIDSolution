@@ -156,29 +156,26 @@ namespace RFIDSolution.Server
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     new[] { "application/octet-stream" });
             });
-
-            //Kết nối reader ngay khi mở api
-            Task.Run(() => { 
-                var context = services.BuildServiceProvider()
-                           .GetService<AppDbContext>();
-                Program.Reader = new ReaderHepler(context);
-                Program.Reader.Connect();
-                //Hàm handle sự kiện khi có tag không hợp lệ đi qua cổng
-                Program.Reader.OnTagRead += (tag) =>
-                {
-                    //Check tag và thêm vào database
-                    //Console.WriteLine($"[{DateTime.Now.Ticks}] Read data from gate");
-                };
-                if (Program.Reader.ReaderStatus.IsConnected)
-                {
-                    _ = Program.Reader.StartInventory();
-                }
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppDbContext context)
         {
+            //Kết nối reader ngay khi mở api
+            System.Console.WriteLine("Connecting reader...");
+            Program.Reader = new ReaderHepler(context);
+            Program.Reader.Connect();
+            //Hàm handle sự kiện khi có tag không hợp lệ đi qua cổng
+            Program.Reader.OnTagRead += (tag) =>
+            {
+                //Check tag invalid và thêm vào database
+                //Console.WriteLine($"[{DateTime.Now.Ticks}] Read data from gate");
+            };
+            if (Program.Reader.ReaderStatus.IsConnected)
+            {
+                _ = Program.Reader.StartInventory();
+            }
+
             app.UseResponseCompression();
             app.Use((context, next) =>
             {

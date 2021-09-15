@@ -23,12 +23,15 @@ namespace RFIDSolution.Shared.Enums
             //Đang trong kho
             [Description("Available")]
             Available = 1,
-            //Đã cho mượn
-            [Description("Not Available")]
-            NotAvailable = 2,
+            //Đã đem ra ngoài
+            [Description("Transfered out")]
+            Transfered = 2,
             //Không được phép mượn
-            [Description("On Hold")]
-            OnHold = 3
+            [Description("Unavailable")]
+            Unavailable = 3,
+            //Tag chưa được mapping
+            [Description("Unknown")]
+            Unknown = 4
         }
 
         /// <summary>
@@ -82,10 +85,20 @@ namespace RFIDSolution.Shared.Enums
             Center
         }
 
-        public enum AntennaLoction
+        public enum AntennaLocation
         {
             Table = 1,
             CheckPoint = 2
+        }
+
+        public enum AntennaStatus
+        {
+            [Description("Connected")]
+            Connected = 1,
+            [Description("Disconnected")]
+            Disconnected = 2,
+            [Description("Unknown")]
+            Unknown = 3
         }
 
         public enum GPIPortStatus

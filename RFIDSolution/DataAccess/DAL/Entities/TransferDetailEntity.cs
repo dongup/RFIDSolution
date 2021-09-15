@@ -44,6 +44,8 @@ namespace RFIDSolution.Shared.DAL.Entities
         [StringLength(400)]
         public string RETURN_NOTE { get; set; }
 
+        public InoutStatus STATUS { get; set; } = InoutStatus.Borrowing;
+
         public GetStatus TRANSFER_STATUS { get; set; }
 
         public GetStatus RETURN_STATUS { get; set; }

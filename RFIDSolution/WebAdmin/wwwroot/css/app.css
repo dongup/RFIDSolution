@@ -275,12 +275,12 @@ table{
     color: white !important;
 }
 
-.bg-info b {
-    color: white !important;
+.bg-info {
+    color: black !important;
 }
 
 .bg-warning {
-    color: white !important;
+    color: black !important;
 }
 
 .waste-panel {

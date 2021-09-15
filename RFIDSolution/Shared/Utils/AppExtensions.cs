@@ -13,6 +13,7 @@ namespace RFIDSolution.Shared.Utils
 {
     public static class AppExtensions
     {
+        #region Extension sử lý chuỗi string
         public static string GetDescription<T>(this T enumerationValue)
     where T : struct
         {
@@ -132,6 +133,18 @@ namespace RFIDSolution.Shared.Utils
             }
         }
 
+        public static string JustifyBarCode(this string code)
+        {
+            return code.Replace("\"", "");
+        }
+
+        public static string RemoveTrail(this decimal d)
+        {
+            return d.ToString("G29");
+        }
+        #endregion 
+
+        #region DateTime Extensions
         private static CultureInfo vnCuture = new CultureInfo("vi-VN");
 
         public static string TimeAgo(this DateTime dateTime)
@@ -169,6 +182,72 @@ namespace RFIDSolution.Shared.Utils
             {
                 result = timeSpan.Days > 365 ?
                     string.Format("Khoảng {0} năm trước", timeSpan.Days / 365) : "Khoảng 1 năm trước";
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Convert time span qua chuỗi, thiếu đa ngôn ngữ
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        /// <returns></returns>
+        public static string ToTimeString(this TimeSpan timeSpan)
+        {
+            string result = "";
+
+            //Nếu bé hơn 1 phút thì chỉ hiển thị số giây
+            if (timeSpan <= TimeSpan.FromSeconds(60))
+            {
+                result = string.Format("{0} giây", timeSpan.Seconds);
+            }
+            //Nếu bé hơn 1 giờ thì hiển thị thêm phút
+            else if (timeSpan <= TimeSpan.FromMinutes(60))
+            {
+                result = string.Format("{0} phút {1} giây", timeSpan.Minutes, timeSpan.Seconds);
+            }
+            //Nếu bé hơn 1 ngày thì hiển thị thêm giờ
+            else if (timeSpan <= TimeSpan.FromHours(24))
+            {
+                result = string.Format("{0} giờ {1} phút {2} giây", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
+            }
+            //Còn lại thì hiển thị thêm ngày
+            else
+            {
+                result = string.Format("{0} ngày {1} giờ {2} phút {3} giây", timeSpan.Days, timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Convert time span qua chuỗi gắn gọn hơn, thiếu đa ngôn ngữ
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        /// <returns></returns>
+        public static string ToShortTimeString(this TimeSpan timeSpan)
+        {
+            string result = "";
+
+            //Nếu bé hơn 1 phút thì chỉ hiển thị số giây
+            if (timeSpan <= TimeSpan.FromSeconds(60))
+            {
+                result = string.Format("{0} giây", timeSpan.Seconds);
+            }
+            //Nếu bé hơn 1 giờ thì hiển thị thêm phút
+            else if (timeSpan <= TimeSpan.FromMinutes(60))
+            {
+                result = string.Format("{0} phút {1} giây", timeSpan.Minutes, timeSpan.Seconds);
+            }
+            //Nếu bé hơn 1 ngày thì hiển thị thêm giờ
+            else if (timeSpan <= TimeSpan.FromHours(24))
+            {
+                result = string.Format("{0} giờ {1} phút", timeSpan.Hours, timeSpan.Minutes);
+            }
+            //Còn lại thì hiển thị thêm ngày
+            else
+            {
+                result = string.Format("{0} ngày {1} giờ", timeSpan.Days, timeSpan.Hours);
             }
 
             return result;
@@ -241,7 +320,6 @@ namespace RFIDSolution.Shared.Utils
             return localTime.ToString("HH:mm dd/MM/yyyy");
         }
 
-
         /// <summary>
         /// Convert ticks qua string
         /// </summary>
@@ -312,6 +390,69 @@ namespace RFIDSolution.Shared.Utils
             return dt.AddDays(-1 * diff).Date;
         }
 
+        /// <summary>
+        /// Convert datetime qua kiểu sql (cả giờ + ngày) để truyền tham số vào store
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public static string ToSqlString(this DateTime date)
+        {
+            return date.ToString("yyyy-MM-dd HH:mm");
+        }
+
+        /// <summary>
+        /// Convert datetime qua kiểu sql (chỉ lấy ngày) để truyền tham số vào store
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public static string ToSqlDateString(this DateTime date)
+        {
+            return date.ToString("yyyy-MM-dd");
+        }
+
+        /// <summary>
+        /// Convert datetime qua string định đạng Việt Nam (HH:mm dd/MM/yyyy)
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public static string ToVNString(this DateTime date)
+        {
+            return date.ToString("HH:mm dd/MM/yyyy");
+        }
+
+        /// <summary>
+        /// Convert datetime qua string định đạng Việt Nam (HH:mm dd/MM/yyyy)
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public static string ToVNString(this DateTime? date)
+        {
+            if (date == null) return "";
+            return ((DateTime)date).ToString("HH:mm dd/MM/yyyy");
+        }
+
+        /// <summary>
+        /// Convert datetime qua string định đạng Việt Nam (dd/MM/yyyy)
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public static string ToShortVNString(this DateTime date)
+        {
+            return date.ToString("dd/MM/yyyy");
+        }
+
+        /// <summary>
+        /// Convert datetime qua string định đạng Việt Nam (dd/MM/yyyy)
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public static string ToShortVNString(this DateTime? date)
+        {
+            return date?.ToString("dd/MM/yyyy");
+        }
+        #endregion
+
+        #region Data Extensions
         public static bool Beetween(this DateTime date, string fromDate, string toDate)
         {
             if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(toDate))
@@ -379,46 +520,6 @@ namespace RFIDSolution.Shared.Utils
 
             return src;
         }
-
-        public static string ToSqlString(this DateTime date)
-        {
-            return date.ToString("yyyy-MM-dd HH:mm");
-        }
-
-        public static string ToSqlDateString(this DateTime date)
-        {
-            return date.ToString("yyyy-MM-dd");
-        }
-
-        public static string ToVNString(this DateTime date)
-        {
-            return date.ToString("HH:mm dd/MM/yyyy");
-        }
-
-        public static string ToShortVNString(this DateTime date)
-        {
-            return date.ToString("dd/MM/yyyy");
-        }
-
-        public static string ToShortVNString(this DateTime? date)
-        {
-            return date?.ToString("dd/MM/yyyy");
-        }
-
-        public static string ToVNString(this DateTime? date)
-        {
-            if (date == null) return "";
-            return ((DateTime)date).ToString("HH:mm dd/MM/yyyy");
-        }
-
-        public static string JustifyBarCode(this string code)
-        {
-            return code.Replace("\"", "");
-        }
-
-        public static string RemoveTrail(this decimal d)
-        {
-            return d.ToString("G29");
-        }
+        #endregion
     }
 }

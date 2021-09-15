@@ -1,4 +1,5 @@
 ﻿using RFIDSolution.Shared.Models.ProductInout;
+using RFIDSolution.Shared.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -49,6 +50,10 @@ namespace RFIDSolution.Shared.Models
         public string RETURN_NOTE { get; set; }
 
         public string NOTE { get; set; }
+
+        public bool showDetail;
+
+        public string totalTransferTime => TRANSFER_STATUS == InoutStatus.Returned? ((DateTime)TIME_END - TIME_START).ToShortTimeString() : "";
 
         //Danh sách sản phẩm đã transfer trong lần transfer này
         public List<ProductTransferModel> Products { get; set; } = new List<ProductTransferModel>();

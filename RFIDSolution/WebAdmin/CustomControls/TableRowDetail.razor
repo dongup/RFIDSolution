@@ -1,0 +1,15 @@
+﻿@if (Show)
+{
+    <tr>
+        <td colspan="1000" class="p-0">
+            @ChildContent
+        </td>
+    </tr>
+}
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool Show { get; set; }
+}

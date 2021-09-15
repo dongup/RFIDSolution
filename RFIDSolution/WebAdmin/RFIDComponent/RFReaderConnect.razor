@@ -47,6 +47,7 @@
 
     private async Task ReceiveTag(RFTagResponse tag)
     {
+        Console.WriteLine("Tag received: " + tag.EPCID);
         await OnRead.InvokeAsync(tag);
     }
 

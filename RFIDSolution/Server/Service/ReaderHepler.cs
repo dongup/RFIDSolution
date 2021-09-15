@@ -12,7 +12,7 @@ namespace RFIDSolution.Server.SignalRHubs
 {
     public class ReaderHepler
     {
-        private AppDbContext _context;
+        public AppDbContext _context;
         public ConfigurationEntity SysConfig = new ConfigurationEntity();
         public RFIDReader readerApi;
         public ReadNotifyHandler readNotify;
@@ -21,6 +21,10 @@ namespace RFIDSolution.Server.SignalRHubs
         private static TriggerInfo triggerInfo = new TriggerInfo();
         public ReaderStatusModel ReaderStatus = new ReaderStatusModel();
         public bool connecting = false;
+
+        public List<int> TransmitPowerValues = new List<int>();
+        public List<AntenaModel> AvailableAntennas = new List<AntenaModel>();
+
 
         //Handler sự kiện đọc tag
         public delegate void TagReadHandler(RFTagResponse tag);
@@ -47,6 +51,7 @@ namespace RFIDSolution.Server.SignalRHubs
         /// <returns></returns>
         public async Task StartInventory()
         {
+            Console.WriteLine("Starting inventory process...");
             //Chờ tới khi stop xong mới start cái mới
             while (ReaderStatus.IsInventoring) { }
             if (!ReaderStatus.IsConnected || readerApi == null)
@@ -117,9 +122,13 @@ namespace RFIDSolution.Server.SignalRHubs
                 connecting = false;
             }
             readerApi.Actions.PurgeTags();
-            Antennas.Config antennaConfig = readerApi.Config.Antennas[1].GetConfig();
-            antennaConfig.TransmitPowerIndex = 132;
-            readerApi.Config.Antennas[1].SetConfig(antennaConfig);
+
+            readerApi.Events.NotifyAntennaEvent = true;
+            readerApi.Events.NotifyReaderDisconnectEvent = true;
+            readerApi.Events.NotifyReaderExceptionEvent = true;
+
+            CheckAntennaStatus();
+          
 
             if (readerApi.ReaderCapabilities.IsTagEventReportingSupported)
             {
@@ -144,16 +153,64 @@ namespace RFIDSolution.Server.SignalRHubs
             readerApi.Reconnect();
         }
 
+        public void CheckAntennaStatus()
+        {
+            //Lay thong so power
+            TransmitPowerValues = readerApi.ReaderCapabilities.TransmitPowerLevelValues.ToList();
+
+            //Lấy thông tin config antenna đã lưu
+            var savedAntennas = _context.ANTENNAS;
+
+            //Lấy thông tin anntena
+            int antenCount = readerApi.Config.Antennas.AvailableAntennas.Length;
+            AvailableAntennas.Clear();
+            for (int antenIndex = 1; antenIndex <= antenCount; antenIndex++)
+            {
+                AntenaModel antena = new AntenaModel();
+                var antennaInfor = readerApi.Config.Antennas[antenIndex];
+                antena.ANTENNA_ID = antennaInfor.Index;
+                antena.ANTENNA_STATUS = antennaInfor.GetPhysicalProperties().IsConnected ? Shared.Enums.AppEnums.AntennaStatus.Connected : Shared.Enums.AppEnums.AntennaStatus.Disconnected;
+
+                //Tìm thông tin config của id antena đã lưu và set config cho reader
+                var savedAntenna = savedAntennas.Find(antena.ANTENNA_ID);
+                if(savedAntenna != null)
+                {
+                    Antennas.Config antennaConfig = antennaInfor.GetConfig();
+                    int powerIndex = TransmitPowerValues.IndexOf(savedAntenna.ANTENNA_POWER);
+                    //Console.WriteLine("Power: " + savedAntenna.ANTENNA_POWER);
+                    if(powerIndex != -1)
+                    {
+                        //Console.WriteLine("Power found");
+                        antennaConfig.TransmitPowerIndex = (ushort)powerIndex;
+                        antennaInfor.SetConfig(antennaConfig);
+                    }
+                    //Nếu không tìm thấy power index thì set power cao nhất có thể và update lại config cho hợp lệ
+                    else
+                    {
+                        //Console.WriteLine("Power not found");
+                        antennaConfig.TransmitPowerIndex = (ushort)(TransmitPowerValues.Count - 1);
+                        antennaInfor.SetConfig(antennaConfig);
+                        savedAntenna.ANTENNA_POWER = TransmitPowerValues[antennaConfig.TransmitPowerIndex];
+                        _context.SaveChanges();
+                    }
+                }
+                else
+                {
+                    antena.ANTENNA_STATUS = Shared.Enums.AppEnums.AntennaStatus.Unknown;
+                }
+                AvailableAntennas.Add(antena);
+            }
+        }
+
         private void StatusChanged(object sender, StatusEventArgs e)
         {
             //Handle sự kiện reader bị mất kết nối
-            if (e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.CONNECTION_LOST)
-            {
-                //readerApi.ReaderStatus.IsConnected = false;
-                //readerApi.ReaderStatus.Message = "Reader connection lost!";
-                //Console.WriteLine("Reader connection lost");
-                //clientProxy.SendAsync("StatusChanged", ReaderStatus);
-            }
+            //if (e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.CONNECTION_LOST)
+            //{
+            //    ReaderStatus.IsConnected = false;
+            //    ReaderStatus.Message = "Reader connection lost!";
+            //    Console.WriteLine("Reader connection lost");
+            //}
 
             OnStatusChanged.Invoke(e);
         }
@@ -203,7 +260,7 @@ namespace RFIDSolution.Server.SignalRHubs
                 }
 
                 //TagData tagEvent = e.ReadEventData.TagData;
-                //sendTag(tagEvent);
+                //await sendTag(tagEvent);
 
                 TagData[] tagData = readerApi.Actions.GetReadTags(1000);
                 if (tagData == null) return;
