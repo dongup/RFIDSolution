@@ -167,7 +167,7 @@
                                 <div class="col-md-6">
                                     <ListItem Title="EPC" Bordered="false">@sledProduct.EPC</ListItem>
                                     <ListItem Title="SKU" Bordered="false">@sledProduct.SKU</ListItem>
-                                    <ListItem Title="Model" Bordered="false">@sledProduct.SKU</ListItem>
+                                    <ListItem Title="Model" Bordered="false">@sledProduct.ModelName</ListItem>
                                     <ListItem Title="Shoe status" Bordered="false">
                                         <span class="@sledProduct.StatusColor">
                                             @sledProduct.ProductStatus.GetDescription()
@@ -176,17 +176,17 @@
                                     <ListItem Title="L/R" Bordered="false">
                                         @sledProduct.LR.GetDescription()
                                     </ListItem>
-                                    <ListItem Title="Location" Bordered="false">@sledProduct.LR.GetDescription()</ListItem>
+                                    <ListItem Title="Location" Bordered="false">@sledProduct.Location</ListItem>
                                     <ListItem Title="Season" Bordered="false">@sledProduct.Location</ListItem>
                                 </div>
                                 <div class="col-md-6">
                                     <ListItem Title="Stage" Bordered="false">@sledProduct.Season</ListItem>
-                                    <ListItem Title="Dev style number" Bordered="false">@sledProduct.Season</ListItem>
-                                    <ListItem Title="Color way" Bordered="false">@sledProduct.Stage</ListItem>
-                                    <ListItem Title="Size" Bordered="false">@sledProduct.Season</ListItem>
-                                    <ListItem Title="Category" Bordered="false">@sledProduct.ColorWay</ListItem>
-                                    <ListItem Title="POC" Bordered="false">@sledProduct.Category</ListItem>
-                                    <ListItem Title="Remarks" Bordered="false">@sledProduct.Size</ListItem>
+                                    <ListItem Title="Dev style number" Bordered="false">@sledProduct.DevStyleName</ListItem>
+                                    <ListItem Title="Color way" Bordered="false">@sledProduct.ColorWay</ListItem>
+                                    <ListItem Title="Size" Bordered="false">@sledProduct.Size</ListItem>
+                                    <ListItem Title="Category" Bordered="false">@sledProduct.Category</ListItem>
+                                    <ListItem Title="POC" Bordered="false">@sledProduct.POC</ListItem>
+                                    <ListItem Title="Remarks" Bordered="false">@sledProduct.Remarks</ListItem>
                                 </div>
                                 <!--Ghi chú-->
                                 <div class="col-md-12">

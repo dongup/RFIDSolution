@@ -1,4 +1,5 @@
-﻿using RFIDSolution.Shared.DAL;
+﻿using RFIDSolution.DataAccess.DAL.Entities;
+using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Shared;
 using RFIDSolution.Shared.Models.Shared;
 using Symbol.RFID3;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static RFIDSolution.Shared.Enums.AppEnums;
 using static Symbol.RFID3.Events;
 
 namespace RFIDSolution.Server.SignalRHubs
@@ -107,6 +109,8 @@ namespace RFIDSolution.Server.SignalRHubs
                     ReaderStatus.IsConnected = true;
                     ReaderStatus.IsSuccess = true;
                     ReaderStatus.Message = "Reader connected at " + ip;
+
+                    logReaderEvent("Reader connected at " + ip, RdrLog.Connect);
                     Console.WriteLine("Connected reader " + ip);
                     connecting = false;
                 }
@@ -116,6 +120,7 @@ namespace RFIDSolution.Server.SignalRHubs
                     ReaderStatus.IsConnected = false;
                     ReaderStatus.Message = "Reader connection failed, please try again!";
                     Console.WriteLine("Connected reader failed, error: " + ex.InnerException?.Message);
+                    logReaderEvent("Reader connect failed", RdrLog.Error);
                     connecting = false;
                     return;
                 }
@@ -155,6 +160,8 @@ namespace RFIDSolution.Server.SignalRHubs
 
         public void CheckAntennaStatus()
         {
+            AvailableAntennas.Clear();
+            if (!ReaderStatus.IsConnected) return;
             //Lay thong so power
             TransmitPowerValues = readerApi.ReaderCapabilities.TransmitPowerLevelValues.ToList();
 
@@ -163,7 +170,6 @@ namespace RFIDSolution.Server.SignalRHubs
 
             //Lấy thông tin anntena
             int antenCount = readerApi.Config.Antennas.AvailableAntennas.Length;
-            AvailableAntennas.Clear();
             for (int antenIndex = 1; antenIndex <= antenCount; antenIndex++)
             {
                 AntenaModel antena = new AntenaModel();
@@ -215,7 +221,7 @@ namespace RFIDSolution.Server.SignalRHubs
             OnStatusChanged.Invoke(e);
         }
 
-        public void Disconnect()
+        public async Task Disconnect()
         {
             if (ReaderStatus.IsConnected)
             {
@@ -231,6 +237,8 @@ namespace RFIDSolution.Server.SignalRHubs
                     ReaderStatus.IsInventoring = false;
                     ReaderStatus.IsSuccess = true;
                     ReaderStatus.Message = "Reader disconnected";
+                    string userName = "Admin";
+                    await logReaderEvent($"User {userName} explicitly disconnect the reader", RdrLog.Disconnect);
                     Console.WriteLine("Reader disconnected");
                 }
                 catch (Exception ex)
@@ -300,6 +308,23 @@ namespace RFIDSolution.Server.SignalRHubs
 
             //Console.WriteLine($"{tagResponse.EPCID} | {tagResponse.AntennaID} | {tagResponse.LastSeen}");
             OnTagRead.Invoke(tagResponse);
+        }
+
+        public async Task logReaderEvent(string content, RdrLog type)
+        {
+            try { 
+                ReaderLogEntity newLog = new ReaderLogEntity();
+                newLog.LOG_CONTENT = content;
+                newLog.LOG_TYPE = type;
+                newLog.CREATED_DATE = DateTime.Now;
+                newLog.NOTE = "";
+
+                _context.READER_LOGS.Add(newLog);
+                await _context.SaveChangesAsync();
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            } 
         }
     }
 }

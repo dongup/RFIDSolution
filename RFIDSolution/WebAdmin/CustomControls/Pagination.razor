@@ -1,0 +1,152 @@
+﻿<div class="w-100 d-flex flex-row align-items-center">
+    <div class=" d-flex flex-row align-items-center">
+        <label class="me-3 mb-0 form-label" for="pagination">Rows per page: </label>
+        <EditForm Model="TableState">
+            <InputSelect class="form-control-sm me-4" style="border: 0px; background-color: transparent; border-bottom: 1px solid lightgray" id="pagination"
+                         Value="TableState.PageItem" TValue="int" ValueExpression="() => TableState.PageItem"
+                         ValueChanged="async (e) => { TableState.PageItem = e; await OnStateChanged(TableState.PageIndex); }">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </InputSelect>
+        </EditForm>
+
+        <span class="me-3">@TableState.FirstIndex-@TableState.LastIndex of @TableState.TotalRow</span>
+    </div>
+    <div class="spacer"></div>
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination m-0">
+            <li class="page-item hand @(disableFirstClass)" @onclick="async () => { await OnStateChanged(0); }">
+                <a class="page-link">
+                    <span aria-hidden="true" class="oi oi-media-step-backward icon-xsm"></span>
+                </a>
+            </li>
+            <li class="page-item hand @(disableFirstClass)" @onclick="async () => { TableState.PageIndex -= 1; await OnStateChanged(TableState.PageIndex); }">
+                <a class="page-link" aria-label="Previous">
+                    <span aria-hidden="true" class="oi oi-arrow-left icon-xsm"></span>
+                </a>
+            </li>
+            @for (int index = ghDuoi; index <= ghTren; index++)
+            {
+                int i = index;
+                if (TableState.PageIndex == index)
+                {
+                    <li class="page-item hand active" @onclick="() => OnStateChanged(i)"><a class="page-link">@(index + 1)</a></li>
+                }
+                else
+                {
+                    <li class="page-item hand" @onclick="() => OnStateChanged(i)"><a class="page-link">@(index + 1)</a></li>
+                }
+            }
+            <li class="page-item hand @(disableLastClass)" @onclick="async () => { TableState.PageIndex += 1; await OnStateChanged(TableState.PageIndex); }">
+                <a class="page-link" aria-label="Next">
+                    <span aria-hidden="true" class="oi oi-arrow-right icon-xsm"></span>
+                </a>
+            </li>
+            <li class="page-item hand @(disableLastClass)" @onclick="async () => { await OnStateChanged(TableState.TotalPage); }">
+                <a class="page-link">
+                    <span aria-hidden="true" class="oi oi-media-step-forward icon-xsm"></span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+</div>
+@code {
+    [Parameter]
+    public TableState TableState { get; set; } = new TableState();
+
+    [Parameter]
+    public EventCallback<TableState> TableStateChanged { get; set; }
+
+    [Parameter]
+    public int TotalPageDisplay { get; set; } = 5;
+
+    [Parameter]
+    public EventCallback<TableState> StateChanged { get; set; }
+
+    public bool disableFirst => TableState.PageIndex <= 0;
+    public string disableFirstClass => disableFirst ? "disabled" : "";
+    public bool disableLast => TableState.PageIndex >= TableState.TotalPage;
+    public string disableLastClass => disableLast ? "disabled" : "";
+
+    private int delta
+    {
+        get
+        {
+            int d = (int)(TotalPageDisplay / 2);
+
+            return d;
+        }
+    }
+
+    private int ghDuoi => getGHDuoi();
+    private int getGHDuoi()
+    {
+        int pageIndex = TableState.PageIndex;
+        int gh = pageIndex - delta;
+
+        //Nếu gh trên - gh dưới < tổng số trang hiển thị thì lấy gh dưới = gh trên - tổng số trang ht
+        if (ghTren - gh < TotalPageDisplay)
+        {
+            gh = ghTren - TotalPageDisplay + 1;
+        }
+
+        //Nếu gh dưới bé hơn 0 thì lấy 0
+        if (gh < 0)
+        {
+            gh = 0;
+        }
+        return gh;
+    }
+
+    private int ghTren => getGHTren();
+    private int getGHTren()
+    {
+        int pageIndex = TableState.PageIndex;
+        int gh = pageIndex + delta;
+
+        //Nếu tổng số trang bé hơn số trang hiển thị thì gh trên == total page
+        if (TableState.TotalPage <= TotalPageDisplay)
+        {
+            gh = TableState.TotalPage;
+        }
+        //Nếu số trang hiển thị bé hơn tổng số trang thì lấy giới hạn trên bằng trang ht + pageDisplay/2
+        else
+        {
+            gh = pageIndex + 2;
+            //Nếu giới hạn trên lớn hơn tổng số trang thì lấy gh là tổng số trang
+            if (gh > TableState.TotalPage)
+            {
+                gh = TableState.TotalPage;
+            }
+            //Nếu giới hạn bé hơn số trang hiển thị và số trang hiển thị bé hơn tổng số trang
+            else if (gh <= TotalPageDisplay)
+            {
+                gh = TotalPageDisplay - 1;
+            }
+        }
+
+        return gh;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task OnStateChanged(int pageIndex)
+    {
+        if (pageIndex < 0) pageIndex = 0;
+        if (pageIndex > TableState.TotalPage) pageIndex = TableState.TotalPage;
+
+        TableState.PageIndex = pageIndex;
+        StateHasChanged();
+
+        await StateChanged.InvokeAsync(TableState);
+        await TableStateChanged.InvokeAsync(TableState);
+    }
+}

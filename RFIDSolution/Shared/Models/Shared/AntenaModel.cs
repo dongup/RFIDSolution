@@ -39,7 +39,7 @@ namespace RFIDSolution.Shared.Models.Shared
         /// </summary>
         public int ANTENNA_POWER { get; set; }
 
-        public AntennaStatus ANTENNA_STATUS { get; set; } = AntennaStatus.Disconnected;
+        public AntennaStatus ANTENNA_STATUS { get; set; } = AntennaStatus.Unknown;
 
         public bool IsEditing;
     }

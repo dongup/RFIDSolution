@@ -114,5 +114,7 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         [ForeignKey(nameof(MODEL_ID))]
         public ModelEntity Model { get; set; }
+
+        public ICollection<TransferDetailEntity> TransferDetails { get; set; } = new HashSet<TransferDetailEntity>();
     }
 }

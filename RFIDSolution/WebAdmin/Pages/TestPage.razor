@@ -1,0 +1,16 @@
+﻿<Pagination @bind-TableState="state" StateChanged="OnPageClicked"></Pagination>
+
+@page "/test"
+@code {
+    TableState state = new TableState();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task OnPageClicked(TableState state)
+    {
+
+    }
+}

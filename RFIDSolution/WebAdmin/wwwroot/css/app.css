@@ -5,12 +5,46 @@ aside{
 }
 
 .table th {
-    color: white;
-    background-color: #0277bd;
+    color: black;
+    background-color: whitesmoke;
+}
+
+.m-bg-primary .card{
+    color: black !important;
+}
+
+.tab-link a {
+    font-weight: bold !important;
+    color: darkslategrey !important;
+}
+
+.tab-link a.active{
+    background-color: white !important;
+    border-bottom: 2px solid steelblue !important;
+    color: Highlight !important;
+}
+
+.table {
+    margin-bottom: 0px !important;
 }
 
 .bg-danger{
     color: white !important;
+}
+
+.icon-xsm{
+    font-size: 10px !important;
+}
+
+.page-link {
+    display: flex;
+    height: 100%;
+    flex-direction: row;
+    align-items: center;
+}
+
+.page-link span{
+    width: fit-content !important;
 }
 
 .icon-xl {
@@ -120,8 +154,8 @@ tr .active {
     color: midnightblue;
 }
 
-.nav-item a.active {
-    background-color: rgb(0 123 255 / 10%) !important;
+.nav-item a .active {
+    background-color: rgb(0 123 255 / 10%);
     color: midnightblue;
     font-weight: bold;
 }
@@ -362,7 +396,7 @@ body {
 }
 
 .m-bg-primary {
-    background-color: #0277bd !important;
+    background-color: steelblue !important;
     color: white !important;
 }
 

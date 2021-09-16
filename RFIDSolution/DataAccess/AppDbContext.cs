@@ -32,6 +32,7 @@ namespace RFIDSolution.Shared.DAL
         public DbSet<InventoryEntity> INVENTORY { get; set; }
         public DbSet<InventoryDetailEntity> INVENTORY_DTL { get; set; }
         public DbSet<RFIDTagEntity> RFID_TAG { get; set; }
+        public DbSet<ReaderLogEntity> READER_LOGS { get; set; }
 
         public AppDbContext([NotNull] DbContextOptions options) : base(options)
         {

@@ -5,7 +5,21 @@
     <FilterContent>
         <div class="row">
             <div class="col-md-4">
-                <InputSearch TextChanged='async (text) => { keyword = text??""; await loadData(); }' PlaceHolder="Search SKU, EPC"></InputSearch>
+                <InputSearch TextChanged='async (text) => { keyword = text??""; await loadData(); }' PlaceHolder="Search SKU, EPC, model name, location, ..."></InputSearch>
+            </div>
+            <div class="col-md-3 d-flex">
+                <div class="badge m-bg-primary me-2 d-flex align-items-center">
+                    <span class="oi oi-tags me-1"></span>
+                    Filter status
+                </div>
+                <div class="spacer">
+                    <select class="form-control" @onchange="async (e) => { shoeStatus = int.Parse(e.Value.ToString()); await loadData(); }">
+                        <option value="0">Any status</option>
+                        <option value="@((int)ProductStatus.Available)">@ProductStatus.Available.GetDescription()</option>
+                        <option value="@((int)ProductStatus.Transfered)">@ProductStatus.Transfered.GetDescription()</option>
+                        <option value="@((int)ProductStatus.Unavailable)">@ProductStatus.Unavailable.GetDescription()</option>
+                    </select>
+                </div>
             </div>
         </div>
     </FilterContent>
@@ -44,24 +58,125 @@ else
                         int count = 1;
                         @foreach (var item in products)
                         {
-                            <tr>
-                                <td>@item.ID</td>
-                                <td>@item.EPC</td>
-                                <td>@item.SKU</td>
-                                <td>
+                            <SelectableRow OnClick="() => showShoeDetail(item)" @bind-Selected="item.ShowDetail">
+                                <MyTd>@item.ID</MyTd>
+                                <MyTd>@item.EPC</MyTd>
+                                <MyTd>@item.SKU</MyTd>
+                                <MyTd>
                                     <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
-                                </td>
-                                <td>@item.Location</td>
-                                <td>@item.Season</td>
-                                <td>@item.Stage</td>
-                                <td>@item.ModelName</td>
-                                <td>@item.DevStyleName</td>
-                                <td>@item.ColorWay</td>
-                                <td>@item.Size</td>
-                                <td>@item.Category</td>
-                                <td>@item.POC</td>
-                                <td>@item.Remarks</td>
-                            </tr>
+                                </MyTd>
+                                <MyTd>@item.Location</MyTd>
+                                <MyTd>@item.Season</MyTd>
+                                <MyTd>@item.Stage</MyTd>
+                                <MyTd>@item.ModelName</MyTd>
+                                <MyTd>@item.DevStyleName</MyTd>
+                                <MyTd>@item.ColorWay</MyTd>
+                                <MyTd>@item.Size</MyTd>
+                                <MyTd>@item.Category</MyTd>
+                                <MyTd>@item.POC</MyTd>
+                                <MyTd>@item.Remarks</MyTd>
+                            </SelectableRow>
+                            <TableRowDetail Show="item.ShowDetail">
+                                <div class="card">
+                                    <div class="card-header p-0">
+                                        <ul class="nav nav-tabs w-100">
+                                            <li class="nav-item p-0 hand tab-link" @onclick="() => item.activeTab = 0">
+                                                <a class="@(item.activeTab == 0? "active" : "") nav-link text-primary">Detail info</a>
+                                            </li>
+                                            <li class="nav-item p-0 hand tab-link" @onclick="() => item.activeTab = 1">
+                                                <a class="@(item.activeTab == 1? "active" : "") nav-link text-primary">Transfer history</a>
+                                            </li>
+                                            <li class="nav-item p-0 hand tab-link" @onclick="() => item.activeTab = 2">
+                                                <a class="@(item.activeTab == 2? "active" : "") nav-link text-primary">Inventory history</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="card-body">
+                                        @if (item.activeTab == 0)
+                                        {
+                                            <div class="row">
+                                                <!--Thông tin giầy-->
+                                                <div class="col-md-4">
+                                                    <ListItem Title="EPC" Bordered="false">@item.EPC</ListItem>
+                                                    <ListItem Title="SKU" Bordered="false">@item.SKU</ListItem>
+                                                    <ListItem Title="Model" Bordered="false">@item.ModelName</ListItem>
+                                                    <ListItem Title="Shoe status" Bordered="false">
+                                                        <span class="@item.StatusColor">
+                                                            @item.ProductStatus.GetDescription()
+                                                        </span>
+                                                    </ListItem>
+                                                    <ListItem Title="L/R" Bordered="false">
+                                                        @item.LR.GetDescription()
+                                                    </ListItem>
+                                                    <ListItem Title="Location" Bordered="false">@item.Location</ListItem>
+                                                    <ListItem Title="Season" Bordered="false">@item.Location</ListItem>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <ListItem Title="Stage" Bordered="false">@item.Season</ListItem>
+                                                    <ListItem Title="Dev style number" Bordered="false">@item.DevStyleName</ListItem>
+                                                    <ListItem Title="Color way" Bordered="false">@item.ColorWay</ListItem>
+                                                    <ListItem Title="Size" Bordered="false">@item.Size</ListItem>
+                                                    <ListItem Title="Category" Bordered="false">@item.Category</ListItem>
+                                                    <ListItem Title="POC" Bordered="false">@item.POC</ListItem>
+                                                    <ListItem Title="Remarks" Bordered="false">@item.Remarks</ListItem>
+                                                </div>
+                                            </div>
+                                        }
+                                        //Thông tin transfer
+                                        else if (item.activeTab == 1)
+                                        {
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Id</th>
+                                                        <th>TRANSFER DATE</th>
+                                                        <th>TRANSFER REASON</th>
+                                                        <th>TRANSFER TO</th>
+                                                        <th>TRANSFER BY</th>
+                                                        <th>STATUS</th>
+                                                        <th>RETURN DATE</th>
+                                                        <th>RETURN BY</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (item.TransferHistory.Count > 0)
+                                                    {
+                                                        @foreach (var transfer in item.TransferHistory)
+                                                        {
+                                                            <SelectableRow>
+                                                                <MyTd>@transfer.TRANSFER_ID</MyTd>
+                                                                <MyTd>@transfer.TIME_START.ToVNString()</MyTd>
+                                                                <MyTd>@transfer.TRANSFER_REASON</MyTd>
+                                                                <MyTd>@transfer.TRANSFER_TO</MyTd>
+                                                                <MyTd>@transfer.TRANSFER_BY</MyTd>
+                                                                <MyTd>
+                                                                    <TransferStatusBadge Status="transfer.TRANSFER_STATUS"></TransferStatusBadge>
+                                                                </MyTd>
+                                                                <MyTd>@transfer.TIME_END</MyTd>
+                                                                <MyTd>@transfer.RETURN_BY</MyTd>
+                                                            </SelectableRow>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <NoData></NoData>
+                                                    }
+                                                </tbody>
+                                                <tfoot></tfoot>
+                                            </table>
+                                        }
+                                        else
+                                        {
+
+                                        }
+                                    </div>
+
+                                    <div class="d-flex w-100 card-footer">
+                                        <button class="btn btn-danger me-2" @onclick="() => deleteProduct(item)"><span class="oi oi-delete me-1"></span>DELETE</button>
+                                        <button class="btn btn-primary" @onclick="() => editProduct(item)"><span class="oi oi-pencil me-1"></span>UPDATE</button>
+                                    </div>
+                                </div>
+                            </TableRowDetail>
                             count++;
                         }
                     }
@@ -70,7 +185,13 @@ else
                         <NoData></NoData>
                     }
                 </tbody>
-                <tfoot></tfoot>
+                <tfoot>
+                    <tr>
+                        <td colspan="1000">
+                            <Pagination TableState="tableState" TotalPageDisplay="5" StateChanged="async () => await loadData()"></Pagination>
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -89,6 +210,10 @@ else
     private bool loading = true;
     private bool addingItem = false;
     private string keyword = "";
+    private int shoeStatus = 0;
+    private int activeTab = 0;
+
+    private TableState tableState = new TableState(20);
 
     private ProductModel reply = new ProductModel();
     private List<ProductModel> products = new List<ProductModel>();
@@ -99,29 +224,60 @@ else
         await loadData();
     }
 
+    private async Task showShoeDetail(ProductModel item)
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<ProductModel>>($"products/{item.ID}");
+        if (rspns.IsSucceed)
+        {
+            item.TransferHistory = rspns.Result.TransferHistory;
+            StateHasChanged();
+            item = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
     private async Task addModel()
     {
 
     }
 
-    private async Task editModel(ProductModel item)
+    private async Task editProduct(ProductModel item)
     {
-
+        bool isSuccess = await _dialog.ShowEditProductModal(item);
+        if (isSuccess)
+        {
+            await loadData();
+        }
     }
 
-    private async Task deleteModel(ProductModel item)
+    private async Task deleteProduct(ProductModel item)
     {
-        if (!await _dialog.Confirm("Are you sure you want to delete this shoe model?")) return;
+        if (!await _dialog.Confirm($"Are you sure you want to delete shoe {item.SKU}?")) return;
+
+        var httpReq = await _client.DeleteAsync($"products/{item.ID}");
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSucceed)
+        {
+            await _dialog.SuccessAlert("Shoe deleted");
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
     }
 
     private async Task loadData()
     {
         loading = true;
         //reply = await productService.GetAsync(filter);
-        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductModel>>>($"products?keyword={keyword}&pageItem={10}&pageIndex={0}");
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductModel>>>($"products?shoeStatus={shoeStatus}&keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
         if (rspns.IsSucceed)
         {
             products = rspns.Result.Data;
+            tableState.TotalRow = rspns.Result.TotalRow;
         }
         else
         {

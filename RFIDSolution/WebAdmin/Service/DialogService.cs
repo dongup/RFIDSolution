@@ -1,6 +1,8 @@
 ﻿using Blazored.Modal;
 using Blazored.Modal.Services;
+using RFIDSolution.Shared.Models;
 using RFIDSolution.WebAdmin.Modals;
+using RFIDSolution.WebAdmin.Pages;
 using RFIDSolution.WebAdmin.Shared;
 using System;
 using System.Collections.Generic;
@@ -15,6 +17,16 @@ namespace RFIDSolution.Shared.Service
         public DialogService(IModalService modal)
         {
             _modal = modal;
+        }
+
+        public async Task<bool> ShowEditProductModal(ProductModel model)
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("item", model);
+
+            var modal = _modal.Show<ProductEditModal>("Update shoe information", parameters);
+            var res = await modal.Result;
+            return res.Cancelled ? false : true;
         }
 
         public async Task<bool> Confirm(string message)

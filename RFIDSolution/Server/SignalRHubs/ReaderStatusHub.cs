@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static RFIDSolution.Shared.Enums.AppEnums;
 using static Symbol.RFID3.Events;
 
 namespace RFIDSolution.Server.SignalRHubs
@@ -53,7 +54,7 @@ namespace RFIDSolution.Server.SignalRHubs
             readerApi._context = _context;
             readerApi.CheckAntennaStatus();
             ReaderStatus.AvaiableAntennas = readerApi.AvailableAntennas;
-
+            Console.WriteLine("Avaible antenna: " + ReaderStatus.AvaiableAntennas.Count);
             caller.SendAsync("AntennaStatusChanged", ReaderStatus);
         }
 
@@ -69,6 +70,10 @@ namespace RFIDSolution.Server.SignalRHubs
                 readerApi.ReaderStatus.IsConnected = false;
                 readerApi.ReaderStatus.Message = "Reader connection lost!";
                 Console.WriteLine("Reader connection lost");
+
+                //Gửi mail và ghi log ở 1 thread khác
+                readerApi.logReaderEvent("Reader disconnected due to connection issue", RdrLog.Disconnect);
+
                 clientProxy.SendAsync("StatusChanged", ReaderStatus);
             }
             else if(e.StatusEventData.AntennaEventData.AntennaEvent == Symbol.RFID3.ANTENNA_EVENT_TYPE.ANTENNA_DISCONNECTED)
@@ -101,7 +106,7 @@ namespace RFIDSolution.Server.SignalRHubs
             }
         }
 
-        public void ConnectReader()
+        public async Task ConnectReader()
         {
             readerApi._context = _context;
             //Nếu có người đang cố kết nối trước đó thì chờ trước khi có thể kết nối tiếp nếu không sẽ bị lỗi tranh chấp vùng nhớ
@@ -117,19 +122,22 @@ namespace RFIDSolution.Server.SignalRHubs
             else
             {
                 readerApi.Connect();
+                await readerApi.StartInventory();
+                ReaderStatus.AvaiableAntennas = readerApi.AvailableAntennas;
             }
 
             //Gửi kết quả cho user
             var caller = Clients.Caller;
-            caller.SendAsync("StatusChanged", ReaderStatus);
+            await caller.SendAsync("StatusChanged", ReaderStatus);
         }
 
-        public void DisconnectReader()
+        public async Task DisconnectReader()
         {
             readerApi._context = _context;
-            readerApi.Disconnect();
+            await readerApi.Disconnect();
             var caller = Clients.Caller;
-            caller.SendAsync("StatusChanged", ReaderStatus);
+            ReaderStatus.AvaiableAntennas.Clear();
+            await caller.SendAsync("StatusChanged", ReaderStatus);
         }
     }
 }

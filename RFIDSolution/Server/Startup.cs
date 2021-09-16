@@ -156,10 +156,13 @@ namespace RFIDSolution.Server
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     new[] { "application/octet-stream" });
             });
+
+            ReaderHepler readerHepler = new ReaderHepler();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppDbContext context)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppDbContext context)
         {
             //Kết nối reader ngay khi mở api
             System.Console.WriteLine("Connecting reader...");
@@ -173,7 +176,7 @@ namespace RFIDSolution.Server
             };
             if (Program.Reader.ReaderStatus.IsConnected)
             {
-                _ = Program.Reader.StartInventory();
+                await Program.Reader.StartInventory();
             }
 
             app.UseResponseCompression();

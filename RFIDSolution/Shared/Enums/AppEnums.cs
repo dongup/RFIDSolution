@@ -106,6 +106,18 @@ namespace RFIDSolution.Shared.Enums
             High = 1,
             Low = 2,
             Unknown = 3
-        }    
+        }  
+        
+        public enum RdrLog
+        {
+            [Description("Connect")]
+            Connect = 1,
+            [Description("Disconnect")]
+            Disconnect = 2,
+            [Description("Error")]
+            Error = 3,
+            [Description("Info")]
+            Info = 4
+        }
     }
 }

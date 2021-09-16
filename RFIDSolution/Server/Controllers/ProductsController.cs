@@ -22,7 +22,7 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ResponseModel<PaginationResponse<ProductModel>>> Get(string keyword, int statusId, int pageItem = 10, int pageIndex = 0)
+        public async Task<ResponseModel<PaginationResponse<ProductModel>>> Get(string keyword, int shoeStatus, int pageItem = 10, int pageIndex = 0)
         {
             var rspns = new ResponseModel<PaginationResponse<ProductModel>>();
 
@@ -31,7 +31,7 @@ namespace RFIDSolution.Server.Controllers
                             || x.PRODUCT_CODE.Contains(keyword)
                             || x.EPC == keyword
                             || x.PRODUCT_SEASON == keyword)
-                            && (statusId == 0 || (int)x.PRODUCT_STATUS == statusId))
+                            && (shoeStatus == 0 || (int)x.PRODUCT_STATUS == shoeStatus))
                 .Select(x => new ProductModel() {
                     ID = x.PRODUCT_ID,
                     Category = x.PRODUCT_CATEGORY,
@@ -56,6 +56,56 @@ namespace RFIDSolution.Server.Controllers
                 });
 
             return rspns.Succeed(new PaginationResponse<ProductModel>(query, pageItem, pageIndex));
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ResponseModel<ProductModel>> GetById(int id)
+        {
+            var rspns = new ResponseModel<ProductModel>();
+
+            var query = _context.PRODUCT
+                .Where(x => x.PRODUCT_ID == id)
+                .Select(x => new ProductModel()
+                {
+                    ID = x.PRODUCT_ID,
+                    Category = x.PRODUCT_CATEGORY,
+                    ColorWay = x.COLOR_NAME,
+                    DevStyleName = x.DEV_NAME,
+                    EPC = x.EPC,
+                    Location = x.PRODUCT_LOCATION,
+                    LR = x.LR,
+                    LRStr = x.LR.GetDescription(),
+                    ModelId = x.MODEL_ID,
+                    ModelName = x.Model.MODEL_NAME,
+                    POC = x.PRODUCT_POC,
+                    RefDocDate = x.REF_DOC_DATE,
+                    RefDocNo = x.REF_DOC_NO,
+                    Remarks = x.PRODUCT_REMARKS,
+                    Season = x.PRODUCT_SEASON,
+                    Size = x.PRODUCT_SIZE,
+                    SKU = x.PRODUCT_CODE,
+                    Stage = x.PRODUCT_STAGE,
+                    Article = "",
+                    ProductStatus = x.PRODUCT_STATUS,
+                    TransferHistory = x.TransferDetails.Select(a => a.Transfer).Select(a => new TransferInoutModel()
+                    {
+                        NOTE = a.NOTE,
+                        REF_DOC_DATE = a.REF_DOC_DATE.ToShortVNString(),
+                        REF_DOC_NO = a.REF_DOC_NO,
+                        RETURN_BY = a.RETURN_BY,
+                        RETURN_NOTE = a.RETURN_NOTE,
+                        TRANSFER_REASON = a.TRANSFER_REASON,
+                        TIME_END = a.TIME_END,
+                        TIME_START = a.TIME_START,
+                        TRANSFER_BY = a.TRANSFER_BY,
+                        TRANSFER_ID = a.TRANSFER_ID,
+                        TRANSFER_NOTE = a.TRANSFER_NOTE,
+                        TRANSFER_STATUS = a.TRANSFER_STATUS,
+                        TRANSFER_TO = a.TRANSFER_TO,
+                    }).ToList()
+                }).FirstOrDefault();
+            if (query == null) return rspns.NotFound("");
+            return rspns.Succeed(query);
         }
 
         [HttpGet("bySKU")]

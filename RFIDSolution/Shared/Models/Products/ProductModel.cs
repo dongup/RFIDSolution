@@ -37,10 +37,18 @@ namespace RFIDSolution.Shared.Models
         public string LRStr { get; set; }
         public ProductStatus ProductStatus { get; set; }
         public string StatusColor => ProductStatus == ProductStatus.Available ? "badge bg-success" : "badge bg-danger";
+
+        public List<TransferInoutModel> TransferHistory { get; set; } = new List<TransferInoutModel>(); 
+
         public string Note { get; set; }
 
         public string WarningClass => IsWarning? "bg-warning" : "";
+
         public bool IsWarning = false;
+
+        public bool ShowDetail = false;
+
+        public int activeTab = 0;
 
         public RFTagResponse TagResponse { get; set; } = new RFTagResponse();
     }
