@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-md-2">
             <div class="row h-100 align-items-center">
-                <RFReaderConnect @ref="readerConnecter" AntennaId="1" Size="12" OnRead="OnTagRead"></RFReaderConnect>
+                <RFReaderConnect @ref="readerConnecter" AntennaId="AntenaId" Size="12" OnRead="OnTagRead"></RFReaderConnect>
             </div>
         </div>
         <div class="col-md-10 card card-body">
@@ -312,6 +312,9 @@
     private bool isTransferIn { get; set; } = false;
     private int shoeTabActive { get; set; } = 0;
 
+    private int AntenaId = 1;
+    private List<AntenaModel> antenas = new List<AntenaModel>();
+
     private bool loading = true;
     private bool addingItem = false;
     private string keyword = "";
@@ -324,6 +327,7 @@
     {
         MainLayout.Instance.PageTitle = "Transfer shoe";
         await getReasonList();
+        await loadAntenas();
     }
 
     private async Task showProductDetail(ProductModel product)
@@ -560,6 +564,22 @@
         {
             await _dialog.ErrorAlert(rspns.Message);
             return new TransferInoutModel();
+        }
+    }
+
+
+    public async Task loadAntenas()
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<List<AntenaModel>>>($"Antennas");
+        if (rspns.IsSucceed)
+        {
+            antenas = rspns.Result;
+            AntenaId = antenas.FirstOrDefault(x => x.LOCATION == AntennaLocation.Table)?.ANTENNA_ID ?? 0;
+            //Console.WriteLine(AntenaId);
+        }
+        else
+        {
+            await _dialog.SuccessAlert(rspns.Message);
         }
     }
 

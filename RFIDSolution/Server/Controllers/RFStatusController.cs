@@ -39,5 +39,26 @@ namespace RFIDSolution.Server.Controllers
 
             return rspns.Succeed(new PaginationResponse<ReaderLogEntity>(result, pageItem, pageIndex));
         }
+
+        [HttpPost("turnOnPort")]
+        public ResponseModel<bool> turnOnPort(int port)
+        {
+            var rspns = new ResponseModel<bool>();
+
+            Program.Reader.OpenGPOPort(port);
+
+            return rspns.Succeed(true);
+        }
+
+        [HttpPost("turnOffPort")]
+        public ResponseModel<bool> turnOffPort(int port)
+        {
+            var rspns = new ResponseModel<bool>();
+
+            Program.Reader.ShutDownGPOPort(port);
+
+            return rspns.Succeed(true);
+        }
+
     }
 }

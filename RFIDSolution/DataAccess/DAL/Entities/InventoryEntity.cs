@@ -12,16 +12,25 @@ namespace RFIDSolution.Shared.DAL.Entities
         }
 
         [Key]
-        public int IVENTORY_ID { get; set; }
+        public int INVENTORY_ID { get; set; }
 
-        public DateTime IVENTORY_DATE { get; set; }
+        /// <summary>
+        /// Ngày kiểm kê
+        /// </summary>
+        public DateTime INVENTORY_DATE { get; set; }
 
         [StringLength(100)]
-        public string IVENTORY_SEQ { get; set; }
+        public string INVENTORY_SEQ { get; set; }
 
+        /// <summary>
+        /// Số giấy giờ yêu cầu kiểm kê
+        /// </summary>
         [StringLength(100)]
         public string REF_DOC_NO { get; set; }
 
+        /// <summary>
+        /// Tên đợt kiểm kê
+        /// </summary>
         [StringLength(200)]
         public string INVENTORY_NAME { get; set; }
 

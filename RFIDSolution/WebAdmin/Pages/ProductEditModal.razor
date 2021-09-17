@@ -1,8 +1,38 @@
-﻿<div class="row" style="width: 500px">
+﻿<div class="row" style="width: 600px">
     <div class="col-md-12">
-        <p style="font-size: 16px;">
-            @item.EPC
-        </p>
+        <Form>
+            <div class="row">
+                <FormInputText @bind-Text="item.EPC" Title="SKU" Required="true" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.SKU" Title="SKU" Required="true" Size="6"></FormInputText>
+
+                <InputSelect @bind-Value="item.ModelId" TValue="int">
+                    @foreach (var model in models)
+                    {
+                        <option value="@model.Id">@model.Name</option>
+                    }
+                </InputSelect>
+
+                <InputSelect @bind-Value="item.ProductStatus" TValue="ProductStatus">
+                    <option value="@ProductStatus.Available">@ProductStatus.Available.GetDescription()</option>
+                    <option value="@ProductStatus.Unavailable">@ProductStatus.Unavailable.GetDescription()</option>
+                </InputSelect>
+
+                <InputSelect @bind-Value="item.LR" TValue="ProductSide">
+                    <option value="@ProductSide.Left">@ProductSide.Left.GetDescription()</option>
+                    <option value="@ProductSide.Right">@ProductSide.Right.GetDescription()</option>
+                </InputSelect>
+
+                <FormInputText @bind-Text="item.Location" Title="Location" Required="true" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Season" Title="Season" Required="true" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Stage" Title="Stage" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.DevStyleName" Title="Dev style name" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.ColorWay" Title="Color way" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Size" Title="Size" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Category" Title="Category" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.POC" Title="POC" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Remarks" Title="Remark" Size="12"></FormInputText>
+            </div>
+        </Form>
     </div>
 
     <div class="col-md-12 mt-2 d-flex">
@@ -12,20 +42,26 @@
     </div>
 </div>
 
+@using static RFIDSolution.Shared.Protos.ShoeModelProto
+@using Grpc.Core;
+
+@inject ShoeModelProtoClient modelClient
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
 
     [Parameter]
     public ProductModel item { get; set; }
 
-    protected override void OnInitialized()
-    {
+    private List<ShoeModel> models = new List<ShoeModel>();
 
+    protected override async Task OnInitializedAsync()
+    {
+        var rspns = await modelClient.GetAsync(new ShoeModelFilter());
+        models = rspns.Data.ToList();
     }
 
     void OK()
     {
         ModalInstance.CloseAsync(ModalResult.Ok<bool>(true));
     }
-
 }

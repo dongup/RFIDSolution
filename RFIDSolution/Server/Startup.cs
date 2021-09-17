@@ -13,7 +13,9 @@ using Microsoft.OpenApi.Models;
 using RFIDSolution.Middlewares;
 using RFIDSolution.Server.SignalRHubs;
 using RFIDSolution.Shared.DAL;
+using RFIDSolution.Shared.DAL.Entities;
 using RFIDSolution.Shared.DAL.Entities.Identity;
+using RFIDSolution.Shared.Models.Shared;
 using RFIDSolution.Utils;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +27,11 @@ namespace RFIDSolution.Server
 {
     public class Startup
     {
+        /// <summary>
+        /// Giầy gần nhất đã đi qua reader
+        /// </summary>
+        public ProductEntity lastProduct = new ProductEntity();
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -36,12 +43,12 @@ namespace RFIDSolution.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-           
             services.AddGrpc();
             services.AddSignalR();
             //var strConn = Configuration.GetConnectionString("default");
             var strConn = Configuration.GetConnectionString("iot");
             System.Console.WriteLine(strConn);
+            AppDbContext.ConnStr = strConn;
             services.AddDbContext<AppDbContext>(sp => sp.UseSqlServer(strConn));
 
             services.AddIdentity<UserEntity, RoleEntity>(op =>
@@ -158,21 +165,38 @@ namespace RFIDSolution.Server
             });
 
             ReaderHepler readerHepler = new ReaderHepler();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env, AppDbContext context)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             //Kết nối reader ngay khi mở api
             System.Console.WriteLine("Connecting reader...");
+            AppDbContext context = new AppDbContext();
             Program.Reader = new ReaderHepler(context);
             Program.Reader.Connect();
+            int redPort = Configuration.GetSection("RFReaderConfig").GetValue<int>("RedGPOPort");
+
             //Hàm handle sự kiện khi có tag không hợp lệ đi qua cổng
             Program.Reader.OnTagRead += (tag) =>
             {
-                //Check tag invalid và thêm vào database
-                //Console.WriteLine($"[{DateTime.Now.Ticks}] Read data from gate");
+                RFTagResponse rFTag = (RFTagResponse)tag;
+                //Lấy ra những anten được config cho check point
+                var checkPointAntenas = context.ANTENNAS.Where(x => x.LOCATION == Shared.Enums.AppEnums.AntennaLocation.CheckPoint).Select(x => x.ANTENNA_ID);
+                if (checkPointAntenas.Contains(rFTag.AntennaID))
+                {
+                    var antenna = context.ANTENNAS.FirstOrDefault(x => x.ANTENNA_ID == rFTag.AntennaID);
+                    //Check tag invalid và thêm vào database
+                    var shoe = context.PRODUCT.FirstOrDefault(x => x.EPC == rFTag.EPCID);
+                    if (shoe != null)
+                    {
+                        if(shoe.PRODUCT_STATUS != Shared.Enums.AppEnums.ProductStatus.Transfered)
+                        {
+                            System.Console.WriteLine($"Invalid item: {shoe.EPC} pass though antenna name {antenna.ANTENNA_NAME}");
+                            Program.Reader.OpenGPOPort(1);
+                        }
+                    }
+                }
             };
             if (Program.Reader.ReaderStatus.IsConnected)
             {

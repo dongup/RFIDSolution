@@ -1,4 +1,5 @@
-﻿using RFIDSolution.DataAccess.DAL.Entities;
+﻿using Microsoft.Extensions.Configuration;
+using RFIDSolution.DataAccess.DAL.Entities;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Shared;
 using RFIDSolution.Shared.Models.Shared;
@@ -87,7 +88,9 @@ namespace RFIDSolution.Server.SignalRHubs
         {
             connecting = true;
             _context.Entry(SysConfig).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+
             SysConfig = _context.CONFIG.FirstOrDefault();
+
             Console.WriteLine("Connecting reader: " + SysConfig.READER_IP);
             string ip = SysConfig.READER_IP;
             uint port = (uint)SysConfig.READER_PORT;
@@ -133,7 +136,6 @@ namespace RFIDSolution.Server.SignalRHubs
             readerApi.Events.NotifyReaderExceptionEvent = true;
 
             CheckAntennaStatus();
-          
 
             if (readerApi.ReaderCapabilities.IsTagEventReportingSupported)
             {
@@ -219,6 +221,24 @@ namespace RFIDSolution.Server.SignalRHubs
             //}
 
             OnStatusChanged.Invoke(e);
+        }
+
+        public void OpenGPOPort(int port)
+        {
+            readerApi.Config.GPO[port].PortState = GPOs.GPO_PORT_STATE.TRUE;
+            var delay = SysConfig.GPO_RESET_TIME;
+            if (delay != 0)
+            {
+                _ = Task.Run(async () => {
+                    await Task.Delay(delay);
+                    readerApi.Config.GPO[port].PortState = GPOs.GPO_PORT_STATE.FALSE;
+                });
+            }
+        }
+
+        public void ShutDownGPOPort(int port)
+        {
+            readerApi.Config.GPO[port].PortState = GPOs.GPO_PORT_STATE.FALSE;
         }
 
         public async Task Disconnect()

@@ -34,12 +34,20 @@ namespace RFIDSolution.Shared.DAL
         public DbSet<RFIDTagEntity> RFID_TAG { get; set; }
         public DbSet<ReaderLogEntity> READER_LOGS { get; set; }
 
+        public static string ConnStr { get; set; }
+
+        public AppDbContext()
+        {
+
+        }
+
         public AppDbContext([NotNull] DbContextOptions options) : base(options)
         {
         }
 
-        protected AppDbContext()
+        protected AppDbContext(string connStr)
         {
+            ConnStr = connStr;
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -59,6 +67,7 @@ namespace RFIDSolution.Shared.DAL
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            optionsBuilder.UseSqlServer(ConnStr);
             base.OnConfiguring(optionsBuilder);
         }
 

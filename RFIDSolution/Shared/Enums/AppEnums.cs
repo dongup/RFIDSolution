@@ -60,10 +60,17 @@ namespace RFIDSolution.Shared.Enums
             Confirmed = 2
         }
 
+
         public enum InventoryStatus
         {
+            //Chờ kiểm
             Pending = 1,
-            Completed = 2
+            //Đang kiểm
+            OnGoing = 2,
+            //Đã kiểm xong
+            Completed = 3,
+            //Đã hủy
+            Canceled = 4
         }
 
         public enum InventoryProductStatus

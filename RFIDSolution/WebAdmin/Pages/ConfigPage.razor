@@ -70,7 +70,7 @@
                                         <td>@item.ANTENNA_NAME</td>
                                         <td class="wp-100">@item.LOCATION.GetDescription()</td>
                                         <td class="wp-100">@item.ANTENNA_POWER</td>
-                                        <td class="wp-100 text-center">
+                                        <td class="wp-75 text-center">
                                             <StatusBadge Success="item.ANTENNA_STATUS == AntennaStatus.Connected" Error="item.ANTENNA_STATUS == AntennaStatus.Disconnected || item.ANTENNA_STATUS == AntennaStatus.Unknown">
                                                 @item.ANTENNA_STATUS.GetDescription()
                                             </StatusBadge>
@@ -86,9 +86,9 @@
                                 else
                                 {
                                     <tr class="new-row">
-                                        <td class="wp-200 p-0"><input type="number" class="form-control" @bind-value="item.ANTENNA_ID" placeholder="Enter antenna index..." /></td>
+                                        <td class="wp-100 p-0"><input type="number" class="form-control" @bind-value="item.ANTENNA_ID" placeholder="Enter antenna index..." /></td>
                                         <td class="p-0"><input type="text" @bind-value="item.ANTENNA_NAME" class="form-control" placeholder="Enter antenna name" /></td>
-                                        <td class="wp-200 p-0">
+                                        <td class="wp-100 p-0">
                                             <EditForm Model="item">
                                                 <InputSelect @bind-Value="item.LOCATION" TValue="AntennaLocation" class="form-control">
                                                     <option value="@AntennaLocation.CheckPoint">@AntennaLocation.CheckPoint.GetDescription()</option>
@@ -96,7 +96,7 @@
                                                 </InputSelect>
                                             </EditForm>
                                         </td>
-                                        <td class="p-0">
+                                        <td class="p-0 wp-100">
                                             <EditForm Model="item">
                                                 <InputSelect @bind-Value="item.ANTENNA_POWER" TValue="int" class="form-control">
                                                     @foreach (var power in antenaPowers)
@@ -106,7 +106,7 @@
                                                 </InputSelect>
                                             </EditForm>
                                         </td>
-                                        <td class="wp-200 text-center">
+                                        <td class="wp-75 text-center">
                                             <StatusBadge Success="item.ANTENNA_STATUS == AntennaStatus.Connected" Error="item.ANTENNA_STATUS == AntennaStatus.Disconnected || item.ANTENNA_STATUS == AntennaStatus.Unknown">
                                                 @item.ANTENNA_STATUS.GetDescription()
                                             </StatusBadge>

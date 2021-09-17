@@ -1,7 +1,7 @@
 ﻿<div class="card m-2 w-100">
     <div class="card-body">
         <div class="row">
-            <RFReaderConnect Size="2" OnRead="OnTagRead" AntennaId="@AntenaId"></RFReaderConnect>
+            <RFReaderConnect Size="2" OnRead="OnTagRead" AntennaId="@AntenaId" @ref="rfReaderConnect"></RFReaderConnect>
             <div class="col-md-10">
                 <Form OnValidSubmit="async () => { await addProduct(); }">
                     <FormInputSearch Text="@newProduct.SKU" Size="4" Title="SKU" TextChanged="async (e) => { newProduct.SKU = e; await searchSKU(); }"></FormInputSearch>
@@ -127,18 +127,23 @@
 @inject ShoeModelProtoClient modelClient
 @inject DialogService _dialog
 @inject HttpClient _httpClient
+@implements IDisposable
 @page "/mappingproduct"
 @code{
     private string test = "";
     private bool reading = false;
 
     private int AntenaId = 1;
+    private List<AntenaModel> antenas = new List<AntenaModel>();
+
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
     private List<ShoeModel> models = new List<ShoeModel>();
     private ShoeModel sledMode => models.FirstOrDefault(x => x.Id == newProduct.ModelId);
 
     private AsyncServerStreamingCall<RFTagResponse> _rfStream;
     private ProductModel newProduct = new ProductModel();
+
+    private RFReaderConnect rfReaderConnect = new RFReaderConnect();
 
     private async Task searchSKU()
     {
@@ -235,6 +240,27 @@
         var rspns = await modelClient.GetAsync(new ShoeModelFilter());
         models = rspns.Data.ToList();
         newProduct.ModelId = models.FirstOrDefault().Id;
+        await loadAntenas();
         StateHasChanged();
+    }
+
+    public async Task loadAntenas()
+    {
+        var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<List<AntenaModel>>>($"Antennas");
+        if (rspns.IsSucceed)
+        {
+            antenas = rspns.Result;
+            AntenaId = antenas.FirstOrDefault(x => x.LOCATION == AntennaLocation.Table)?.ANTENNA_ID ?? 0;
+            Console.WriteLine(AntenaId);
+        }
+        else
+        {
+            await _dialog.SuccessAlert(rspns.Message);
+        }
+    }
+
+    async void IDisposable.Dispose()
+    {
+        await rfReaderConnect.stopReader();
     }
 }

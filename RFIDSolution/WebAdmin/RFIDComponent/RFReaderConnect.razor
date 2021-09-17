@@ -10,7 +10,8 @@
         }
     </button>
     <label class="text-center" style="font-size: 32px">@(reading? "STOP SCAN" : "START SCAN")</label>
-    <p>Service status: @(HubStatus? "Connected" : "Disconected")</p>
+    <p>Reader service status: @(HubStatus? "Connected" : "Disconected")</p>
+    <p>Antenna index: @AntennaId</p>
 </div>
 
 @using Microsoft.AspNetCore.SignalR.Client
