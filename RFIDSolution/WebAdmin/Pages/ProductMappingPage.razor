@@ -12,8 +12,8 @@
                     <div class="col-md-2">
                         <label for="slt-lr" class="form-label m-0">Left/Right <Required></Required></label>
                         <InputSelect class="form-select form-select-sm" id="slt-lr" required @bind-Value="newProduct.LR">
-                            <option value="@((int)ProductSide.Left)" selected>Left</option>
-                            <option value="@((int)ProductSide.Right)">Right</option>
+                            <option value="@(ProductSide.Left)">Left</option>
+                            <option value="@(ProductSide.Right)">Right</option>
                         </InputSelect>
                         <div class="invalid-feedback">
                             Please select a side.
@@ -73,7 +73,6 @@
                 <th>READ COUNT</th>
                 <th>FIRST SEEN</th>
                 <th>LAST SEEN</th>
-                @*<th>RSSI</th>*@
                 <th>SIGNAL STRENGHT</th>
                 <th></th>
             </tr>
@@ -84,11 +83,11 @@
                 int count = 1;
                 @foreach (var item in Tags)
                 {
-                    <tr>
-                        <td>@(count)</td>
-                        <td>@item.EPCID</td>
-                        <td>@item.AntennaID</td>
-                        <td>
+                    <SelectableRow @bind-Selected="item.IsSelected" OnClick="() => rowClicked(item)">
+                        <MyTd>@(count)</MyTd>
+                        <MyTd>@item.EPCID</MyTd>
+                        <MyTd>@item.AntennaID</MyTd>
+                        <MyTd>
                             @if (item.Status == 1)
                             {
                                 <span class="badge bg-success">Active</span>
@@ -97,16 +96,15 @@
                             {
                                 <span class="badge bg-danger">Away</span>
                             }
-                        </td>
-                        <td>@item.Count</td>
-                        <td>@item.FirstSeen.ToTimeString()</td>
-                        <td>@item.LastSeen.ToTimeString()</td>
-                        @*<td>@item.RSSI</td>*@
-                        <td>
+                        </MyTd>
+                        <MyTd>@item.Count</MyTd>
+                        <MyTd>@item.FirstSeen.ToTimeString()</MyTd>
+                        <MyTd>@item.LastSeen.ToTimeString()</MyTd>
+                        <MyTd>
                             <SignalStrenghtBar Strenght="item.SignalStrenght"></SignalStrenghtBar>
-                        </td>
-                        <td><button class="btn btn-icon" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></td>
-                    </tr>
+                        </MyTd>
+                        <MyTd><button class="btn btn-icon p-0" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></MyTd>
+                    </SelectableRow>
                     count++;
                 }
             }
@@ -145,11 +143,26 @@
 
     private RFReaderConnect rfReaderConnect = new RFReaderConnect();
 
+    private void rowClicked(RFTagResponse tagResponse)
+    {
+        foreach(var tag in Tags)
+        {
+            if(tagResponse.EPCID == tag.EPCID)
+            {
+                tag.IsSelected = true;
+            }
+            else
+            {
+                tag.IsSelected = false;
+            }
+        }
+    }
+
     private async Task searchSKU()
     {
         if (string.IsNullOrEmpty(newProduct.SKU)) return;
         var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ProductModel>>("products/bySKU?SKU=" + newProduct.SKU);
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             newProduct = new ProductModel()
             {
@@ -171,20 +184,20 @@
             return;
         }
 
-        if (Tags.Count > 1)
-        {
-            await _dialog.ErrorAlert("Please scan only one shoe at a time!");
-            return;
-        }
+        //if (Tags.Count > 1)
+        //{
+        //    await _dialog.ErrorAlert("Please scan only one shoe at a time!");
+        //    return;
+        //}
 
-        if (!await _dialog.Confirm($"Are you sure want to add this shoe?")) return;
+        if (!await _dialog.Confirm($"Are you sure want to mapping selected tag?")) return;
 
-        newProduct.EPC = Tags.FirstOrDefault().EPCID;
+        newProduct.EPC = Tags.FirstOrDefault(x => x.IsSelected).EPCID;
         var req = await _httpClient.PostAsJsonAsync<ProductModel>("products", newProduct);
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<bool>>();
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
-            await _dialog.SuccessAlert("Shoe added!");
+            await _dialog.SuccessAlert("Tag mapping succeed!");
 
             newProduct = new ProductModel();
             Tags.Clear();
@@ -198,39 +211,41 @@
 
     private void OnTagRead(RFTagResponse tag)
     {
-        tag.Status = 1;
-        var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
-        if (item == null)
-        {
-            tag.FirstSeen = DateTime.Now.Ticks;
-            Tags.Add(tag);
-        }
-        else
-        {
-            item.Status = 1;
-            item.LastSeen = tag.LastSeen;
-            item.Count++;
-            item.RSSI = tag.RSSI;
-            item.SignalStrenght = tag.SignalStrenght;
-            item.AntennaID = tag.AntennaID;
-        }
-
-        foreach (var readTag in Tags)
-        {
-            DateTime lastSeen = readTag.LastSeen.ToDateTime();
-            //Nếu tag đã không được đọc trong 3 giây thì coi như đã đi ra khỏi vùng phủ sóng
-            if ((DateTime.Now - lastSeen).TotalSeconds >= 3)
+        _ = Task.Run(() => {
+            tag.Status = 1;
+            var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
+            if (item == null)
             {
-                readTag.Status = 2;
-                readTag.RSSI = 0;
-                Tags.Remove(readTag);
+                tag.FirstSeen = DateTime.Now.Ticks;
+                Tags.Add(tag);
             }
             else
             {
-                readTag.Status = 1;
+                item.Status = 1;
+                item.LastSeen = tag.LastSeen;
+                item.Count++;
+                item.RSSI = tag.RSSI;
+                item.SignalStrenght = tag.SignalStrenght;
+                item.AntennaID = tag.AntennaID;
             }
-        }
-        StateHasChanged();
+
+            foreach (var readTag in Tags)
+            {
+                DateTime lastSeen = readTag.LastSeen.ToDateTime();
+                //Nếu tag đã không được đọc trong 3 giây thì coi như đã đi ra khỏi vùng phủ sóng
+                if ((DateTime.Now - lastSeen).TotalSeconds >= 3)
+                {
+                    readTag.Status = 2;
+                    readTag.RSSI = 0;
+                    Tags.Remove(readTag);
+                }
+                else
+                {
+                    readTag.Status = 1;
+                }
+            }
+        });
+        //StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
@@ -247,7 +262,7 @@
     public async Task loadAntenas()
     {
         var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<List<AntenaModel>>>($"Antennas");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             antenas = rspns.Result;
             AntenaId = antenas.FirstOrDefault(x => x.LOCATION == AntennaLocation.Table)?.ANTENNA_ID ?? 0;

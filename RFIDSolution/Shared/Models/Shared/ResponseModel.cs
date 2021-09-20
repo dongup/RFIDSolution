@@ -7,7 +7,7 @@ namespace RFIDSolution.Shared.Models
 {
     public class ResponseModel<T>
     {
-        public bool IsSucceed { get; set; }
+        public bool IsSuccess { get; set; }
         public T Result { get; set; } 
         public string Message { get; set; }
         public int StatusCode { get; set; } = 200;
@@ -15,20 +15,20 @@ namespace RFIDSolution.Shared.Models
 
         public ResponseModel<T> Succeed(T Result)
         {
-            IsSucceed = true;
+            IsSuccess = true;
             this.Result = Result;
             return this;
         }
 
         public ResponseModel<T> Succeed()
         {
-            IsSucceed = true;
+            IsSuccess = true;
             return this;
         }
 
         public ResponseModel<T> Failed(string msg = "")
         {
-            IsSucceed = false;
+            IsSuccess = false;
             Message = msg;
             return this;
         }
@@ -36,14 +36,14 @@ namespace RFIDSolution.Shared.Models
         public ResponseModel<T> NotFound()
         {
             Message = "This item does not existed!";
-            IsSucceed = false;
+            IsSuccess = false;
             return this;
         }
 
         public ResponseModel<T> NotFound(T result)
         {
             Message = "This item does not existed!";
-            IsSucceed = false;
+            IsSuccess = false;
             Result = result;
             return this;
         }
@@ -51,21 +51,21 @@ namespace RFIDSolution.Shared.Models
         public ResponseModel<T> NotFound(string msg)
         {
             Message = msg;
-            IsSucceed = false;
+            IsSuccess = false;
             return this;
         }
 
         public ResponseModel<T> Forbiden()
         {
             Message = "Access denied! You do not have permission to access.";
-            IsSucceed = false;
+            IsSuccess = false;
             return this;
         }
 
         public ResponseModel<T> UnAuthorize()
         {
             Message = "Please login first!";
-            IsSucceed = false;
+            IsSuccess = false;
             return this;
         }
     }

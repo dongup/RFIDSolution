@@ -23,5 +23,6 @@ namespace RFIDSolution.Shared.Models.Shared
         public long LastSeen { get; set; }
         public int ScanCount { get; set; }
         public int Status { get; set; }
+        public bool IsSelected;
     }
 }

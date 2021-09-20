@@ -275,7 +275,7 @@
     private async Task loadReaderEvent()
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ReaderLogModel>>>($"ReaderStatus/events?eventType={eventType}&pageItem={tableEventState.PageItem}&pageIndex={tableEventState.PageIndex}");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             readerEvents = rspns.Result.Data;
             tableEventState.TotalRow = rspns.Result.TotalRow;
@@ -290,7 +290,7 @@
     public async Task loadAntennaPowers()
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<List<int>>>($"{antennaUrl}/powers");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             antenaPowers = rspns.Result;
         }
@@ -303,7 +303,7 @@
     public async Task loadAntenas()
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<List<AntenaModel>>>($"{antennaUrl}");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             antenas = rspns.Result;
         }
@@ -327,7 +327,7 @@
 
         var req = await _client.PostAsJsonAsync($"{antennaUrl}", newAntena);
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             await _dialog.SuccessAlert("Antenna added!");
             newAntena = new AntenaModel();
@@ -349,9 +349,9 @@
 
         if (!await _dialog.Confirm("Are you sure you want to save changes?")) return;
 
-        var httpReq = await _client.PutAsJsonAsync($"{antennaUrl}/{item.ANTENNA_ID}", item);
+        var httpReq = await _client.PutAsJsonAsync($"{antennaUrl}/{item.ID}", item);
         var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<bool>>();
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             await _dialog.SuccessAlert("Antenna's info updated! Please reconnect reader to apply your changes!");
             await loadAntenas();
@@ -369,7 +369,7 @@
         var httpReq = await _client.DeleteAsync($"{antennaUrl}/{item.ANTENNA_ID}");
         var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<bool>>();
 
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             await _dialog.SuccessAlert("Antenna deleted!");
             await loadAntenas();
@@ -489,7 +489,7 @@
     private async Task loadConfig()
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<ConfigurationModel>>("config");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             config = rspns.Result;
         }
@@ -503,7 +503,7 @@
     {
         var req = await _client.PutAsJsonAsync<ConfigurationModel>("config", config);
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<bool>>();
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             await _dialog.SuccessAlert("Reader configs updated, please disconnect and reconnect to apply your changes!");
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using static RFIDSolution.Shared.Enums.AppEnums;
 
@@ -15,7 +16,7 @@ namespace RFIDSolution.Shared.DAL.Entities
         public int INVENTORY_ID { get; set; }
 
         /// <summary>
-        /// Ngày kiểm kê
+        /// Ngày bắt đầu kiểm kê
         /// </summary>
         public DateTime INVENTORY_DATE { get; set; }
 
@@ -37,5 +38,7 @@ namespace RFIDSolution.Shared.DAL.Entities
         public InventoryStatus INVENTORY_STATUS { get; set; }
 
         public string COMPLETE_USER { get; set; }
+
+        public ICollection<InventoryDetailEntity> InventoryDetails { get; set; } = new HashSet<InventoryDetailEntity>();
     }
 }
