@@ -1,5 +1,4 @@
 ﻿using RFIDSolution.Shared.Models.Shared;
-using RFIDSolution.Shared.Protos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +29,7 @@ namespace RFIDSolution.Shared.Models
         public string Stage { get; set; }
         public string ColorWay { get; set; }
         public string Category { get; set; }
+        public int? CategoryId { get; set; }
         public string ModelName { get; set; }
         public string RefDocNo { get; set; }
         public string RefDocDate { get; set; }

@@ -19,5 +19,7 @@ namespace RFIDSolution.DataAccess.DAL.Entities
         public int CAT_ID { get; set; }
 
         public string CAT_NAME { get; set; }
+
+        public ICollection<ProductEntity> Products { get; set; } = new HashSet<ProductEntity>();
     }
 }

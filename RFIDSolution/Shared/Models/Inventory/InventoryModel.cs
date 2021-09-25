@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RFIDSolution.WebAdmin.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -67,6 +68,16 @@ namespace RFIDSolution.Shared.Models.Inventory
         public string NOTE { get; set; }
 
         public string COMPLETE_USER { get; set; }
+
+        public string COMPLETE_DATE { get; set; }
+
+        public bool ShowDetail;
+
+        public string keyWord;
+
+        public int filterStatus;
+
+        public TableState tableProductState = new TableState(5);
 
         public List<ProductInventoryModel> InventoryProducts { get; set; } = new List<ProductInventoryModel>();
     }

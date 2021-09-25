@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RFIDSolution.DataAccess.DAL.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -111,6 +112,11 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         [StringLength(100)]
         public string PAIR_CODE { get; set; }
+
+        public int? CATEGORY_ID { get; set; }
+
+        [ForeignKey(nameof(CATEGORY_ID))]
+        public CategoryEntity Category { get; set; }
 
         [ForeignKey(nameof(MODEL_ID))]
         public ModelEntity Model { get; set; }

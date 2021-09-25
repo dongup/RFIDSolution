@@ -1,0 +1,287 @@
+﻿<TableHeader>
+    <HeaderContent>
+        <button class="btn btn-light me-2" @onclick="() => { addInventory(); }"><span class="oi oi-plus mr-2 text-success"></span>Create new plan</button>
+
+        <button class="btn btn-light" @onclick="async () => { await loadData(); }"><span class="oi oi-reload mr-2 text-primary"></span>Refresh data</button>
+    </HeaderContent>
+    <FilterContent>
+        <div class="row">
+            <div class="col-md-4">
+                <InputSearch TextChanged='async (text) => { keyword = text??""; await loadData(); }' PlaceHolder="Search plan name..."></InputSearch>
+            </div>
+            <div class="col-md-3 d-flex">
+                <div class="badge m-bg-primary me-2 d-flex align-items-center">
+                    <span class="oi oi-tags me-1"></span>
+                    Filter status
+                </div>
+                <div class="spacer">
+                    <select class="form-control" @onchange="async (e) => { shoeStatus = int.Parse(e.Value.ToString()); await loadData(); }">
+                        <option value="0">Any status</option>
+                        <option value="@((int)InventoryStatus.Pending)">@InventoryStatus.Pending.GetDescription()</option>
+                        <option value="@((int)InventoryStatus.OnGoing)">@InventoryStatus.OnGoing.GetDescription()</option>
+                        <option value="@((int)InventoryStatus.Completed)">@InventoryStatus.Completed.GetDescription()</option>
+                        <option value="@((int)InventoryStatus.Canceled)">@InventoryStatus.Canceled.GetDescription()</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </FilterContent>
+</TableHeader>
+
+@if (loading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <div class="m-2 bg-white">
+        <div>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>NAME</th>
+                        <th>CREATED DATE</th>
+                        <th>TIME AGO</th>
+                        <th>RESULT</th>
+                        <th>CREATED BY</th>
+                        <th>STATUS</th>
+                        <th>REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (inventories.Count > 0)
+                    {
+                        int count = 1;
+                        @foreach (var item in inventories)
+                        {
+                            <SelectableRow OnClick="() => loadDataResultDetail(item)" @bind-Selected="item.ShowDetail">
+                                <MyTd>@item.INVENTORY_ID</MyTd>
+                                <MyTd>@item.INVENTORY_NAME</MyTd>
+                                <MyTd>@item.CREATED_DATE</MyTd>
+                                <MyTd>@item.TIME_AGO</MyTd>
+                                <MyTd>@item.INVENTORY_RESULT</MyTd>
+                                <MyTd>@item.CREATED_USER</MyTd>
+                                <MyTd>
+                                    <StatusBadge Success="@(item.INVENTORY_STATUS_ID == InventoryStatus.Completed)"
+                                                 Error="@(item.INVENTORY_STATUS_ID == InventoryStatus.Canceled)"
+                                                 Warning="@(item.INVENTORY_STATUS_ID == InventoryStatus.Pending)"
+                                                 Info="@(item.INVENTORY_STATUS_ID == InventoryStatus.OnGoing)">
+                                        @item.INVENTORY_STATUS
+                                    </StatusBadge>
+                                </MyTd>
+                                <MyTd>@item.NOTE</MyTd>
+                            </SelectableRow>
+                            <TableRowDetail Show="item.ShowDetail">
+                                <div class="card">
+                                    <!--Hiển thị thông tin mượn trả và danh sách giầy đã mượn trả-->
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <!--Thông tin mượn trả-->
+                                            <div class="col-md-4">
+                                                <ListItem Title="Inventory name" Bordered="false" LeftToRight="false">@item.INVENTORY_NAME</ListItem>
+                                                <ListItem Title="Created date" Bordered="false" LeftToRight="false">@item.CREATED_DATE</ListItem>
+                                                <ListItem Title="Time ago" Bordered="false" LeftToRight="false">@item.TIME_AGO</ListItem>
+                                                <ListItem Title="Result" Bordered="false" LeftToRight="false">@item.INVENTORY_RESULT</ListItem>
+                                                <ListItem Title="Created by" Bordered="false" LeftToRight="false">@item.CREATED_USER</ListItem>
+                                                <ListItem Title="Status" Bordered="false" LeftToRight="false">
+                                                    <StatusBadge Success="@(item.INVENTORY_STATUS_ID == InventoryStatus.Completed)"
+                                                                 Error="@(item.INVENTORY_STATUS_ID == InventoryStatus.Canceled)"
+                                                                 Warning="@(item.INVENTORY_STATUS_ID == InventoryStatus.Pending)"
+                                                                 Info="@(item.INVENTORY_STATUS_ID == InventoryStatus.OnGoing)">
+                                                        @item.INVENTORY_STATUS
+                                                    </StatusBadge>
+                                                </ListItem>
+                                                <ListItem Title="Document no" Bordered="false" LeftToRight="false">@item.REF_DOC_NO</ListItem>
+                                                <ListItem Title="Remarks" Bordered="false" LeftToRight="false">@item.NOTE</ListItem>
+
+                                                @if (item.INVENTORY_STATUS_ID == InventoryStatus.Completed)
+                                                {
+                                                    <ListItem Title="Completed date" Bordered="false" LeftToRight="false">@item.COMPLETE_DATE</ListItem>
+                                                    <ListItem Title="Completed by" Bordered="false" LeftToRight="false">@item.COMPLETE_USER</ListItem>
+                                                }
+                                            </div>
+                                            <!--Thông tin giày đã mượn/trả-->
+                                            <div class="col-md-8">
+                                                <div class="d-flex align-items-center">
+                                                    <h6>SHOES IN PLAN (@item.tableProductState.TotalRow)</h6>
+                                                    <div class="spacer"></div>
+                                                    <div class="d-flex me-2">
+                                                        <div class="badge m-bg-primary me-2 d-flex align-items-center">
+                                                            <span class="oi oi-tags me-1"></span>
+                                                            Filter status
+                                                        </div>
+                                                        <div class="wp-250">
+                                                            <select class="form-control" @onchange="async (e) => { item.filterStatus = int.Parse(e.Value.ToString()); await loadDataResultDetail(item); }">
+                                                                <option value="0">Any status</option>
+                                                                <option value="@((int)InventoryProductStatus.Found)">@InventoryProductStatus.Found.GetDescription()</option>
+                                                                <option value="@((int)InventoryProductStatus.NotFound)">@InventoryProductStatus.NotFound.GetDescription()</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div style="width: 300px">
+                                                        <InputSearch Text="@item.keyWord" PlaceHolder="Search by SKU, EPC..." TextChanged="async (e) => { item.keyWord = e; await loadDataResultDetail(item); }"></InputSearch>
+                                                    </div>
+                                                </div>
+                                                <table class="table table-bordered table-hover mt-2">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>EPC</th>
+                                                            <th>SKU</th>
+                                                            <th>CATEGORY</th>
+                                                            <th>MODEL</th>
+                                                            <th>STATUS</th>
+                                                            <th>LOCATION</th>
+                                                            <th>COLOR</th>
+                                                            <th>SIZE</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (item.InventoryProducts.Count > 0)
+                                                        {
+                                                            int count = 1;
+                                                            @foreach (var prod in item.InventoryProducts)
+                                                            {
+                                                                <tr class="hand">
+                                                                    <td>@prod.EPC</td>
+                                                                    <td>@prod.SKU</td>
+                                                                    <td>@prod.CATEGORY</td>
+                                                                    <td>@prod.MODEL_NAME</td>
+                                                                    <td>
+                                                                        <StatusBadge Success="@(prod.INV_STATUS_ID == InventoryProductStatus.Found)"
+                                                                                     Error="@(prod.INV_STATUS_ID == InventoryProductStatus.NotFound)">
+                                                                            @prod.INV_STATUS
+                                                                        </StatusBadge>
+                                                                    </td>
+                                                                    <td>@prod.LOCATION</td>
+                                                                    <td>@prod.COLOR</td>
+                                                                    <td>@prod.SIZE</td>
+                                                                </tr>
+                                                                count++;
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <NoData></NoData>
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="1000">
+                                                                <Pagination TableState="item.tableProductState" TotalPageDisplay="5" StateChanged="async () => await loadDataResultDetail(item)"></Pagination>
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableRowDetail>
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        <NoData></NoData>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="1000">
+                            <Pagination TableState="tableState" TotalPageDisplay="5" StateChanged="async () => await loadData()"></Pagination>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+
+@using RFIDSolution.Shared.Models.Inventory 
+@attribute [Authorize]
+@inject HttpClient _client
+@inject DialogService _dialog
+@inject NavigationManager nav
+@page "/inventory"
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; }
+
+    private bool loading = true;
+    private bool addingItem = false;
+    private string keyword = "";
+    private int shoeStatus = 0;
+    private int activeTab = 0;
+    private string baseUrl = "inventory";
+
+    private TableState tableState = new TableState(20);
+
+    private InventoryModel reply = new InventoryModel();
+    private List<InventoryModel> inventories = new List<InventoryModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MainLayout.Instance.PageTitle = "Inventory plans";
+        await loadData();
+    }
+
+    private async Task loadDataResultDetail(InventoryModel item)
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductInventoryModel>>>($"{baseUrl}/inventoryProduct/{item.INVENTORY_ID}?keyword={item.keyWord}&status={item.filterStatus}&pageItem={item.tableProductState.PageItem}&pageIndex={item.tableProductState.PageIndex}");
+        if (rspns.IsSuccess)
+        {
+            item.InventoryProducts = rspns.Result.Data;
+            item.tableProductState.TotalRow = rspns.Result.TotalRow;
+            StateHasChanged();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private void addInventory()
+    {
+        nav.NavigateTo("addplan");
+    }
+
+    private async Task editProduct(InventoryModel item)
+    {
+        //bool isSuccess = await _dialog.ShowEditProductModal(item);
+        await loadData();
+    }
+
+    private async Task deleteProduct(InventoryModel item)
+    {
+        if (!await _dialog.Confirm($"Are you sure you want to delete this plans {item.INVENTORY_NAME}?")) return;
+
+        var httpReq = await _client.DeleteAsync($"inventories/{item.INVENTORY_ID}");
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert("Shoe deleted");
+            await loadData();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task loadData()
+    {
+        loading = true;
+        //reply = await productService.GetAsync(filter);
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<InventoryModel>>>($"{baseUrl}?keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
+        if (rspns.IsSuccess)
+        {
+            inventories = rspns.Result.Data;
+            tableState.TotalRow = rspns.Result.TotalRow;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+        loading = false;
+    }
+}

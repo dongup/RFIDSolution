@@ -149,12 +149,8 @@ else
     </div>
 }
 
-@using static RFIDSolution.Shared.Protos.ShoeModelProto
-@using Grpc.Core;
-
 @attribute [Authorize]
 @inject HttpClient _client
-@inject ShoeModelProtoClient modelClient
 @inject DialogService _dialog
 @page "/transferhistory"
 @code {

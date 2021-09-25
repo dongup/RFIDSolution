@@ -28,11 +28,14 @@ namespace RFIDSolution.Shared.DAL
         public DbSet<TransferEntity> PRODUCT_TRANSFER { get; set; }
         public DbSet<TransferDetailEntity> PRODUCT_TRANSFER_DTL { get; set; }
         public DbSet<ProductAlertEntity> PRODUCT_ALERT { get; set; }
-        public DbSet<ModelEntity> MODEL { get; set; }
         public DbSet<InventoryEntity> INVENTORY { get; set; }
         public DbSet<InventoryDetailEntity> INVENTORY_DTL { get; set; }
         public DbSet<RFIDTagEntity> RFID_TAG { get; set; }
         public DbSet<ReaderLogEntity> READER_LOGS { get; set; }
+
+        public DbSet<ModelEntity> MODEL_DEF { get; set; }
+        public DbSet<CategoryEntity> CAT_DEF { get; set; }
+        public DbSet<DepartmentEntity> DEPT_DEF { get; set; }
 
         public static string ConnStr { get; set; }
 

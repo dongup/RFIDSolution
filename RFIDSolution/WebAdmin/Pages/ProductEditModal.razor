@@ -8,7 +8,7 @@
                 <InputSelect @bind-Value="item.ModelId" TValue="int">
                     @foreach (var model in models)
                     {
-                        <option value="@model.Id">@model.Name</option>
+                        <option value="@model.MODEL_ID">@model.MODEL_NAME</option>
                     }
                 </InputSelect>
 
@@ -42,22 +42,23 @@
     </div>
 </div>
 
-@using static RFIDSolution.Shared.Protos.ShoeModelProto
 @using Grpc.Core;
 
-@inject ShoeModelProtoClient modelClient
+@using RFIDSolution.Shared.Models.Products
+
+@inject DefineService shoeModelService
+@inject HttpClient _httpClient
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
 
     [Parameter]
     public ProductModel item { get; set; }
 
-    private List<ShoeModel> models = new List<ShoeModel>();
+    private List<ModelResponse> models = new List<ModelResponse>();
 
     protected override async Task OnInitializedAsync()
     {
-        var rspns = await modelClient.GetAsync(new ShoeModelFilter());
-        models = rspns.Data.ToList();
+        models = await shoeModelService.GetModels();
     }
 
     void OK()

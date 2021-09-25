@@ -15,7 +15,7 @@ namespace RFIDSolution.Server.Controllers
         private UserEntity currentUser { get; set; }
 
         public DateTime now => DateTime.Now;
-        public int CurrentUserId => 0;
+        public int CurrentUserId => CurrentUser.Id;
 
         public UserEntity CurrentUser
         {

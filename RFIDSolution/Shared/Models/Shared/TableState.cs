@@ -26,11 +26,12 @@ namespace RFIDSolution.WebAdmin.Models
             get
             {
                 int total = 0;
-                total = (int)Math.Floor((decimal)(TotalRow / PageItem));
+                total = (int)(TotalRow / PageItem);
                 if (PageIndex > total)
                 {
                     PageIndex = total;
-                } else if (PageIndex < 0)
+                } 
+                else if (PageIndex < 0)
                 {
                     PageIndex = 0;
                 }

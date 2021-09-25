@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <None Remove="Protos\productProto.proto" />
-    <None Remove="Protos\shoeModelProto.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,10 +19,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="Protos\shoemodelproto.proto" />
   </ItemGroup>
 
   <ItemGroup>

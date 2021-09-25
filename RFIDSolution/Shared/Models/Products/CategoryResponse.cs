@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RFIDSolution.Shared.Models.Products
 {
-    public class ModelResponse
+    public class CategoryResponse
     {
-        public ModelResponse()
+        public CategoryResponse()
         {
-
+                
         }
 
-        public int MODEL_ID { get; set; }
+        public int CAT_ID { get; set; }
 
-        public string MODEL_NAME { get; set; }
+        public string CAT_NAME { get; set; }
 
         public int PRODUCT_COUNT { get; set; }
 

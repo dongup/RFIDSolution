@@ -53,7 +53,10 @@ namespace RFIDSolution.Server.Controllers
                     SKU = x.PRODUCT_CODE,
                     Stage = x.PRODUCT_STAGE,
                     Article = "",
-                    ProductStatus = x.PRODUCT_STATUS
+                    ProductStatus = x.PRODUCT_STATUS,
+                    CategoryId = x.CATEGORY_ID,
+                    CreatedUser = x.CREATED_USER,
+                    Note = x.NOTE,
                 });
 
             return rspns.Succeed(new PaginationResponse<ProductModel>(query, pageItem, pageIndex));
@@ -77,7 +80,7 @@ namespace RFIDSolution.Server.Controllers
                     CATEGORY = x.PRODUCT_CATEGORY,
                     COLOR = x.COLOR_NAME,
                     LOCATION = x.PRODUCT_LOCATION,
-                    SIZE = x.PRODUCT_SIZE
+                    SIZE = x.PRODUCT_SIZE,
                 }).ToList();
 
             //List<ProductInventoryModel> models = new List<ProductInventoryModel>();
@@ -131,6 +134,8 @@ namespace RFIDSolution.Server.Controllers
                     CreatedUser = x.CREATED_USER,
                     Article = "",
                     ProductStatus = x.PRODUCT_STATUS,
+                    CategoryId = x.CATEGORY_ID,
+                    Note = x.NOTE,
                     TransferHistory = x.TransferDetails.Select(a => a.Transfer).Select(a => new TransferInoutModel()
                     {
                         NOTE = a.NOTE,
@@ -181,7 +186,9 @@ namespace RFIDSolution.Server.Controllers
                     CreatedUser = x.CREATED_USER,
                     Stage = x.PRODUCT_STAGE,
                     Article = "",
-                    ProductStatus = x.PRODUCT_STATUS
+                    ProductStatus = x.PRODUCT_STATUS,
+                    Note =x.NOTE,
+                    CategoryId = x.CATEGORY_ID,
                 }).FirstOrDefault();
             if (query == null) return rspns.NotFound("");
             return rspns.Succeed(query);
@@ -216,7 +223,9 @@ namespace RFIDSolution.Server.Controllers
                     Stage = x.PRODUCT_STAGE,
                     CreatedUser = x.CREATED_USER,
                     Article = "",
-                    ProductStatus = x.PRODUCT_STATUS
+                    ProductStatus = x.PRODUCT_STATUS,
+                    Note = x.NOTE,
+                    CategoryId = x.CATEGORY_ID,
                 }).FirstOrDefault();
 
             return rspns.Succeed(query);
@@ -274,7 +283,12 @@ namespace RFIDSolution.Server.Controllers
             entity.PRODUCT_SEASON = item.Season;
             entity.PRODUCT_STAGE = item.Stage;
             entity.COLOR_NAME = item.ColorWay;
-            entity.PRODUCT_CATEGORY = item.Category;
+
+            var cat = _context.CAT_DEF.FirstOrDefault(x => x.CAT_ID == item.CategoryId);
+            if (cat == null) return rspns.Failed($"{item.Category} is not a valid category!");
+
+            entity.PRODUCT_CATEGORY = cat.CAT_NAME;
+            entity.CATEGORY_ID = cat.CAT_ID;
             entity.REF_DOC_NO = item.RefDocNo;
             entity.REF_DOC_DATE = item.RefDocDate;
             entity.CREATED_USER_ID = CurrentUser.Id;
@@ -287,17 +301,30 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ResponseModel<bool>> Put(int id, ProductModel item)
+        public async Task<ResponseModel<bool>> Put(int id, ProductModel value)
         {
             var rspns = new ResponseModel<bool>();
 
-            var newItem = _context.PRODUCT.Find(id);
-            newItem.MODEL_ID = item.ModelId;
-
+            var savedItem = _context.PRODUCT.Find(id);
+            savedItem.PRODUCT_CODE = value.SKU;
+            savedItem.EPC = value.EPC;
+            savedItem.MODEL_ID = value.ModelId;
+            savedItem.PRODUCT_SIZE = value.Size;
+            savedItem.PRODUCT_POC = value.POC;
+            savedItem.PRODUCT_LOCATION = value.Location;
+            savedItem.PRODUCT_REMARKS = value.Remarks;
+            savedItem.DEV_NAME = value.DevStyleName;
+            savedItem.PRODUCT_SEASON = value.Season;
+            savedItem.PRODUCT_STAGE = value.Stage;
+            savedItem.COLOR_NAME = value.ColorWay;
+            savedItem.PRODUCT_CATEGORY = _context.CAT_DEF.Find(value.CategoryId)?.CAT_NAME;
+            savedItem.CATEGORY_ID = value.CategoryId;
+            savedItem.REF_DOC_NO = value.RefDocNo;
+            savedItem.REF_DOC_DATE = value.RefDocDate;
+            savedItem.CREATED_USER_ID = CurrentUser.Id;
+            savedItem.CREATED_USER = CurrentUser.FullName;
 
             await _context.SaveChangesAsync();
-         
-
             return rspns.Succeed();
         }
 

@@ -242,10 +242,6 @@ namespace RFIDSolution.Server
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<ShoeModelService>().EnableGrpcWeb();
-                //endpoints.MapGrpcService<RFIDReadService>().EnableGrpcWeb();
-                //endpoints.MapGrpcService<ProductService>().EnableGrpcWeb();
-
                 endpoints.MapFallbackToFile("index.html");
 
                 endpoints.MapControllerRoute(

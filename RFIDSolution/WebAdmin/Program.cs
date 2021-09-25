@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using RFIDSolution.Shared.Protos;
 using Blazored.Modal;
 using RFIDSolution.Shared.Service;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
@@ -39,12 +38,9 @@ namespace RFIDSolution.Shared
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddScoped<JsService>();
-            builder.Services.AddSingleton(services =>
-            {
-                httpClient.EnableIntercept(services);
-                return new ShoeModelProto.ShoeModelProtoClient(channel);
-            });
-            
+            builder.Services.AddScoped<DefineService>();
+            builder.Services.AddScoped<NavigationService>();
+
             builder.Services.AddBlazoredModal();
             builder.Services.AddTransient<DialogService>();
             builder.Services.AddLoadingBar(op => {

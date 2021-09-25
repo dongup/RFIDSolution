@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TaiyoshaEPE.WebClient.Services
+namespace RFIDSolution.WebAdmin.Service
 {
     public class NavigationService
     {

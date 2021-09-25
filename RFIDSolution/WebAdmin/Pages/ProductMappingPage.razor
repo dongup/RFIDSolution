@@ -28,23 +28,26 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label for="slt-model" class="form-label m-0">Model <Required></Required></label>
-                        <InputSelect class="form-select form-select-sm" id="slt-model" required @bind-Value="newProduct.ModelId">
-                            <option selected disabled value="">Choose model</option>
-                            @foreach (var item in models)
-                            {
-                                <option value="@item.Id">@item.Name</option>
-                            }
-                        </InputSelect>
-                        <div class="invalid-feedback">
-                            Please select a valid model.
-                        </div>
+                        <SelectSearch @bind-Value="@newProduct.ModelId" Title="Model" InvalidFeedBack="@("Please select a valid model")"
+                                      PlaceHolder="Choose model" Items="models" Requried="true" TItem="ModelResponse" TValue="int">
+                            <ItemTemplate>
+                                <option value="@context.MODEL_ID">@context.MODEL_NAME</option>
+                            </ItemTemplate>
+                        </SelectSearch>
                     </div>
 
                     <FormInputText @bind-Text="@newProduct.DevStyleName" Title="Dev style number" Size="4" Required="true" InValidFeedBack="Please provide a valid dev style number."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.ColorWay" Title="Color way" Size="2" Required="true" InValidFeedBack="Please provide a valid color way."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.Size" Title="Size" Size="2" Required="true" InValidFeedBack="Please provide a valid size."></FormInputText>
-                    <FormInputText @bind-Text="@newProduct.Category" Title="Category" Size="4" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
+
+                    <div class="col-md-4">
+                        <SelectSearch @bind-Value="@newProduct.CategoryId" Title="Category" InvalidFeedBack="@("Please select a valid category")"
+                                      PlaceHolder="Choose category" Items="categories" Requried="true" TItem="CategoryResponse" TValue="int?">
+                           <ItemTemplate>
+                               <option value="@context.CAT_ID">@context.CAT_NAME</option>
+                           </ItemTemplate>
+                        </SelectSearch>
+                    </div>
                     <FormInputText @bind-Text="@newProduct.RefDocNo" Title="Document no" Size="2" InValidFeedBack="Please provide a valid category."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.RefDocDate" Title="Document date" Size="2" InValidFeedBack="Please provide a valid category."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.POC" Title="POC" Size="4" Required="true" InValidFeedBack="Please provide a valid POC."></FormInputText>
@@ -109,8 +112,8 @@
                         <MyTd>@item.FirstSeen.ToTimeString()</MyTd>
                         <MyTd>@item.LastSeen.ToTimeString()</MyTd>
                         @*<MyTd>
-                            <SignalStrenghtBar Strenght="item.SignalStrenght"></SignalStrenghtBar>
-                        </MyTd>*@
+                                <SignalStrenghtBar Strenght="item.SignalStrenght"></SignalStrenghtBar>
+                            </MyTd>*@
                         <MyTd><button class="btn btn-icon p-0" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></MyTd>
                     </SelectableRow>
                     count++;
@@ -127,14 +130,12 @@
     </table>
 </div>
 
-@using static RFIDSolution.Shared.Protos.ShoeModelProto
-@using Grpc.Core;
-
-@inject ShoeModelProtoClient modelClient
 @inject DialogService _dialog
 @inject HttpClient _httpClient
 @attribute [Authorize]
 @implements IDisposable
+@inject DefineService shoeModelService
+@using RFIDSolution.Shared.Models.Products;
 @page "/mappingproduct"
 @code{
     private ConfigurationModel config = new ConfigurationModel();
@@ -149,10 +150,9 @@
     private List<AntenaModel> antenas = new List<AntenaModel>();
 
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
-    private List<ShoeModel> models = new List<ShoeModel>();
-    private ShoeModel sledMode => models.FirstOrDefault(x => x.Id == newProduct.ModelId);
+    private List<ModelResponse> models = new List<ModelResponse>();
+    private List<CategoryResponse> categories = new List<CategoryResponse>();
 
-    private AsyncServerStreamingCall<RFTagResponse> _rfStream;
     private ProductModel newProduct = new ProductModel();
 
     private RFReaderConnect rfReaderConnect = new RFReaderConnect();
@@ -296,9 +296,12 @@
     {
         base.OnInitialized();
         MainLayout.Instance.PageTitle = "Mapping tag";
-        var rspns = await modelClient.GetAsync(new ShoeModelFilter());
-        models = rspns.Data.ToList();
-        newProduct.ModelId = models.FirstOrDefault().Id;
+        models = await shoeModelService.GetModels();
+        categories = await shoeModelService.GetCategories();
+
+        newProduct.ModelId = models.FirstOrDefault().MODEL_ID;
+        newProduct.CategoryId = categories.FirstOrDefault().CAT_ID;
+
         await loadConfig();
         await loadAntenas();
         StateHasChanged();

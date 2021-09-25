@@ -1,0 +1,52 @@
+﻿<label for="slt-model" class="form-label m-0">@Title 
+    @if (Requried)
+    {
+        <Required></Required>
+    }
+</label>
+<InputSelect Value="@Value" TValue="TValue" ValueChanged="(e) => OnValueChanged(e)" ValueExpression="() => Value" class="form-select form-select-sm">
+    <option selected disabled value="">@PlaceHolder</option>
+    @foreach (var item in Items) { 
+        @ItemTemplate(item)
+    }
+</InputSelect>
+
+<div class="invalid-feedback">
+    @InvalidFeedBack
+</div>
+
+@typeparam TItem
+@typeparam TValue
+@code {
+    [Parameter]
+    public List<TItem> Items { get; set; } = new List<TItem>();
+
+    [Parameter]
+    public RenderFragment<TItem> ItemTemplate { get; set; }
+
+    [Parameter]
+    public string PlaceHolder { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public bool Requried { get; set; }
+
+    [Parameter]
+    public string InvalidFeedBack { get; set; }
+
+    [Parameter]
+    public TValue Value { get; set; }
+
+    [Parameter]
+    public EventCallback<TValue> ValueChanged { get; set; }
+
+    private string listId = Guid.NewGuid().ToString();
+
+    private void OnValueChanged(TValue value)
+    {
+        Value = value;
+        ValueChanged.InvokeAsync(value);
+    }
+}

@@ -18,6 +18,8 @@ namespace TaiyoshaEPE.WebApi.Hubs
         public ReaderHepler readerApi => Program.Reader;
         private AppDbContext _context;
 
+        private static bool reading = false;
+
         public ReaderHub(AppDbContext context) 
         {
             _context = context;
@@ -49,11 +51,19 @@ namespace TaiyoshaEPE.WebApi.Hubs
             readerApi.OnTagRead += client.ReadHandler;
             var epcs = _context.PRODUCT.Select(x => x.EPC).ToList();
             var rssis = new List<int>() { 34,45,23,45,23,54,23,67,29 };
-            while (readerApi.OnTagRead != null)
+
+            var randomEpcs = new List<string>();
+            for(int i = 0; i < 1; i++)
+            {
+                randomEpcs.Add(Guid.NewGuid().ToString());
+            }
+            reading = true;
+            while (reading)
             {
                 await Task.Delay(100);
                 RFTagResponse newTag = new RFTagResponse();
-                newTag.EPCID = epcs.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
+                //newTag.EPCID = epcs.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
+                newTag.EPCID = randomEpcs.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
                 newTag.AntennaID = 1;
                 newTag.LastSeen = DateTime.Now.Ticks;
                 newTag.RSSI = rssis.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
@@ -63,8 +73,10 @@ namespace TaiyoshaEPE.WebApi.Hubs
 
         public async Task StopInventory()
         {
+            reading = false;
+
             var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
-            Console.WriteLine("Connection Id: " + Context.ConnectionId);
+            Console.WriteLine("Client stop Id: " + Context.ConnectionId);
             if (client != null)
             {
                 readerApi.OnTagRead -= client.ReadHandler;
@@ -77,6 +89,7 @@ namespace TaiyoshaEPE.WebApi.Hubs
             if(!RFClients.Any(x => x.Id == client.Id))
             {
                 readerApi.OnTagRead -= client.ReadHandler;
+                //Chỉ sử dụng khi không có reader
                 readerApi.OnTagRead = null;
                 return;
             }    

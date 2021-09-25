@@ -25,7 +25,7 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public int? COMPLETE_USER { get; set; }
 
-        public InventoryProductStatus STATUS { get; set; }
+        public InventoryProductStatus STATUS { get; set; } = InventoryProductStatus.NotFound;
 
         public DateTime? FOUND_DATE { get; set; }
 
