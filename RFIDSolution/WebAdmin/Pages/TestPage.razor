@@ -1,5 +1,6 @@
 ﻿<Pagination @bind-TableState="state" StateChanged="OnPageClicked"></Pagination>
 
+@attribute [Authorize]
 @page "/test"
 @code {
     TableState state = new TableState();

@@ -4,6 +4,7 @@ using RFIDSolution.Shared;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities;
 using RFIDSolution.Shared.Models;
+using RFIDSolution.Shared.Models.Inventory;
 using RFIDSolution.Shared.Utils;
 using System;
 using System.Collections.Generic;
@@ -58,6 +59,48 @@ namespace RFIDSolution.Server.Controllers
             return rspns.Succeed(new PaginationResponse<ProductModel>(query, pageItem, pageIndex));
         }
 
+        [HttpGet("all")]
+        public async Task<ResponseModel<List<ProductInventoryModel>>> GetAll()
+        {
+            var rspns = new ResponseModel<List<ProductInventoryModel>>();
+
+            var query = _context.PRODUCT
+                .Select(x => new ProductInventoryModel()
+                {
+                    INV_STATUS_ID = Shared.Enums.AppEnums.InventoryProductStatus.NotFound,
+                    INV_STATUS = Shared.Enums.AppEnums.InventoryProductStatus.NotFound.GetDescription(),
+                    COMPLETE_USER = "",
+                    EPC = x.EPC,
+                    MODEL_NAME = x.Model.MODEL_NAME,
+                    PRODUCT_ID = x.PRODUCT_ID,
+                    SKU = x.PRODUCT_CODE,
+                    CATEGORY = x.PRODUCT_CATEGORY,
+                    COLOR = x.COLOR_NAME,
+                    LOCATION = x.PRODUCT_LOCATION,
+                    SIZE = x.PRODUCT_SIZE
+                }).ToList();
+
+            //List<ProductInventoryModel> models = new List<ProductInventoryModel>();
+            //string[] epcs = new string[] { "E28011606000020D895CCA97",
+            //                "E28011606000020D895CCC57",
+            //                "E28011606000020D895CCA77",
+            //                "E28011606000020D895CCC47",
+            //                "E28011606000020D895CCAB7",
+            //                "E28011606000020D895CCC07",
+            //                "1236" };
+
+            //for (int i = 0; i < 4000; i++)
+            //{
+            //    models.Add(new ProductInventoryModel()
+            //    {
+            //        SKU = epcs.OrderBy(x => Guid.NewGuid()).FirstOrDefault(),
+            //        EPC = epcs.OrderBy(x => Guid.NewGuid()).FirstOrDefault()
+            //    });
+            //}
+
+            return rspns.Succeed(query);
+        }
+
         [HttpGet("{id}")]
         public async Task<ResponseModel<ProductModel>> GetById(int id)
         {
@@ -85,6 +128,7 @@ namespace RFIDSolution.Server.Controllers
                     Size = x.PRODUCT_SIZE,
                     SKU = x.PRODUCT_CODE,
                     Stage = x.PRODUCT_STAGE,
+                    CreatedUser = x.CREATED_USER,
                     Article = "",
                     ProductStatus = x.PRODUCT_STATUS,
                     TransferHistory = x.TransferDetails.Select(a => a.Transfer).Select(a => new TransferInoutModel()
@@ -134,6 +178,7 @@ namespace RFIDSolution.Server.Controllers
                     Season = x.PRODUCT_SEASON,
                     Size = x.PRODUCT_SIZE,
                     SKU = x.PRODUCT_CODE,
+                    CreatedUser = x.CREATED_USER,
                     Stage = x.PRODUCT_STAGE,
                     Article = "",
                     ProductStatus = x.PRODUCT_STATUS
@@ -169,9 +214,39 @@ namespace RFIDSolution.Server.Controllers
                     Size = x.PRODUCT_SIZE,
                     SKU = x.PRODUCT_CODE,
                     Stage = x.PRODUCT_STAGE,
+                    CreatedUser = x.CREATED_USER,
                     Article = "",
                     ProductStatus = x.PRODUCT_STATUS
                 }).FirstOrDefault();
+
+            return rspns.Succeed(query);
+        }
+
+        [HttpPost("search")]
+        public async Task<ResponseModel<List<ProductInventoryModel>>> GetForSearch(SearchProductRequestModel value)
+        {
+            var rspns = new ResponseModel<List<ProductInventoryModel>>();
+
+            var query = _context.PRODUCT
+                .Where(x => (string.IsNullOrEmpty(value.SKU) || x.PRODUCT_CODE.Contains(value.SKU))
+                            && (string.IsNullOrEmpty(value.ModelName) || value.ModelName == "Any" || x.Model.MODEL_NAME == value.ModelName) 
+                            && (string.IsNullOrEmpty(value.CategoryName) || value.CategoryName == "Any" || x.PRODUCT_CATEGORY == value.CategoryName)
+                            && (string.IsNullOrEmpty(value.Color) || x.COLOR_NAME.Contains(value.Color))
+                            && (string.IsNullOrEmpty(value.Size) || x.PRODUCT_SIZE.Contains(value.Size)))
+                .Select(x => new ProductInventoryModel()
+                {
+                    INV_STATUS_ID = Shared.Enums.AppEnums.InventoryProductStatus.NotFound,
+                    INV_STATUS = Shared.Enums.AppEnums.InventoryProductStatus.NotFound.GetDescription(),
+                    COMPLETE_USER = "",
+                    EPC = x.EPC,
+                    MODEL_NAME = x.Model.MODEL_NAME,
+                    PRODUCT_ID = x.PRODUCT_ID,
+                    SKU = x.PRODUCT_CODE,
+                    CATEGORY = x.PRODUCT_CATEGORY,
+                    COLOR = x.COLOR_NAME,
+                    LOCATION = x.PRODUCT_LOCATION,
+                    SIZE = x.PRODUCT_SIZE
+                }).ToList();
 
             return rspns.Succeed(query);
         }
@@ -202,6 +277,8 @@ namespace RFIDSolution.Server.Controllers
             entity.PRODUCT_CATEGORY = item.Category;
             entity.REF_DOC_NO = item.RefDocNo;
             entity.REF_DOC_DATE = item.RefDocDate;
+            entity.CREATED_USER_ID = CurrentUser.Id;
+            entity.CREATED_USER = CurrentUser.FullName;
 
             _context.PRODUCT.Add(entity);
             await _context.SaveChangesAsync();

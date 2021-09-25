@@ -1,0 +1,63 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@inject Blazored.LocalStorage.ISyncLocalStorageService localStorage
+@inject HttpClient _httpClient
+@inject NavigationManager navigationManager
+@layout LoginLayout
+
+@page "/login"
+
+<div style="max-width: 400px; margin-top: 150px !important" class="m-auto">
+    <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator />
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0 text-center">
+                    RFID SAMPLE SHOES MANAGEMENT SYSTEM
+                </h5>
+            </div>
+            <div class="card-body">
+                <label>Tên tài khoản</label>
+                <input placeholder="Tên tài khoản" class="form-control no-transform" @bind-value="@model.UserName" />
+                <label class="mt-2">Mật khẩu</label>
+                <input type="password" placeholder="Tên tài khoản" class="form-control no-transform" @bind-value="@model.Password" />
+                @if (!success)
+                {
+                    <p></p>
+                }
+            </div>
+            <div class="card-footer">
+                <button type="submit" class="ml-auto w-100 btn btn-primary" Variant="Variant.Filled"><span class="oi oi-account-login me-2"></span>Đăng nhập</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+@using RFIDSolution.Shared.Models;
+@using RFIDSolution.Shared.Models.Indentity
+@using RFIDSolution.WebAdmin.Service;
+
+@inject IAuthService authService
+@inject HttpClient _httpClient
+@code {
+    LoginModel model = new LoginModel();
+    bool success = true;
+    string errorMsg = "";
+
+    private async void OnValidSubmit(EditContext context)
+    {
+        success = true;
+        var rspns = await authService.Login(model);
+        if (rspns.IsSuccess)
+        {
+            navigationManager.NavigateTo("/");
+            success = true;
+        }
+        else
+        {
+            errorMsg = rspns.Message;
+            success = false;
+        }
+    }
+}
+
+

@@ -20,6 +20,8 @@ namespace RFIDSolution.Shared.Models.Shared
 
         public int READER_TIMEOUT { get; set; }
 
+        public int TAG_TIME_OUT { get; set; }
+
         public bool IS_DELETED { get; set; }
     }
 }

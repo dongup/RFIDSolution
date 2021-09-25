@@ -156,32 +156,32 @@ namespace RFIDSolution.Shared.Utils
 
             if (timeSpan <= TimeSpan.FromSeconds(60))
             {
-                result = string.Format("{0} giây trước", timeSpan.Seconds);
+                result = string.Format("{0} seconds ago", timeSpan.Seconds);
             }
             else if (timeSpan <= TimeSpan.FromMinutes(60))
             {
                 result = timeSpan.Minutes > 1 ?
-                    string.Format("Khoảng {0} phút trước", timeSpan.Minutes) : "Khoảng 1 phút trước";
+                    string.Format("{0} minutes ago", timeSpan.Minutes) : "1 minute ago";
             }
             else if (timeSpan <= TimeSpan.FromHours(24))
             {
                 result = timeSpan.Hours > 1 ?
-                    string.Format("Khoảng {0} giờ trước", timeSpan.Hours) : "Khoảng 1 giờ trước";
+                    string.Format("{0} hours ago", timeSpan.Hours) : "1 hour ago";
             }
             else if (timeSpan <= TimeSpan.FromDays(30))
             {
                 result = timeSpan.Days > 1 ?
-                    string.Format("Khoảng {0} ngày trước", timeSpan.Days) : "Hôm qua";
+                    string.Format("{0} days ago", timeSpan.Days) : "Yesterday";
             }
             else if (timeSpan <= TimeSpan.FromDays(365))
             {
                 result = timeSpan.Days > 30 ?
-                    string.Format("Khoảng {0} tháng trước", timeSpan.Days / 30) : "Khoảng 1 tháng trước";
+                    string.Format("{0} month ago", timeSpan.Days / 30) : "Last month";
             }
             else
             {
                 result = timeSpan.Days > 365 ?
-                    string.Format("Khoảng {0} năm trước", timeSpan.Days / 365) : "Khoảng 1 năm trước";
+                    string.Format("{0} year ago", timeSpan.Days / 365) : "Last year";
             }
 
             return result;

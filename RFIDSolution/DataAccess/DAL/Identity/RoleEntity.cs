@@ -10,6 +10,6 @@ namespace RFIDSolution.Shared.DAL.Entities.Identity
     {
         public virtual ICollection<UserRoleEntity> UserRoles { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool IS_DELETED { get; set; }
     }
 }

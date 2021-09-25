@@ -8,6 +8,6 @@ namespace RFIDSolution.Shared.DAL.Entities.Identity
 {
     public class UserLoginEntity : IdentityUserLogin<int>
     {
-        public bool IsDeleted { get; set; }
+        public bool IS_DELETED { get; set; }
     }
 }

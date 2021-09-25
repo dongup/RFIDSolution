@@ -32,6 +32,7 @@ namespace RFIDSolution.Server.Controllers
                 config.READER_PORT = 5084;
                 config.READER_PERIOD = 0;
                 config.READER_TIMEOUT = 0;
+                config.TAG_TIME_OUT = 5;
                 _context.CONFIG.Add(config);
                 _context.SaveChanges();
             }
@@ -50,7 +51,7 @@ namespace RFIDSolution.Server.Controllers
                 config.READER_IP = "192.168.0.111";
                 config.READER_PORT = 5084;
                 config.READER_PERIOD = 0;
-                config.READER_TIMEOUT = 0;
+                config.TAG_TIME_OUT = 0;
                 _context.CONFIG.Add(config);
             }
             else
@@ -58,7 +59,7 @@ namespace RFIDSolution.Server.Controllers
                 config.READER_IP = value.READER_IP;
                 config.READER_PORT = value.READER_PORT;
                 config.READER_PERIOD = value.READER_PERIOD;
-                config.READER_TIMEOUT = value.READER_TIMEOUT;
+                config.TAG_TIME_OUT = value.TAG_TIME_OUT;
             }
 
             _context.SaveChanges();

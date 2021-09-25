@@ -41,6 +41,8 @@ namespace RFIDSolution.Server.Controllers
                     TRANSFER_ID = x.TRANSFER_ID,
                     TIME_START = x.TIME_START,
                     TIME_END = x.TIME_END,
+                    TRANSFER_NOTE = x.TRANSFER_NOTE,
+                    RETURN_NOTE = x.RETURN_NOTE,
                     NOTE = x.NOTE
                 });
 
@@ -67,6 +69,8 @@ namespace RFIDSolution.Server.Controllers
                     TRANSFER_ID = x.TRANSFER_ID,
                     TIME_START = x.TIME_START,
                     TIME_END = x.TIME_END,
+                    TRANSFER_NOTE = x.TRANSFER_NOTE,
+                    RETURN_NOTE = x.RETURN_NOTE,
                     NOTE = x.NOTE,
                     Products = x.TransferDetails.Select(a => new ProductTransferModel()
                     {
@@ -107,6 +111,8 @@ namespace RFIDSolution.Server.Controllers
                     TRANSFER_BY = x.TRANSFER_BY,
                     TRANSFER_ID = x.TRANSFER_ID,
                     TIME_START = x.TIME_START,
+                    TRANSFER_NOTE = x.TRANSFER_NOTE,
+                    RETURN_NOTE = x.RETURN_NOTE,
                     TIME_END = x.TIME_END,
                     NOTE = x.NOTE,
                     Products = x.TransferDetails.Select(a => new ProductTransferModel() {
@@ -174,6 +180,10 @@ namespace RFIDSolution.Server.Controllers
             newTransfer.REF_DOC_NO = value.REF_DOC_NO;
             newTransfer.CREATED_DATE = DateTime.Now;
             newTransfer.TRANSFER_NOTE = value.REF_DOC_NO;
+
+            newTransfer.CREATED_USER_ID = CurrentUserId;
+            newTransfer.CREATED_USER = CurrentUser.FullName;
+
             _context.PRODUCT_TRANSFER.Add(newTransfer);
             _context.SaveChanges();
 

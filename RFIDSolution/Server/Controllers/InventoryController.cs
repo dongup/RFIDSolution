@@ -83,21 +83,52 @@ namespace RFIDSolution.Server.Controllers
                     TOTAL_FOUND = x.InventoryDetails.Where(a => a.STATUS == InventoryProductStatus.Found).Count(),
                     TOTAL = x.InventoryDetails.Count(),
                     TIME_AGO = x.CREATED_DATE.TimeAgo(),
+                    CREATED_USER = x.CREATED_USER,
+                    NOTE = x.NOTE,
                     InventoryProducts = x.InventoryDetails
                     .Select(a => new ProductInventoryModel()
                     {
-                        IVN_STATUS_ID = a.STATUS,
+                        DTL_ID = a.DTL_ID,
+                        INV_STATUS_ID = a.STATUS,
+                        INV_STATUS = a.STATUS.GetDescription(),
                         COMPLETE_USER = "",
                         EPC = a.Product.EPC,
                         MODEL_NAME = a.Product.Model.MODEL_NAME,
-                        PRODUCT_ID = a.PRODUCT_ID,
-                        SKU = a.Product.PRODUCT_CODE
+                        PRODUCT_ID = a.Product.PRODUCT_ID,
+                        SKU = a.Product.PRODUCT_CODE,
+                        CATEGORY = a.Product.PRODUCT_CATEGORY,
+                        COLOR = a.Product.COLOR_NAME,
+                        LOCATION = a.Product.PRODUCT_LOCATION,
+                        SIZE = a.Product.PRODUCT_SIZE
                     }).ToList()
                 }).FirstOrDefault();
             if (result == null)
                 return rspns.NotFound();
 
             return rspns.Succeed(result);
+        }
+
+        [HttpPut("{id}")]
+        public ResponseModel<object> updateInventoryResult(int id, InventoryModel value)
+        {
+            ResponseModel<object> rspns = new ResponseModel<object>();
+
+            var productInvt = _context.INVENTORY_DTL.Where(x => x.INVENTORY_ID == id);
+            foreach(var item in productInvt)
+            {
+                var newItem = value.InventoryProducts.FirstOrDefault(x => x.DTL_ID == item.DTL_ID);
+                if(newItem != null)
+                {
+                    if(item.STATUS == InventoryProductStatus.NotFound)
+                    {
+                        item.STATUS = newItem.INV_STATUS_ID;
+                        item.FOUND_DATE = DateTime.Now;
+                    }
+                    item.UPDATED_DATE = DateTime.Now;
+                }
+            }
+            _context.SaveChanges();
+            return rspns.Succeed();
         }
     }
 }

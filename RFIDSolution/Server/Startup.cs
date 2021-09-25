@@ -170,40 +170,42 @@ namespace RFIDSolution.Server
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            //Kết nối reader ngay khi mở api
-            System.Console.WriteLine("Connecting reader...");
-            AppDbContext context = new AppDbContext();
-            System.Console.WriteLine("connstr: " + AppDbContext.ConnStr);
-            Program.Reader = new ReaderHepler(context);
-            Program.Reader.Connect();
-            int redPort = Configuration.GetSection("RFReaderConfig").GetValue<int>("RedGPOPort");
+            _ = Task.Run(() => {
+                //Kết nối reader ngay khi mở api
+                System.Console.WriteLine("Connecting reader...");
+                AppDbContext context = new AppDbContext();
+                System.Console.WriteLine("connstr: " + AppDbContext.ConnStr);
+                Program.Reader = new ReaderHepler(context);
+                Program.Reader.Connect();
+                int redPort = Configuration.GetSection("RFReaderConfig").GetValue<int>("RedGPOPort");
 
-            //Hàm handle sự kiện khi có tag không hợp lệ đi qua cổng
-            Program.Reader.OnTagRead += (tag) =>
-            {
-                //RFTagResponse rFTag = (RFTagResponse)tag;
-                ////Lấy ra những anten được config cho check point
-                //var checkPointAntenas = context.ANTENNAS.Where(x => x.LOCATION == Shared.Enums.AppEnums.AntennaLocation.CheckPoint).Select(x => x.ANTENNA_ID);
-                //if (checkPointAntenas.Contains(rFTag.AntennaID))
-                //{
-                //    var antenna = context.ANTENNAS.FirstOrDefault(x => x.ANTENNA_ID == rFTag.AntennaID);
-                //    //Check tag invalid và thêm vào database
-                //    var shoe = context.PRODUCT.FirstOrDefault(x => x.EPC == rFTag.EPCID);
-                //    if (shoe != null)
-                //    {
-                //        if (shoe.PRODUCT_STATUS != Shared.Enums.AppEnums.ProductStatus.Transfered)
-                //        {
-                //            //System.Console.WriteLine($"Invalid item: {shoe.EPC} pass though antenna name {antenna.ANTENNA_NAME}");
-                //            //Program.Reader.OpenGPOPort(1);
-                //        }
-                //    }
-                //}
-            };
-            if (Program.Reader.ReaderStatus.IsConnected)
-            {
-                await Program.Reader.StartInventory();
-            }
-
+                //Hàm handle sự kiện khi có tag không hợp lệ đi qua cổng
+                Program.Reader.OnTagRead += (tag) =>
+                {
+                    //RFTagResponse rFTag = (RFTagResponse)tag;
+                    ////Lấy ra những anten được config cho check point
+                    //var checkPointAntenas = context.ANTENNAS.Where(x => x.LOCATION == Shared.Enums.AppEnums.AntennaLocation.CheckPoint).Select(x => x.ANTENNA_ID);
+                    //if (checkPointAntenas.Contains(rFTag.AntennaID))
+                    //{
+                    //    var antenna = context.ANTENNAS.FirstOrDefault(x => x.ANTENNA_ID == rFTag.AntennaID);
+                    //    //Check tag invalid và thêm vào database
+                    //    var shoe = context.PRODUCT.FirstOrDefault(x => x.EPC == rFTag.EPCID);
+                    //    if (shoe != null)
+                    //    {
+                    //        if (shoe.PRODUCT_STATUS != Shared.Enums.AppEnums.ProductStatus.Transfered)
+                    //        {
+                    //            //System.Console.WriteLine($"Invalid item: {shoe.EPC} pass though antenna name {antenna.ANTENNA_NAME}");
+                    //            //Program.Reader.OpenGPOPort(1);
+                    //        }
+                    //    }
+                    //}
+                };
+                if (Program.Reader.ReaderStatus.IsConnected)
+                {
+                    Program.Reader.StartInventory();
+                }
+            });
+            
             app.UseResponseCompression();
             app.Use((context, next) =>
             {

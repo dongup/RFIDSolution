@@ -10,3 +10,23 @@
 
     return true;
 }
+
+//Đặt tiêu đề cho trang
+setTitle = (title) => {
+    document.title = title;
+    //Hỏi trước khi thoát nếu đang thêm kí lục mực
+    if (window.location.pathname == "/paste/use") {
+        window.onbeforeunload = confirmExit;
+    }
+    else if (window.location.pathname == "/sokumen/use") {
+
+    }
+    else {
+        window.onbeforeunload = undefined;
+    }
+};
+goback = () => { history.back(); };
+
+function printDiv(id) {
+    $(id).printThis();
+}

@@ -8,10 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities;
 
+
 public class ShoeModelService : ShoeModelProto.ShoeModelProtoBase
 {
 	private AppDbContext _context;
-
     public ShoeModelService(AppDbContext context)
     {
         _context = context;

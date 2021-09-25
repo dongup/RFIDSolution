@@ -10,6 +10,10 @@ using Blazored.Modal;
 using RFIDSolution.Shared.Service;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using RFIDSolution.WebAdmin;
+using RFIDSolution.WebAdmin.Services;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
+using RFIDSolution.WebAdmin.Service;
 
 namespace RFIDSolution.Shared
 {
@@ -28,18 +32,19 @@ namespace RFIDSolution.Shared
             var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
             var channel = GrpcChannel.ForAddress(RootApiUrl, new GrpcChannelOptions { HttpClient = httpClient });
 
+            
+            builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
+            builder.Services.AddBlazoredLocalStorage();
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
+            builder.Services.AddScoped<JsService>();
             builder.Services.AddSingleton(services =>
             {
                 httpClient.EnableIntercept(services);
                 return new ShoeModelProto.ShoeModelProtoClient(channel);
             });
-            //builder.Services.AddSingleton(services =>
-            //{
-            //    httpClient.EnableIntercept(services);
-            //    return new RFTagProto.RFTagProtoClient(channel);
-            //});
-          
-
+            
             builder.Services.AddBlazoredModal();
             builder.Services.AddTransient<DialogService>();
             builder.Services.AddLoadingBar(op => {

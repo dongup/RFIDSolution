@@ -1,0 +1,13 @@
+﻿
+@page "/logout"
+@using RFIDSolution.WebAdmin.Service
+@inject NavigationManager nav
+@inject IAuthService authService
+@code { 
+
+    protected override async Task OnInitializedAsync()
+    {
+        await authService.LogOut();
+        nav.NavigateTo("/login");
+    }
+}

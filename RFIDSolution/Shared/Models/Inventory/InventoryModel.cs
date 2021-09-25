@@ -43,11 +43,11 @@ namespace RFIDSolution.Shared.Models.Inventory
         public string INVENTORY_NAME { get; set; }
 
         public string INVENTORY_RESULT
-        { 
-            get { 
-                return $"{TOTAL_FOUND}/{TOTAL}"; 
-            } 
-            set => iVN_RESULT = value; 
+        {
+            get {
+                return $"{TOTAL_FOUND}/{TOTAL}";
+            }
+            set => iVN_RESULT = value;
         }
 
         public int TOTAL_FOUND { get; set; }
@@ -61,6 +61,10 @@ namespace RFIDSolution.Shared.Models.Inventory
         public InventoryStatus INVENTORY_STATUS_ID { get; set; }
 
         public string INVENTORY_STATUS { get; set; }
+
+        public string CREATED_USER { get; set; }
+
+        public string NOTE { get; set; }
 
         public string COMPLETE_USER { get; set; }
 

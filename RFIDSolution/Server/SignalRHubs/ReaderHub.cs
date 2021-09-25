@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using RFIDSolution.Server;
 using RFIDSolution.Server.SignalRHubs;
+using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.Models.Shared;
 using Symbol.RFID3;
 using System;
@@ -15,6 +16,13 @@ namespace TaiyoshaEPE.WebApi.Hubs
     public class ReaderHub : Hub
     {
         public ReaderHepler readerApi => Program.Reader;
+        private AppDbContext _context;
+
+        public ReaderHub(AppDbContext context) 
+        {
+            _context = context;
+        }
+
         /// <summary>
         /// List các thiết bị đang đọc tín hiệu
         /// </summary>
@@ -29,7 +37,7 @@ namespace TaiyoshaEPE.WebApi.Hubs
         {
             var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
             //Nếu là người mới thì thêm vào danh sách
-            if(client == null)
+            if (client == null)
             {
                 client = new RFClient();
                 client.Id = Context.ConnectionId;
@@ -39,6 +47,18 @@ namespace TaiyoshaEPE.WebApi.Hubs
                 RFClients.Add(client);
             }
             readerApi.OnTagRead += client.ReadHandler;
+            var epcs = _context.PRODUCT.Select(x => x.EPC).ToList();
+            var rssis = new List<int>() { 34,45,23,45,23,54,23,67,29 };
+            while (readerApi.OnTagRead != null)
+            {
+                await Task.Delay(100);
+                RFTagResponse newTag = new RFTagResponse();
+                newTag.EPCID = epcs.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
+                newTag.AntennaID = 1;
+                newTag.LastSeen = DateTime.Now.Ticks;
+                newTag.RSSI = rssis.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
+                readerApi.OnTagRead.Invoke(newTag);
+            }
         }
 
         public async Task StopInventory()
@@ -57,6 +77,7 @@ namespace TaiyoshaEPE.WebApi.Hubs
             if(!RFClients.Any(x => x.Id == client.Id))
             {
                 readerApi.OnTagRead -= client.ReadHandler;
+                readerApi.OnTagRead = null;
                 return;
             }    
 

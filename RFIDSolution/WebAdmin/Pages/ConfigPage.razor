@@ -31,8 +31,7 @@
                                 <div class="row flex-column">
                                     <FormInputText @bind-Text="@config.READER_IP" InValidFeedBack="Please enter reader's ip address" Title="IP address" PlaceHolder="Enter reader's ip address" Required="true" Size="12"></FormInputText>
                                     <FormInputNumber @bind-Value="@config.READER_PORT" InValidFeedBack="Please enter reader's port number" Title="Port" PlaceHolder="Enter reader's port" Required="true" Size="12"></FormInputNumber>
-                                    <FormInputNumber @bind-Value="@config.READER_PERIOD" InValidFeedBack="Please enter reader's period" Title="Trigger period" PlaceHolder="Enter reader's period" Required="true" Size="12"></FormInputNumber>
-                                    <FormInputNumber @bind-Value="@config.READER_TIMEOUT" InValidFeedBack="Please enter reader's time out" Title="Time out" PlaceHolder="Enter reader's time out" Required="true" Size="12"></FormInputNumber>
+                                    <FormInputNumber @bind-Value="@config.TAG_TIME_OUT" InValidFeedBack="Please enter tag's time out" Title="Time out" PlaceHolder="Enter tag's time out" Required="false" Size="12"></FormInputNumber>
                                     <div class="col-md-12 d-flex mt-2">
                                         <button class="btn btn-primary me-4" type="submit"><span class="oi oi-check me-2"></span> SAVE</button>
                                         <button class="btn btn-secondary me-4" type="button" @onclick="async () => await loadPage()"><span class="oi oi-reload me-2"></span> REFRESH DATA</button>

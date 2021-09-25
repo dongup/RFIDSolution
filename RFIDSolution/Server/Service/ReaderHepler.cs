@@ -316,7 +316,7 @@ namespace RFIDSolution.Server.SignalRHubs
             var tagResponse = new RFTagResponse();
             tagResponse.EPCID = tag.TagID;
             tagResponse.RSSI = tag.PeakRSSI;
-            tagResponse.SignalStrenght = tag.PeakRSSI + 100;
+            tagResponse.SignalStrenght = tag.PeakRSSI + 100 > 100 ? 100 : tag.PeakRSSI + 100 < 0 ? 0 : tag.PeakRSSI + 100;
             tagResponse.LastSeen = DateTime.Now.Ticks;
             tagResponse.AntennaID = tag.AntennaID;
             if (tag.ContainsLocationInfo)

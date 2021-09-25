@@ -1,0 +1,29 @@
+﻿<div class="row" style="width: 500px">
+    <div class="col-md-12">
+        <p style="font-size: 36px;" class="text-danger">
+            @Message
+        </p>
+    </div>
+
+    <div class="col-md-12 mt-2 d-flex">
+        <div class="spacer"></div>
+        <button @onclick="OK" class="btn btn-primary">OK</button>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+    [Parameter]
+    public string Message { get; set; }
+
+    protected override void OnInitialized()
+    {
+    }
+
+    void OK()
+    {
+        ModalInstance.CloseAsync(ModalResult.Ok<bool>(true));
+    }
+
+}

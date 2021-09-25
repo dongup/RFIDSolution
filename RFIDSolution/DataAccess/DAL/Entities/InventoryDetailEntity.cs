@@ -27,6 +27,8 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public InventoryProductStatus STATUS { get; set; }
 
+        public DateTime? FOUND_DATE { get; set; }
+
         [ForeignKey(nameof(PRODUCT_ID))]
         public ProductEntity Product { get; set; }
 

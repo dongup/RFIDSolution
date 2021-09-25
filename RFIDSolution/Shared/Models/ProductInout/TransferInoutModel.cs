@@ -50,6 +50,10 @@ namespace RFIDSolution.Shared.Models
         public string RETURN_NOTE { get; set; }
 
         public string NOTE { get; set; }
+        
+        public string CREATED_USER { get; set; }
+
+        public string CREATED_USER_DEPT { get; set; }
 
         public bool showDetail;
 

@@ -5,78 +5,77 @@
                 <RFReaderConnect @ref="readerConnecter" AntennaId="AntenaId" Size="12" OnRead="OnTagRead"></RFReaderConnect>
             </div>
         </div>
-        <div class="col-md-10 card card-body">
-            <ul class="nav nav-tabs w-100 mb-2">
-                <li class="nav-item p-0 hand" @onclick="() => isTransferIn = false">
-                    <a class="nav-link text-danger @(isTransferIn? "" : "active")"><span class="oi oi-arrow-circle-right me-1"></span> TRANSFER OUT</a>
-                </li>
-                <li class="nav-item p-0 hand" @onclick="() => isTransferIn = true">
-                    <a class="nav-link text-success @(isTransferIn? "active" : "")">
-                        <span class="oi oi-arrow-circle-left me-1"></span>TRANSFER IN
-                    </a>
-                </li>
-            </ul>
-            @if (isTransferIn)
-            {
-                <h3 class="text-success" style="font-weight: bold">TRANSFER IN</h3>
-                <!--Transfer in-->
-                <div class="row">
-                    <div class="col-md-6">
+        <div class="col-md-10 ">
+            <div class="card">
+                <div class="card-header p-0">
+                    <ul class="nav nav-tabs w-100">
+                        <li class="nav-item p-0 hand" @onclick="() => isTransferIn = false">
+                            <a class="nav-link text-danger @(isTransferIn? "" : "active")"><span class="oi oi-arrow-circle-right me-1"></span> TRANSFER OUT</a>
+                        </li>
+                        <li class="nav-item p-0 hand" @onclick="() => isTransferIn = true">
+                            <a class="nav-link text-success @(isTransferIn? "active" : "")">
+                                <span class="oi oi-arrow-circle-left me-1"></span>TRANSFER IN
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    @if (isTransferIn)
+                    {
+                        <h3 class="text-success" style="font-weight: bold">TRANSFER IN</h3>
+                        <!--Transfer in-->
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="row">
-                                    <FormInputText Title="Return by" @bind-Text="@transferInModel.RETURN_BY" Size="12" Required="true" InValidFeedBack="Please enter return user"></FormInputText>
                                     <div class="col-md-12">
-                                        <label>Note</label>
-                                        <textarea value="@transferInModel.RETURN_NOTE" @onchange="(e) => transferInModel.RETURN_NOTE = e.Value.ToString()" rows="5" class="form-control"></textarea>
+                                        <div class="row">
+                                            <FormInputText Title="Return by" @bind-Text="@transferInModel.RETURN_BY" Size="12" Required="true" InValidFeedBack="Please enter return user"></FormInputText>
+                                            <div class="col-md-12">
+                                                <label>Note</label>
+                                                <textarea value="@transferInModel.RETURN_NOTE" @onchange="(e) => transferInModel.RETURN_NOTE = e.Value.ToString()" rows="5" class="form-control"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 mt-2 d-flex">
+                                        <button class="btn btn-success btn-lg me-4" @onclick="() => transferIn()"><span class="oi oi-arrow-circle-left me-1"></span> Transfer In</button>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="col-md-12 mt-2 d-flex">
-                                <button class="btn btn-success btn-lg me-4" @onclick="() => transferIn()"><span class="oi oi-arrow-circle-left me-1"></span> Transfer In</button>
-                            </div>
                         </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <h3 class="text-danger" style="font-weight: bold">TRANSFER OUT</h3>
-                <!--Transfer out-->
-                <Form OnValidSubmit="() => { }">
-                    <div class="row">
-                        <div class="col-md-6">
+                    }
+                    else
+                    {
+                        <!--Transfer out-->
+                        <Form OnValidSubmit="() => { }">
                             <div class="row">
-                                <FormInputText Title="Transfer reason" @bind-Text="@transferOutModel.TRANSFER_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
-                                <FormInputText Title="Transfer to" @bind-Text="@transferOutModel.TRANSFER_TO" Size="3"></FormInputText>
-                                <FormInputText Title="Transfer by" @bind-Text="@transferOutModel.TRANSFER_BY" Required="true" Size="3" InValidFeedBack="Please enter transfer user"></FormInputText>
-                                <FormInputText Title="Document no" @bind-Text="@transferOutModel.REF_DOC_NO" Size="3"></FormInputText>
-                                <FormInputText Title="Document date" @bind-Text="@transferOutModel.REF_DOC_DATE" Size="3"></FormInputText>
-                                <div>
-                                    <label>Note</label>
-                                    <textarea value="@transferOutModel.TRANSFER_NOTE" @onchange="(e) => transferOutModel.TRANSFER_NOTE = e.Value.ToString()" rows="3" class="form-control"></textarea>
+                                <div class="col-md-6">
+                                    <h3 class="text-danger" style="font-weight: bold">TRANSFER OUT</h3>
+                                    <div class="row">
+                                        <FormInputText Title="Transfer reason" @bind-Text="@transferOutModel.TRANSFER_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
+                                        <FormInputText Title="Transfer to" @bind-Text="@transferOutModel.TRANSFER_TO" Size="3"></FormInputText>
+                                        <FormInputText Title="Transfer by" @bind-Text="@transferOutModel.TRANSFER_BY" Required="true" Size="3" InValidFeedBack="Please enter transfer user"></FormInputText>
+                                        <FormInputText Title="Document no" @bind-Text="@transferOutModel.REF_DOC_NO" Size="3"></FormInputText>
+                                        <FormInputText Title="Document date" @bind-Text="@transferOutModel.REF_DOC_DATE" Size="3"></FormInputText>
+                                        <div>
+                                            <label>Note</label>
+                                            <textarea value="@transferOutModel.TRANSFER_NOTE" @onchange="(e) => transferOutModel.TRANSFER_NOTE = e.Value.ToString()" rows="3" class="form-control"></textarea>
+                                        </div>
+                                        <div class="col-md-12 mt-2 d-flex">
+                                            <button type="submit" class="btn btn-danger btn-lg" @onclick="async () => { await transferOut(); }"><span class="oi oi-arrow-circle-right me-1"></span> Transfer Out</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-12 mt-2 d-flex">
-                                    <button type="submit" class="btn btn-danger btn-lg" @onclick="async () => { await transferOut(); }"><span class="oi oi-arrow-circle-right me-1"></span> Transfer Out</button>
+                                <div class="col-md-6 text-center">
+                                    <div style="overflow-y: auto;display: flex;flex-direction: column;align-items: center;background: #f4f5f8;">
+                                        <TransferSheet model="transferOutModel" products="products" DivId="@divId"></TransferSheet>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6 d-none">
-                            <label class="text-success">Reason list</label>
-                            <div class="list-group w-100" style="max-height: 200px; overflow-y: auto; border: 1px solid gray">
-                                @foreach (string reason in reasonsList)
-                                {
-                                    <button type="button" @onclick="() => { transferOutModel.TRANSFER_REASON = reason; }"
-                                            class="list-group-item list-group-item-action @(transferOutModel.TRANSFER_REASON == reason? "active" : "")">
-                                        @reason
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </Form>
-            }
+                        </Form>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -131,11 +130,8 @@
         </div>
         <div class="col-md-6 ps-0">
             <div class="card">
-                <div class="card-header d-none">
-                    <h4 class="m-0">SHOE DETAIL</h4>
-                </div>
-                <div class="card-body">
-                    <ul class="nav nav-tabs w-100 mb-2">
+                <div class="card-header p-0">
+                    <ul class="nav nav-tabs w-100">
                         <li class="nav-item p-0 hand" @onclick="() => shoeTabActive = 0">
                             <a class="nav-link text-primary @(shoeTabActive == 0? "active" : "")">SHOE INFO</a>
                         </li>
@@ -153,6 +149,9 @@
                             </li>
                         }
                     </ul>
+                </div>
+                <div class="card-body">
+
                     @if (sledProduct.ID == 0)
                     {
                         <p class="text-center p-4">Select a shoe to view detail information!</p>
@@ -291,10 +290,12 @@
 </div>
 @using Grpc.Core;
 @using RFIDSolution.Shared.Models.ProductInout;
-
+@attribute [Authorize]
 @inject DialogService _dialog
 @inject HttpClient _client
 @inject DialogService _dialog
+@inject JsService js 
+
 @implements IDisposable
 @page "/transfer"
 @code {
@@ -303,6 +304,7 @@
     private RFReaderConnect readerConnecter = new RFReaderConnect();
     private bool reading = false;
     private string baseUrl = "ProductTransfers";
+    private string divId = "divId";
 
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
     private TransferInoutModel transferOutModel = new TransferInoutModel();
@@ -372,7 +374,7 @@
             return;
         }
 
-        if(products.Any(x => x.ProductStatus == ProductStatus.Unknown))
+        if (products.Any(x => x.ProductStatus == ProductStatus.Unknown))
         {
             await _dialog.ErrorAlert("Please remove all Unknown tag first!");
             return;
@@ -393,21 +395,24 @@
         //Xác nhận xuất
         if (!await _dialog.Confirm($"Are you sure want to transfer {products.Count} shoe(s) out?")) return;
 
+
         //Request server
         var requestModel = new TransferOutRequest(transferOutModel);
         requestModel.Products = products.Select(x => new ProductTransferRequest(x)).ToList();
         var req = await _client.PostAsJsonAsync<TransferOutRequest>($"{baseUrl}/transferOut", requestModel);
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
+            await js.PrintDiv(divId);
             await _dialog.SuccessAlert("Transfer out succeed!");
             products = new List<ProductModel>();
-            transferOutModel = new TransferInoutModel();
         }
         else
         {
             await _dialog.ErrorAlert(rspns.Message);
         }
+        await Task.Delay(1000);
+        transferOutModel = new TransferInoutModel();
     }
 
     private async Task transferIn()
@@ -447,7 +452,7 @@
         var requestModel = new TransferInRequest(transferInModel, products);
         var req = await _client.PostAsJsonAsync<TransferInRequest>($"{baseUrl}/transferIn", requestModel);
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             await _dialog.SuccessAlert("Transfer out succeed!");
             products = new List<ProductModel>();
@@ -468,7 +473,7 @@
         if (product == null)
         {
             var searchProduct = await findProductByEPC(tag.EPCID.Trim());
-            if(searchProduct != null)
+            if (searchProduct != null)
             {
                 product = searchProduct;
 
@@ -527,7 +532,7 @@
     private async Task getReasonList()
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<List<string>>>($"{baseUrl}/reasons");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             reasonsList = rspns.Result;
             StateHasChanged();
@@ -542,7 +547,7 @@
     {
         ProductModel product = new ProductModel();
         var rspns = await _client.GetFromJsonAsync<ResponseModel<ProductModel>>("products/byepc?epc=" + EPC);
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             product = rspns.Result;
         }
@@ -556,7 +561,7 @@
     private async Task<TransferInoutModel> findTransferInformation(int productId)
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<TransferInoutModel>>($"{baseUrl}/byProductId/{productId}");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             return rspns.Result;
         }
@@ -567,11 +572,10 @@
         }
     }
 
-
     public async Task loadAntenas()
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<List<AntenaModel>>>($"Antennas");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             antenas = rspns.Result;
             AntenaId = antenas.FirstOrDefault(x => x.LOCATION == AntennaLocation.Table)?.ANTENNA_ID ?? 0;

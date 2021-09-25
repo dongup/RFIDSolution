@@ -37,6 +37,7 @@ namespace RFIDSolution.Shared.Models
         public string LRStr { get; set; }
         public ProductStatus ProductStatus { get; set; }
         public string StatusColor => ProductStatus == ProductStatus.Available ? "badge bg-success" : "badge bg-danger";
+        public string CreatedUser { get; set; }
 
         public List<TransferInoutModel> TransferHistory { get; set; } = new List<TransferInoutModel>(); 
 

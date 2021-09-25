@@ -1,0 +1,137 @@
+﻿<div class="p-4 d-flex" style="width: fit-content;" id="@(DivId)">
+    <div class="bill" id="card-white">
+        <div class="h-100">
+            <div class="p-3 h-100" style="background-color: white">
+                <div style="height: 12px; border-bottom: dashed 1px black"></div>
+                <table class="table table-borderless">
+                    <thead></thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="d-flex mt-2">
+                                    <img src="/images/iotsoft_logo.jpg" style="width: 45px; height: 45px; margin-right: 12px" />
+                                    <div>
+                                        <span class="m-0 text-bold ">CÔNG TY TNHH IOT SOFTWARE VIỆT NAM</span><br />
+                                        <span class="m-0 " style="font-size: 10px !important">Địa chỉ: 13/3D Huỳnh Văn Nghệ, Khu phố 2, Thành phố Biên Hòa, Đồng Nai</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="1000">
+                                <p class="m-0 text-center text-bold">PHIẾU XUẤT KHO NỘI BỘ</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="1000">
+                                <div class="row">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-md-8">
+                                        <p class="m-0 text-center text-bold">(Internal Warehouse Output Bill)</p>
+                                    </div>
+                                    <div class="p-0">
+                                        <div class="d-flex" style="margin-right: 12px">
+                                            <div class="spacer"></div>
+                                            <span>Số: </span>
+                                            <span class="text-danger">@model.REF_DOC_NO</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="1000">
+                                <div class="d-flex" style="font-size: 11px">
+                                    <span class="me-4">Người nhận(Receiver): @model.TRANSFER_BY</span>
+                                    <span>   Bộ phận(Dept): @model.TRANSFER_TO </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="1000">
+                                <div class="d-flex" style="font-size: 11px">
+                                    <span class="me-4">Người giao(Handover): @model.CREATED_USER</span>
+                                    <span>   Bộ phận(Dept): @model.CREATED_USER_DEPT </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="1000" style="font-size: 11px" class="text-start">
+                                <span class="mb-1">Lý do xuất kho(Reason): @model.TRANSFER_REASON</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="1000">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25px;" class="text-center">STT<br />(No.)</th>
+                                            <th class="text-center">Tên hàng <br />(Model)</th>
+                                            <th class="text-center">Mã hàng <br /> (SKU)</th>
+                                            <th class="text-center">Ghi chú <br /> (Remarks)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{ int index = 1;}
+                                        @foreach(var item in products)
+                                        {
+                                            int i = index;
+                                            index++;
+                                            <tr>
+                                                <td class="text-center">@i</td>
+                                                <td>@item.ModelName</td>
+                                                <td>@item.SKU</td>
+                                                <td>@item.Note</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="10000">
+                                <p class="text-end m-0 mt-2"><i style="font-size: 12px;">Ngày(Date)...@now.Day...tháng(Month)...@now.Month...năm(Year)...@now.Year...</i></p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="10000">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                        <tr style="font-size: 10px">
+                                            <td class="text-center"><b>Người nhận</b> <br /> (Receiver)</td>
+                                            <td class="text-center"><b>Người giao</b> <br /> (Handover)</td>
+                                            <td class="text-center"><b>Trưởng kho</b> <br /> (Warehouse Leader)</td>
+                                            <td class="text-center"><b>Trưởng bộ phận</b> <br /> (Chief of dept)</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="1000" class="mt-4">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@attribute [Authorize]
+@page "/transfersheet"
+@code {
+    [Parameter]
+    public TransferInoutModel model { get; set; } = new TransferInoutModel();
+
+    [Parameter]
+    public List<ProductModel> products { get; set; } = new List<ProductModel>();
+
+    [Parameter]
+    public string DivId { get; set; } = "";
+
+    public DateTime now = DateTime.Now;
+}

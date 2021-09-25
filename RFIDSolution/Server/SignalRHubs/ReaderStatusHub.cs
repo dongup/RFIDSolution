@@ -51,6 +51,7 @@ namespace RFIDSolution.Server.SignalRHubs
         public void CheckAntennaStatus()
         {
             var caller = Clients.Caller;
+            if (!readerApi.ReaderStatus.IsConnected) return;
             //readerApi._context = _context;
             readerApi.CheckAntennaStatus();
             ReaderStatus.AvaiableAntennas = readerApi.AvailableAntennas;

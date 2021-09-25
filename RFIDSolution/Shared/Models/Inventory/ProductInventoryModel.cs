@@ -15,6 +15,8 @@ namespace RFIDSolution.Shared.Models.Inventory
 
         }
 
+        public int DTL_ID { get; set; }
+
         public int PRODUCT_ID { get; set; }
 
         public string EPC { get; set; }
@@ -23,6 +25,14 @@ namespace RFIDSolution.Shared.Models.Inventory
 
         public string MODEL_NAME { get; set; }
 
+        public string CATEGORY { get; set; }
+
+        public string SIZE { get; set; }
+
+        public string LOCATION { get; set; }
+
+        public string COLOR { get; set; }
+
         /// <summary>
         /// Lần tìm thấy gần nhất
         /// </summary>
@@ -30,8 +40,8 @@ namespace RFIDSolution.Shared.Models.Inventory
 
         public string COMPLETE_USER { get; set; }
 
-        public InventoryProductStatus IVN_STATUS_ID { get; set; } = InventoryProductStatus.NotFound;
+        public InventoryProductStatus INV_STATUS_ID { get; set; } = InventoryProductStatus.NotFound;
 
-        public string IVN_STATUS { get; set; } = InventoryProductStatus.NotFound.GetDescription();
+        public string INV_STATUS { get; set; } = InventoryProductStatus.NotFound.GetDescription();
     }
 }

@@ -11,6 +11,6 @@ namespace RFIDSolution.Shared.DAL.Entities.Identity
         public RoleEntity Role { get; set; }
         public UserEntity User { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool IS_DELETED { get; set; }
     }
 }

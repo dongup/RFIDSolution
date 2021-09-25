@@ -39,6 +39,17 @@ namespace RFIDSolution.Shared.Service
             return res.Cancelled ? false : true;
         }
 
+
+        public async Task<bool> AlertModal(string message)
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("Message", message);
+
+            var modal = _modal.Show<AlertModal>("Alert", parameters);
+            var res = await modal.Result;
+            return res.Cancelled ? false : true;
+        }
+
         public async Task SuccessAlert(string message)
         {
             if (string.IsNullOrEmpty(message)) return;

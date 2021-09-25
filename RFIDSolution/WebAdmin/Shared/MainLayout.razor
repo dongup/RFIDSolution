@@ -1,5 +1,5 @@
 ﻿@inherits LayoutComponentBase
-
+@attribute [Authorize]
 <Alert @ref="AlertDialog"></Alert>
 <div class="page">
     <aside class="@NavMenuCssClass">
@@ -7,13 +7,22 @@
     </aside>
 
     <div class="main">
-        <div class="top-row px-4 bg-white">
+        <div class="top-row px-4 bg-white d-flex">
             <div class="align-items-center">
                 <span class="oi oi-menu large-icon hand mr-1" @onclick="ToggleNavMenu"></span>
                 <span class="large-icon">@PageTitle</span>
             </div>
 
-            <div></div>
+            <div class="spacer"></div>
+
+            <AuthorizeView>
+                <Authorized>
+                    Welcome, @context.User.Identity.Name <a href="/logout" class="ms-4">Logout<span class="oi oi-account-logout ms-2"></span></a>
+                </Authorized>
+                <NotAuthorized>
+
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
 
         <div class="main-content">
@@ -22,16 +31,23 @@
     </div>
 </div>
 
+@using Microsoft.AspNetCore.Components.Authorization
+@using RFIDSolution.WebAdmin.Services
+@inject JsService js
 @code{
     public static MainLayout Instance = new MainLayout();
 
     public Alert AlertDialog { get; set; }
 
-    private string pageTitle = "Anora RFID System";
+    private string pageTitle = "ANNORA SAMPLE SHOE MANAGEMENT";
 
-    public string PageTitle { get => pageTitle;
-        set {
+    public string PageTitle
+    {
+        get => pageTitle;
+        set
+        {
             pageTitle = value;
+            js.SetTitle(pageTitle);
             StateHasChanged();
         }
     }

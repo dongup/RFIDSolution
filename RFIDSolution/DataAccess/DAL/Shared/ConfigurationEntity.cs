@@ -25,6 +25,8 @@ namespace RFIDSolution.Shared.DAL.Shared
 
         public int READER_TIMEOUT { get; set; }
 
+        public int TAG_TIME_OUT { get; set; }
+
         /// <summary>
         /// Số giây đèn led sẽ sáng khi có cảnh báo, nếu = 0 nghĩa là sáng tới lúc bị tắt thì thôi
         /// </summary>

@@ -4,6 +4,47 @@ aside{
     position: fixed !important;
 }
 
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    color: #495057;
+    background-color: #fff !important;
+    border-color: #dee2e6 #dee2e6
+}
+
+.bill{
+    font-weight: 400 !important;
+}
+
+.bill td{
+    padding: 0px !important;
+}
+
+.text-bold {
+    font-weight: bold;
+}
+
+.navbar-brand{
+    font-size: 13px !important;
+    font-weight: bold;
+}
+
+#divId {
+    font-family: 'Times New Roman';
+    font-size: 11px !important;
+}
+
+#divId span {
+    font-family: 'Times New Roman';
+    font-size: 11px !important;
+}
+
+#divId .table-bordered tr{
+    border: 1px solid black;
+}
+
+#divId table {
+    font-size: 11px !important;
+}
+
 .table th {
     color: black;
     background-color: whitesmoke;
@@ -11,6 +52,11 @@ aside{
 
 .m-bg-primary .card{
     color: black !important;
+}
+
+.nav-item .active {
+    background: steelblue !important;
+    color: white;
 }
 
 .tab-link a {

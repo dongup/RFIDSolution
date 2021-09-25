@@ -15,6 +15,13 @@
                             <option value="@(ProductSide.Left)">Left</option>
                             <option value="@(ProductSide.Right)">Right</option>
                         </InputSelect>
+                        <span class="text-danger">
+                            <!--Nếu chọn lại side cũ mà vẫn là SKU cũ thì cảnh báo-->
+                            @if (curentSide == newProduct.LR && currentSKU.Equals(newProduct.SKU))
+                            {
+                                <span>A @newProduct.LR.GetDescription() shoe with SKU @newProduct.SKU is already exist!</span>
+                            }
+                        </span>
                         <div class="invalid-feedback">
                             Please select a side.
                         </div>
@@ -38,8 +45,8 @@
                     <FormInputText @bind-Text="@newProduct.ColorWay" Title="Color way" Size="2" Required="true" InValidFeedBack="Please provide a valid color way."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.Size" Title="Size" Size="2" Required="true" InValidFeedBack="Please provide a valid size."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.Category" Title="Category" Size="4" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
-                    <FormInputText @bind-Text="@newProduct.RefDocNo" Title="Document no" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
-                    <FormInputText @bind-Text="@newProduct.RefDocDate" Title="Document date" Size="2" Required="true" InValidFeedBack="Please provide a valid category."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.RefDocNo" Title="Document no" Size="2" InValidFeedBack="Please provide a valid category."></FormInputText>
+                    <FormInputText @bind-Text="@newProduct.RefDocDate" Title="Document date" Size="2" InValidFeedBack="Please provide a valid category."></FormInputText>
                     <FormInputText @bind-Text="@newProduct.POC" Title="POC" Size="4" Required="true" InValidFeedBack="Please provide a valid POC."></FormInputText>
 
                     <div class="col-md-12 mb-1">
@@ -49,7 +56,7 @@
 
                     <div class="col-12 d-flex mt-2">
                         <button class="btn btn-success me-2" type="submit"><span class="oi oi-cloud-upload"></span>SAVE</button>
-                        <button class="btn btn-secondary me-2" type="reset" @onclick="() => newProduct = new ProductModel()"><span class="oi oi-delete"></span>CLEAR</button>
+                        <button class="btn btn-secondary me-2" type="reset" @onclick="() => { newProduct = new ProductModel(); curentSide = 0; }"><span class="oi oi-delete"></span>CLEAR</button>
                     </div>
                 </Form>
             </div>
@@ -68,12 +75,11 @@
             <tr>
                 <th>#</th>
                 <th>EPC</th>
-                <th>ANTENNA ID</th>
                 <th>STATUS</th>
                 <th>READ COUNT</th>
                 <th>FIRST SEEN</th>
                 <th>LAST SEEN</th>
-                <th>SIGNAL STRENGHT</th>
+                @*<th>SIGNAL STRENGHT</th>*@
                 <th></th>
             </tr>
         </thead>
@@ -84,9 +90,11 @@
                 @foreach (var item in Tags)
                 {
                     <SelectableRow @bind-Selected="item.IsSelected" OnClick="() => rowClicked(item)">
-                        <MyTd>@(count)</MyTd>
+                        @{
+                            int index = count;
+                        }
+                        <MyTd>@(index)</MyTd>
                         <MyTd>@item.EPCID</MyTd>
-                        <MyTd>@item.AntennaID</MyTd>
                         <MyTd>
                             @if (item.Status == 1)
                             {
@@ -100,9 +108,9 @@
                         <MyTd>@item.Count</MyTd>
                         <MyTd>@item.FirstSeen.ToTimeString()</MyTd>
                         <MyTd>@item.LastSeen.ToTimeString()</MyTd>
-                        <MyTd>
+                        @*<MyTd>
                             <SignalStrenghtBar Strenght="item.SignalStrenght"></SignalStrenghtBar>
-                        </MyTd>
+                        </MyTd>*@
                         <MyTd><button class="btn btn-icon p-0" title="Delete" @onclick="() => { Tags.Remove(item); }"><span class="oi oi-delete"></span></button></MyTd>
                     </SelectableRow>
                     count++;
@@ -125,13 +133,19 @@
 @inject ShoeModelProtoClient modelClient
 @inject DialogService _dialog
 @inject HttpClient _httpClient
+@attribute [Authorize]
 @implements IDisposable
 @page "/mappingproduct"
 @code{
+    private ConfigurationModel config = new ConfigurationModel();
+
     private string test = "";
     private bool reading = false;
 
     private int AntenaId = 1;
+    private ProductSide curentSide = 0;
+    private string currentSKU = "";
+
     private List<AntenaModel> antenas = new List<AntenaModel>();
 
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
@@ -145,9 +159,9 @@
 
     private void rowClicked(RFTagResponse tagResponse)
     {
-        foreach(var tag in Tags)
+        foreach (var tag in Tags)
         {
-            if(tagResponse.EPCID == tag.EPCID)
+            if (tagResponse.EPCID == tag.EPCID)
             {
                 tag.IsSelected = true;
             }
@@ -169,6 +183,20 @@
                 SKU = newProduct.SKU
             };
             newProduct = rspns.Result;
+
+            //Lưu lại side giầy tìm được
+            curentSide = newProduct.LR;
+            currentSKU = newProduct.SKU;
+
+            //Tự động đổi lại side
+            if (newProduct.LR == ProductSide.Left)
+            {
+                newProduct.LR = ProductSide.Right;
+            }
+            else
+            {
+                newProduct.LR = ProductSide.Left;
+            }
         }
         else
         {
@@ -184,15 +212,29 @@
             return;
         }
 
-        //if (Tags.Count > 1)
-        //{
-        //    await _dialog.ErrorAlert("Please scan only one shoe at a time!");
-        //    return;
-        //}
+        if (Tags.Count == 0)
+        {
+            await _dialog.ErrorAlert("Please scan at least one shoe!");
+            return;
+        }
+
+        var selectedTag = Tags.FirstOrDefault(x => x.IsSelected);
+        if (selectedTag == null)
+        {
+            if (Tags.Count == 1)
+            {
+                selectedTag = Tags.FirstOrDefault();
+            }
+            else
+            {
+                await _dialog.ErrorAlert("Please select at least one shoe!");
+                return;
+            }
+        }
 
         if (!await _dialog.Confirm($"Are you sure want to mapping selected tag?")) return;
+        newProduct.EPC = selectedTag.EPCID;
 
-        newProduct.EPC = Tags.FirstOrDefault(x => x.IsSelected).EPCID;
         var req = await _httpClient.PostAsJsonAsync<ProductModel>("products", newProduct);
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<bool>>();
         if (rspns.IsSuccess)
@@ -200,18 +242,20 @@
             await _dialog.SuccessAlert("Tag mapping succeed!");
 
             newProduct = new ProductModel();
+            curentSide = 0;
             Tags.Clear();
             StateHasChanged();
         }
         else
         {
-            await _dialog.ErrorAlert(rspns.Message);
+            await _dialog.AlertModal(rspns.Message);
         }
     }
 
     private void OnTagRead(RFTagResponse tag)
     {
-        _ = Task.Run(() => {
+        _ = Task.Run(() =>
+        {
             tag.Status = 1;
             var item = Tags.FirstOrDefault(x => x.EPCID == tag.EPCID);
             if (item == null)
@@ -232,8 +276,8 @@
             foreach (var readTag in Tags)
             {
                 DateTime lastSeen = readTag.LastSeen.ToDateTime();
-                //Nếu tag đã không được đọc trong 3 giây thì coi như đã đi ra khỏi vùng phủ sóng
-                if ((DateTime.Now - lastSeen).TotalSeconds >= 3)
+                //Nếu tag đã không được đọc trong TAG_TIME_OUT giây thì coi như đã đi ra khỏi vùng phủ sóng
+                if ((DateTime.Now - lastSeen).TotalSeconds >= config.TAG_TIME_OUT)
                 {
                     readTag.Status = 2;
                     readTag.RSSI = 0;
@@ -251,10 +295,11 @@
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-        MainLayout.Instance.PageTitle = "Product mapping";
+        MainLayout.Instance.PageTitle = "Mapping tag";
         var rspns = await modelClient.GetAsync(new ShoeModelFilter());
         models = rspns.Data.ToList();
         newProduct.ModelId = models.FirstOrDefault().Id;
+        await loadConfig();
         await loadAntenas();
         StateHasChanged();
     }
@@ -271,6 +316,19 @@
         else
         {
             await _dialog.SuccessAlert(rspns.Message);
+        }
+    }
+
+    private async Task loadConfig()
+    {
+        var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ConfigurationModel>>("config");
+        if (rspns.IsSuccess)
+        {
+            config = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
         }
     }
 

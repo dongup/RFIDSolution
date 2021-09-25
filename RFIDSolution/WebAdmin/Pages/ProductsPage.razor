@@ -36,10 +36,9 @@ else
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
-                        <th>Id</th>
+                        <th>ID</th>
                         <th>EPC</th>
                         <th>SKU</th>
-                        <th>STATUS</th>
                         <th>LOCATION</th>
                         <th>SEASON</th>
                         <th>STAGE</th>
@@ -49,6 +48,7 @@ else
                         <th>SIZE</th>
                         <th>CATEGORY</th>
                         <th>POC</th>
+                        <th>STATUS</th>
                         <th>REMARKS</th>
                     </tr>
                 </thead>
@@ -62,9 +62,6 @@ else
                                 <MyTd>@item.ID</MyTd>
                                 <MyTd>@item.EPC</MyTd>
                                 <MyTd>@item.SKU</MyTd>
-                                <MyTd>
-                                    <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
-                                </MyTd>
                                 <MyTd>@item.Location</MyTd>
                                 <MyTd>@item.Season</MyTd>
                                 <MyTd>@item.Stage</MyTd>
@@ -74,6 +71,9 @@ else
                                 <MyTd>@item.Size</MyTd>
                                 <MyTd>@item.Category</MyTd>
                                 <MyTd>@item.POC</MyTd>
+                                <MyTd>
+                                    <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
+                                </MyTd>
                                 <MyTd>@item.Remarks</MyTd>
                             </SelectableRow>
                             <TableRowDetail Show="item.ShowDetail">
@@ -110,6 +110,7 @@ else
                                                     </ListItem>
                                                     <ListItem Title="Location" Bordered="false">@item.Location</ListItem>
                                                     <ListItem Title="Season" Bordered="false">@item.Location</ListItem>
+                                                    <ListItem Title="Created user" Bordered="false">@item.CreatedUser</ListItem>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <ListItem Title="Stage" Bordered="false">@item.Season</ListItem>
@@ -172,6 +173,9 @@ else
                                     </div>
 
                                     <div class="d-flex w-100 card-footer">
+                                        <AuthorizeView Roles="admin">
+
+                                        </AuthorizeView>
                                         <button class="btn btn-danger me-2" @onclick="() => deleteProduct(item)"><span class="oi oi-delete me-1"></span>DELETE</button>
                                         <button class="btn btn-primary" @onclick="() => editProduct(item)"><span class="oi oi-pencil me-1"></span>UPDATE</button>
                                     </div>
@@ -199,7 +203,7 @@ else
 
 @using static RFIDSolution.Shared.Protos.ShoeModelProto
 @using Grpc.Core;
-
+@attribute [Authorize]
 @inject HttpClient _client
 @inject ShoeModelProtoClient modelClient
 @inject DialogService _dialog
@@ -227,7 +231,7 @@ else
     private async Task showShoeDetail(ProductModel item)
     {
         var rspns = await _client.GetFromJsonAsync<ResponseModel<ProductModel>>($"products/{item.ID}");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             item.TransferHistory = rspns.Result.TransferHistory;
             StateHasChanged();
@@ -259,9 +263,10 @@ else
 
         var httpReq = await _client.DeleteAsync($"products/{item.ID}");
         var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             await _dialog.SuccessAlert("Shoe deleted");
+            await loadData();
         }
         else
         {
@@ -274,7 +279,7 @@ else
         loading = true;
         //reply = await productService.GetAsync(filter);
         var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductModel>>>($"products?shoeStatus={shoeStatus}&keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             products = rspns.Result.Data;
             tableState.TotalRow = rspns.Result.TotalRow;

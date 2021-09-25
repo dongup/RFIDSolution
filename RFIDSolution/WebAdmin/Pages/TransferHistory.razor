@@ -18,7 +18,7 @@
 else
 {
     <div class="m-2 bg-white">
-        <div> 
+        <div>
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
@@ -32,7 +32,6 @@ else
                         <th>RETURN BY</th>
                         <th>DOCUMENT NO</th>
                         <th>DOCUMENT DATE</th>
-                        <th>NOTE</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,7 +53,6 @@ else
                                 <MyTd>@item.RETURN_BY</MyTd>
                                 <MyTd>@item.REF_DOC_NO</MyTd>
                                 <MyTd>@item.REF_DOC_DATE</MyTd>
-                                <MyTd>@item.NOTE</MyTd>
                             </SelectableRow>
                             <TableRowDetail Show="item.showDetail">
                                 <div class="card">
@@ -62,27 +60,31 @@ else
                                     <div class="card-body">
                                         <div class="row">
                                             <!--Thông tin mượn trả-->
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <ListItem Title="Transfer reason" Bordered="false" LeftToRight="false">@item.TRANSFER_REASON</ListItem>
                                                 <ListItem Title="Transfer date" Bordered="false" LeftToRight="false">@item.TIME_START</ListItem>
                                                 <ListItem Title="Time ago" Bordered="false" LeftToRight="false">@item.TIME_START.TimeAgo()</ListItem>
                                                 <ListItem Title="Transfer to" Bordered="false" LeftToRight="false">@item.TRANSFER_TO</ListItem>
                                                 <ListItem Title="Transfer by" Bordered="false" LeftToRight="false">@item.TRANSFER_BY</ListItem>
-                                                <ListItem Title="Status" Bordered="false" LeftToRight="false"><TransferStatusBadge Status="item.TRANSFER_STATUS"></TransferStatusBadge></ListItem>
+                                                <ListItem Title="Status" Bordered="false" LeftToRight="false">
+                                                    <TransferStatusBadge Status="item.TRANSFER_STATUS">
+                                                    </TransferStatusBadge>
+                                                </ListItem>
                                                 <ListItem Title="Document No" Bordered="false" LeftToRight="false">@item.REF_DOC_NO</ListItem>
                                                 <ListItem Title="Document date" Bordered="false" LeftToRight="false">@item.REF_DOC_DATE</ListItem>
                                                 <ListItem Title="Transfer note" Bordered="false" LeftToRight="false">@item.TRANSFER_NOTE</ListItem>
-                                            </div>
 
-                                            <div class="col-md-3">
-                                                <ListItem Title="Return date" Bordered="false" LeftToRight="false">@item.TIME_END</ListItem>
-                                                <ListItem Title="Return by" Bordered="false" LeftToRight="false">@item.RETURN_BY</ListItem>
-                                                <ListItem Title="Total time"  Bordered="false" LeftToRight="false">@item.totalTransferTime</ListItem>
-                                                <ListItem Title="Return note" Bordered="false" LeftToRight="false">@item.RETURN_NOTE</ListItem>
+                                                @if (item.TRANSFER_STATUS == InoutStatus.Returned)
+                                                {
+                                                    <ListItem Title="Return date" Bordered="false" LeftToRight="false">@item.TIME_END</ListItem>
+                                                    <ListItem Title="Return by" Bordered="false" LeftToRight="false">@item.RETURN_BY</ListItem>
+                                                    <ListItem Title="Total time" Bordered="false" LeftToRight="false">@item.totalTransferTime</ListItem>
+                                                    <ListItem Title="Return note" Bordered="false" LeftToRight="false">@item.RETURN_NOTE</ListItem>
+                                                }
                                             </div>
 
                                             <!--Thông tin giày đã mượn/trả-->
-                                            <div class="col-md-6">
+                                            <div class="col-md-8">
                                                 <label>All shoe transfered</label>
                                                 <table class="table table-bordered table-hover">
                                                     <thead>
@@ -92,25 +94,25 @@ else
                                                             <th>MODEL</th>
                                                             <th>STATUS</th>
                                                             <th>TRANSFER NOTE</th>
-                                                            <th></th>
+                                                            <th>RETURN NOTE</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         @if (item.Products.Count > 0)
                                                         {
                                                             int count = 1;
-                                                            @foreach (var item in item.Products)
+                                                            @foreach (var prod in item.Products)
                                                             {
                                                                 <tr class="hand">
-                                                                    <td>@item.EPC</td>
-                                                                    <td>@item.SKU</td>
-                                                                    <td>@item.ModelName</td>
+                                                                    <td>@prod.EPC</td>
+                                                                    <td>@prod.SKU</td>
+                                                                    <td>@prod.ModelName</td>
                                                                     <td>
-                                                                        <span class="@item.statusClass">
-                                                                            @item.STATUS.GetDescription()
-                                                                        </span>
+                                                                        <TransferStatusBadge Status="prod.STATUS">
+                                                                        </TransferStatusBadge>
                                                                     </td>
-                                                                    <td>@item.TRANSFER_NOTE</td>
+                                                                    <td>@prod.TRANSFER_NOTE</td>
+                                                                    <td>@prod.RETURN_NOTE</td>
                                                                 </tr>
                                                                 count++;
                                                             }
@@ -135,7 +137,13 @@ else
                         <NoData></NoData>
                     }
                 </tbody>
-                <tfoot></tfoot>
+                <tfoot>
+                    <tr>
+                        <td colspan="1000">
+                            <Pagination TableState="tableState" TotalPageDisplay="5" StateChanged="async () => await loadData()"></Pagination>
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -144,6 +152,7 @@ else
 @using static RFIDSolution.Shared.Protos.ShoeModelProto
 @using Grpc.Core;
 
+@attribute [Authorize]
 @inject HttpClient _client
 @inject ShoeModelProtoClient modelClient
 @inject DialogService _dialog
@@ -151,6 +160,7 @@ else
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
 
+    private TableState tableState = new TableState();
     private bool loading = true;
     private bool addingItem = false;
     private string keyword = "";
@@ -170,7 +180,7 @@ else
         if (!item.showDetail) return;
         Console.WriteLine("loading detail");
         var rspns = await _client.GetFromJsonAsync<ResponseModel<TransferInoutModel>>($"{baseUrl}/{item.TRANSFER_ID}");
-        if (rspns.IsSucceed)
+        if (rspns.IsSuccess)
         {
             item.Products = rspns.Result.Products;
             StateHasChanged();
@@ -185,10 +195,11 @@ else
     {
         loading = true;
         //reply = await productService.GetAsync(filter);
-        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<TransferInoutModel>>>($"{baseUrl}?keyword={keyword}&pageItem={10}&pageIndex={0}");
-        if (rspns.IsSucceed)
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<TransferInoutModel>>>($"{baseUrl}?keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
+        if (rspns.IsSuccess)
         {
             transfers = rspns.Result.Data;
+            tableState.TotalRow = rspns.Result.TotalRow;
         }
         else
         {
