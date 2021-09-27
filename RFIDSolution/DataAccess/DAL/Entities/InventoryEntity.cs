@@ -39,6 +39,8 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public string COMPLETE_USER { get; set; }
 
+        public DateTime? COMPLETE_DATE { get; set; }
+
         public ICollection<InventoryDetailEntity> InventoryDetails { get; set; } = new HashSet<InventoryDetailEntity>();
     }
 }

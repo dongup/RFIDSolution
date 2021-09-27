@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using RFIDSolution.DataAccess.DAL.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using static RFIDSolution.Shared.Enums.AppEnums;
 
 namespace RFIDSolution.Shared.DAL.Entities.Identity
 {
@@ -20,13 +23,12 @@ namespace RFIDSolution.Shared.DAL.Entities.Identity
 
         public string Note { get; set; }
 
-        public UserStatus Status { get; set; } = UserStatus.Active;
+        public int? DEPARTMENT_ID { get; set; }
 
-        public enum UserStatus
-        {
-            LockDown = 0,
-            Active = 1
-        }
+        [ForeignKey(nameof(DEPARTMENT_ID))]
+        public DepartmentEntity Department { get; set; }
+
+        public UserStatus Status { get; set; } = UserStatus.Active;
 
         public DateTime CreatedDate { get; set; }
 

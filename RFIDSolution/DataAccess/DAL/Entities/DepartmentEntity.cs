@@ -1,4 +1,5 @@
 ﻿using RFIDSolution.Shared.DAL.Entities;
+using RFIDSolution.Shared.DAL.Entities.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -19,5 +20,7 @@ namespace RFIDSolution.DataAccess.DAL.Entities
         public int DEPT_ID { get; set; }
 
         public string DEPT_NAME { get; set; }
+
+        public ICollection<UserEntity> Users { get; set; } = new HashSet<UserEntity>();
     }
 }

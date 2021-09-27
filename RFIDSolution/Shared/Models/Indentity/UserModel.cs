@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using static RFIDSolution.Shared.Enums.AppEnums;
 
 namespace RFIDSolution.Shared.Models
 {
@@ -13,25 +14,26 @@ namespace RFIDSolution.Shared.Models
 
         }
 
-        protected int Id { get; set; }
+        public int Id { get; set; }
 
-        [Required(ErrorMessage = "User name is required!")]
         public string UserName { get; set; }
 
-        [Required(ErrorMessage = "Password is required!")]
         protected string Password { get; set; } = "";
 
-        [Required(ErrorMessage = "Full name is required!")]
         public string FullName { get; set; }
         public string Avatar { get; set; }
 
         public string Email { get; set; }
         public string Phone { get; set; }
 
-        [Required(ErrorMessage = "Please select a role")]
         public string RoleName { get; set; }
+        public string DepartmentName { get; set; }
 
         public string Note { get; set; }
+
+        public UserStatus Status {get;set;}
+
+        public bool ShowDetail;
 
         protected DateTime CreatedDate { get; set; }
         protected int? CreatedUserId { get; set; }

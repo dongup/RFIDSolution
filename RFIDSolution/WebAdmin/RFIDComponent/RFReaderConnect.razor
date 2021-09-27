@@ -39,7 +39,7 @@
         if (hubConnection == null)
         {
             hubConnection = new HubConnectionBuilder()
-                  .WithUrl($"{Program.RootApiUrl}/readerhub")
+                  .WithUrl($"{Program.RootApiUrl}readerhub")
                   .Build();
             hubConnection.On<RFTagResponse>("ReceiveTag", ReceiveTag);
         }

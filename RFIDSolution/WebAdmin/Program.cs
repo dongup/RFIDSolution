@@ -18,7 +18,7 @@ namespace RFIDSolution.Shared
 {
     public class Program
     {
-        public static string RootApiUrl = "http://192.168.1.30:5000";
+        public static string RootApiUrl = "http://192.168.1.30:5000/";
         public static string ApiUrl = "http://192.168.1.30:5000/api/";
 
         public static async Task Main(string[] args)

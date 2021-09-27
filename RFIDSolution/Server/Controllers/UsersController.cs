@@ -39,11 +39,13 @@ namespace RFIDSolution.Server.Controllers
                             || x.NormalizedEmail.Contains(keyword)
                             || x.PhoneNumber.Contains(keyword))
                 .Select(x => new UserModel() {
+                    Id = x.Id,
                     Avatar = x.Avatar,
                     Email = x.Email,
                     UserName = x.UserName,
                     FullName = x.FullName,
                     Phone = x.Phone,
+                    Note = x.Note,
                     RoleName = string.Join(", ", x.UserRoles.Select(a => a.Role.Name))
                 })
                 .AsQueryable();
@@ -65,6 +67,7 @@ namespace RFIDSolution.Server.Controllers
                     UserName = x.UserName,
                     FullName = x.FullName,
                     Phone = x.Phone,
+                    Note = x.Note,
                     RoleName = string.Join(", ", x.UserRoles.Select(a => a.Role.Name)),
                 })
                 .FirstOrDefaultAsync();

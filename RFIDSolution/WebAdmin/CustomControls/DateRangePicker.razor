@@ -1,0 +1,54 @@
+﻿<div class="d-flex">
+    <div class="badge m-bg-primary me-2 d-flex align-items-center">
+        <span class="oi oi-timer me-1"></span>
+        From
+    </div>
+    <div class="wp-150 me-2">
+        <EditForm Model="DateRange">
+            <InputDate TValue="DateTime?" Value="startDate" ValueChanged="async (e) => { startDate = e; await dateChanged(); }" ValueExpression="() => startDate" class="form-control form-control-sm"></InputDate>
+        </EditForm>
+    </div>
+
+    <div class="badge m-bg-primary me-2 d-flex align-items-center">
+        <span class="oi oi-timer me-1"></span>
+        To
+    </div>
+    <div class="wp-150 me-2">
+        <EditForm Model="DateRange">
+            <InputDate TValue="DateTime?" Value="endDate" ValueChanged="async (e) => { endDate = e; await dateChanged(); }" ValueExpression="() => endDate" class="form-control form-control-sm"></InputDate>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private DateTime? startDate = null;
+    private DateTime? endDate = null;
+
+    [Parameter]
+    public DateRange DateRange { get; set; }
+
+    [Parameter]
+    public EventCallback<DateRange> OnDateChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        startDate = DateRange.Start;
+        endDate = DateRange.End;
+    }
+
+    public async Task dateChanged()
+    {
+        var dStartDate = startDate;
+        var dEndDate = endDate;
+
+        DateRange.Start = dStartDate;
+        DateRange.End = dEndDate;
+
+        await valueChanged();
+    }
+
+    public async Task valueChanged()
+    {
+        await OnDateChanged.InvokeAsync(DateRange);
+    }
+}

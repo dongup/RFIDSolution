@@ -1,31 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static RFIDSolution.Shared.Enums.AppEnums;
 
-namespace RFIDSolution.Shared.DAL.Entities
+namespace RFIDSolution.Shared.Models.Products
 {
-    public class ProductAlertEntity : BaseEntity
+    public class ProductAlertModel
     {
-        public ProductAlertEntity() : base()
+        public ProductAlertModel()
         {
 
         }
 
-        [Key]
         public int ALERT_ID { get; set; }
 
         public int PRODUCT_ID { get; set; }
 
-        [StringLength(150)]
-        [Required]
+        public string MODEL_NAME { get; set; }
+
+        public string CATEGORY { get; set; }
+
         public string EPC { get; set; }
 
-        [StringLength(150)]
+        public string SKU { get; set; }
+
+        public string SIZE { get; set; }
+
+        public string COLOR { get; set; }
+
         public string ALERT_IP { get; set; }
 
         public DateTime ALERT_TIME { get; set; }
@@ -40,7 +40,8 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public DateTime ALERT_CONF_TIME { get; set; }
 
-        [ForeignKey(nameof(PRODUCT_ID))]
-        public ProductEntity Product { get; set; }
+        public string WARNING_TIME { get; set; }
+
+        public int TotalWarningSecond { get; set; }
     }
 }

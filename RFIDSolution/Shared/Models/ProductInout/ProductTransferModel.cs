@@ -28,6 +28,10 @@ namespace RFIDSolution.Shared.Models.ProductInout
 
         public string TRANSFER_BY { get; set; }
 
+        public string TRANSFER_TO { get; set; }
+
+        public string TRANSFER_REASON { get; set; }
+
         public string TRANSFER_NOTE { get; set; }
 
         public DateTime TRANSFER_TIME { get; set; }
@@ -41,5 +45,9 @@ namespace RFIDSolution.Shared.Models.ProductInout
         public string RETURN_NOTE { get; set; }
 
         public DateTime RETURN_TIME { get; set; }
+        public string ProductCategory { get; set; }
+        public string ColorWay { get; set; }
+        public string Size { get; set; }
+        public string STATUS_STR { get; set; }
     }
 }

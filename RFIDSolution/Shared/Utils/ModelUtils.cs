@@ -42,10 +42,5 @@ namespace RFIDSolution.Shared.Utils
                 }
             }
         }
-
-        //public static void CopyPropertyJson<TParent, TChild>(TParent parent, TChild child)
-        //{
-        //    CopyProperty(newChild, child);
-        //}
     }
 }

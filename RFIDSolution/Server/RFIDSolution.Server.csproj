@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FastMember" Version="1.5.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.38.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.38.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
@@ -25,6 +26,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="NPOI" Version="2.5.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,5 +48,6 @@
 
   <ItemGroup>
     <Folder Include="Controllers\Authencation\" />
+    <Folder Include="wwwroot\ExcelResults\" />
   </ItemGroup>
 </Project>

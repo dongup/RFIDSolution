@@ -126,5 +126,13 @@ namespace RFIDSolution.Shared.Enums
             [Description("Info")]
             Info = 4
         }
+
+        public enum UserStatus
+        {
+            [Description("Active")]
+            Active = 1,
+            [Description("Disabled")]
+            Disabled = 2
+        }
     }
 }
