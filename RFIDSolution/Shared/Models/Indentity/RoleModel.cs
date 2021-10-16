@@ -6,6 +6,10 @@
 
         public int RoleId { get; set; }
 
+        public int USER_COUNT { get; set; }
+
+        public bool IsEditing;
+
         public RoleModel()
         {
 

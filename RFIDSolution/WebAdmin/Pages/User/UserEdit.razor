@@ -1,0 +1,11 @@
+﻿<FormInputText @bind-Text="item.UserName" Title="User name" Required="true" PlaceHolder="Enter user name..." Size="12" InValidFeedBack="Please enter user name..."></FormInputText>
+<FormInputText @bind-Text="item.FullName" Title="Full name" Required="true" PlaceHolder="Enter full name..." Size="12" InValidFeedBack="Please enter full name..."></FormInputText>
+<FormInputText @bind-Text="item.Email" Title="Email" Required="true" PlaceHolder="Enter email..." Size="12" InValidFeedBack="Please enter user name..."></FormInputText>
+<FormInputText @bind-Text="item.Phone" Title="Phone" Required="true" PlaceHolder="Enter phone..." Size="12" InValidFeedBack="Please enter user name..."></FormInputText>
+<FormInputText @bind-Text="item.DepartmentName" Title="Department" Required="true" PlaceHolder="Enter departmen name..." Size="12" InValidFeedBack="Please enter user name..."></FormInputText>
+<FormInputText @bind-Text="item.Note" Title="Note" Required="true" PlaceHolder="Enter note..." Size="12" InValidFeedBack="Please enter user name..."></FormInputText>
+
+@code {
+    [Parameter]
+    public UserModel item { get; set; } = new UserModel();
+}

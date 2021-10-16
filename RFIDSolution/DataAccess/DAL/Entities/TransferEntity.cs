@@ -1,6 +1,8 @@
-﻿using System;
+﻿using RFIDSolution.DataAccess.DAL.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +31,8 @@ namespace RFIDSolution.Shared.DAL.Entities
         [StringLength(40)]
         public string REF_DOC_NO { get; set; }
 
+        public int? TRANSFER_DEPT_ID { get; set; }
+
         public DateTime? REF_DOC_DATE { get; set; }
 
         public string TRANSFER_BY { get; set; }
@@ -43,6 +47,12 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public DateTime? TIME_END { get; set; }
 
+        public string PrintNote { get; set; }
+
+        [ForeignKey(nameof(TRANSFER_DEPT_ID))]
+        public DepartmentEntity Department { get; set; }
+
         public ICollection<TransferDetailEntity> TransferDetails { get; set; } = new HashSet<TransferDetailEntity>();
+        public string CREATED_USER_DEPT { get; set; }
     }
 }

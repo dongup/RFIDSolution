@@ -71,7 +71,15 @@ namespace RFIDSolution.Shared.Models.Inventory
 
         public string COMPLETE_DATE { get; set; }
 
+        public string CANCEL_REASON { get; set; }
+
+        public DateTime? CANCEL_DATE { get; set; }
+
+        public string CANCEL_BY { get; set; }
+
         public bool ShowDetail;
+
+        public bool IsEditing;
 
         public string keyWord;
 

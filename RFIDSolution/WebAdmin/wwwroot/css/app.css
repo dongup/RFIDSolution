@@ -10,12 +10,64 @@ aside{
     border-color: #dee2e6 #dee2e6
 }
 
+.side-nav {
+    overflow-y: auto;
+    max-height: calc(100% - 59px);
+}
+
+.sub-menu {
+    border-left: solid 1px black;
+}
+
+.side-nav li {
+    cursor: pointer;
+    font-size: 14px !important;
+}
+
+.side-nav .sub-menu .active {
+    color: #0366d6;
+}
+
+.side-nav a .active {
+    font-weight: bold;
+    background: aliceblue;
+    color: #0366d6;
+}
+
+.side-nav button .active {
+    font-weight: bold !important;
+    background: aliceblue !important;
+    color: #0366d6 !important;
+}
+
+.side-nav a {
+    padding: .1875rem .5rem;
+    margin-top: .125rem;
+    margin-left: 1.25rem;
+    color: rgba(0,0,0, 1);
+    text-decoration: none;
+}
+
+.side-nav .btn {
+    padding: .25rem .5rem;
+    font-weight: 400;
+    font-size: 14px;
+    color: rgba(0,0,0, 1);
+    background-color: transparent;
+    border-top: 1px dotted #cdd4e0;
+}
+
 .cut-text {
     text-overflow: ellipsis;
     overflow: hidden;
     width: 160px;
     height: 1.2em;
     white-space: nowrap;
+}
+
+.title-number{
+    font-size: 36px;
+    margin: 0px;
 }
 
 .bill{

@@ -36,8 +36,9 @@ namespace RFIDSolution.Middlewares
             if (token != null)
                 user = await attachUserToContext(context, userService, token);
 
-            if(context.Request.Method == "PUT" || context.Request.Method == "DELETE")
+            if(context.Request.Method == "PUT" || context.Request.Method == "DELETE" || context.Request.Method == "POST")
             {
+
                 context.Request.EnableBuffering();
                 int bufferSize = 1024;
                 string body = "";
@@ -56,12 +57,16 @@ namespace RFIDSolution.Middlewares
                     context.Request.Body.Position = 0;
                 }
 
-                LogModel log = new LogModel(context);
+                LogModel log = new LogModel(context, user);
                 log.RequestUserId = user.Id;
                 log.Token = token;
                 log.RequestBody = body;
 
-                Console.WriteLine("=========Saving log=========");
+                if (context.Request.Method == "POST" && log.RequestUrl.Contains("negotiate")) { 
+                    await _next(context);
+                    return;
+                } 
+
                 db.DetachAllEntities();
                 db.LOG.Add(log);
                 db.SaveChanges();

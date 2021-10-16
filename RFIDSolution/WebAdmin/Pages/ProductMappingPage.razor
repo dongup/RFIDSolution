@@ -4,7 +4,8 @@
             <RFReaderConnect Size="2" OnRead="OnTagRead" AntennaId="@AntenaId" @ref="rfReaderConnect"></RFReaderConnect>
             <div class="col-md-10">
                 <Form OnValidSubmit="async () => { await addProduct(); }">
-                    <FormInputSearch Text="@newProduct.SKU" Size="4" Title="SKU" TextChanged="async (e) => { newProduct.SKU = e; await searchSKU(); }"></FormInputSearch>
+                    <FormInputSearch Text="@newProduct.SKU" Size="4" Title="SKU" TextChanged="async (e) => { newProduct.SKU = e; await searchSKU(); }">
+                    </FormInputSearch>
                     <FormInputText @bind-Text="newProduct.Location" Title="Location" Size="2" Required="true" InValidFeedBack="Please provide a valid location."></FormInputText>
                     <FormInputText @bind-Text="newProduct.Season" Title="Season" Size="2" Required="true" InValidFeedBack="Please provide a valid season."></FormInputText>
                     <FormInputText @bind-Text="newProduct.Stage" Title="Stage" Size="2" Required="true" InValidFeedBack="Please provide a valid stage."></FormInputText>
@@ -17,19 +18,28 @@
                         </InputSelect>
                         <span class="text-danger">
                             <!--Nếu chọn lại side cũ mà vẫn là SKU cũ thì cảnh báo-->
-                            @if (curentSide == newProduct.LR && currentSKU.Equals(newProduct.SKU))
-                            {
-                                <span>A @newProduct.LR.GetDescription() shoe with SKU @newProduct.SKU is already exist!</span>
-                            }
+                            @*@if (curentSide == newProduct.LR && currentSKU.Equals(newProduct.SKU))
+                                {
+                                    <span>A @newProduct.LR.GetDescription() shoe with SKU @newProduct.SKU is already exist!</span>
+                                }*@
                         </span>
                         <div class="invalid-feedback">
                             Please select a side.
                         </div>
                     </div>
 
+                    <div class="col-md-12 mt-1 mb-1">
+                        @if (!valid)
+                        {
+                            <StatusBadge Success="validColor == BadgeColor.Success" Error="validColor == BadgeColor.Error" Warning="validColor == BadgeColor.Warning">
+                                @validMessage
+                            </StatusBadge>
+                        }
+                    </div>
+
                     <div class="col-md-4">
                         <SelectSearch @bind-Value="@newProduct.ModelId" Title="Model" InvalidFeedBack="@("Please select a valid model")"
-                                      PlaceHolder="Choose model" Items="models" Requried="true" TItem="ModelResponse" TValue="int">
+                                      PlaceHolder="Choose model" Items="models" Requried="true" TItem="ModelResponse" TValue="int?">
                             <ItemTemplate>
                                 <option value="@context.MODEL_ID">@context.MODEL_NAME</option>
                             </ItemTemplate>
@@ -43,9 +53,9 @@
                     <div class="col-md-4">
                         <SelectSearch @bind-Value="@newProduct.CategoryId" Title="Category" InvalidFeedBack="@("Please select a valid category")"
                                       PlaceHolder="Choose category" Items="categories" Requried="true" TItem="CategoryResponse" TValue="int?">
-                           <ItemTemplate>
-                               <option value="@context.CAT_ID">@context.CAT_NAME</option>
-                           </ItemTemplate>
+                            <ItemTemplate>
+                                <option value="@context.CAT_ID">@context.CAT_NAME</option>
+                            </ItemTemplate>
                         </SelectSearch>
                     </div>
                     <FormInputText @bind-Text="@newProduct.RefDocNo" Title="Document no" Size="2" InValidFeedBack="Please provide a valid category."></FormInputText>
@@ -58,7 +68,17 @@
                     </div>
 
                     <div class="col-12 d-flex mt-2">
-                        <button class="btn btn-success me-2" type="submit"><span class="oi oi-cloud-upload"></span>SAVE</button>
+                        <!--Có thể thêm thi giày chưa tồn tại-->
+                        @if (validColor == BadgeColor.Warning || valid)
+                        {
+                            <button class="btn btn-success me-2" type="submit"><span class="oi oi-cloud-upload"></span>CREATE NEW SHOE</button>
+                        }
+
+                        <!--Có thể thêm thi SKU giày đã tồn tại nhưng chưa có EPC-->
+                        @if (validColor == BadgeColor.Success || valid)
+                        {
+                            <button class="btn btn-primary me-2" type="submit"><span class="oi oi-cloud-upload"></span>UPDATE EPC</button>
+                        }
                         <button class="btn btn-secondary me-2" type="reset" @onclick="() => { newProduct = new ProductModel(); curentSide = 0; }"><span class="oi oi-delete"></span>CLEAR</button>
                     </div>
                 </Form>
@@ -92,10 +112,9 @@
                 int count = 1;
                 @foreach (var item in Tags)
                 {
+                    int index = count;
+
                     <SelectableRow @bind-Selected="item.IsSelected" OnClick="() => rowClicked(item)">
-                        @{
-                            int index = count;
-                        }
                         <MyTd>@(index)</MyTd>
                         <MyTd>@item.EPCID</MyTd>
                         <MyTd>
@@ -121,9 +140,18 @@
             }
             else
             {
-                <tr>
-                    <td colspan="10000" class="text-center" style="padding: 60px 80px"><h3>Press "START/STOP" to start scan</h3></td>
-                </tr>
+                @if (rfReaderConnect.connected)
+                {
+                    <tr>
+                        <td colspan="10000" class="text-center" style="padding: 60px 80px"><h3>No tag found!</h3></td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10000" class="text-center" style="padding: 60px 80px"><h3>Press "START/STOP" to start scan</h3></td>
+                    </tr>
+                }
             }
         </tbody>
         <tfoot></tfoot>
@@ -133,15 +161,18 @@
 @inject DialogService _dialog
 @inject HttpClient _httpClient
 @attribute [Authorize]
-@implements IDisposable
 @inject DefineService shoeModelService
 @using RFIDSolution.Shared.Models.Products;
 @page "/mappingproduct"
 @code{
+
     private ConfigurationModel config = new ConfigurationModel();
 
     private string test = "";
     private bool reading = false;
+    private bool valid = false;
+    private string validMessage = "";
+    private BadgeColor validColor = BadgeColor.Error;
 
     private int AntenaId = 1;
     private ProductSide curentSide = 0;
@@ -174,7 +205,10 @@
 
     private async Task searchSKU()
     {
+        valid = true;
+        StateHasChanged();
         if (string.IsNullOrEmpty(newProduct.SKU)) return;
+
         var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ProductModel>>("products/bySKU?SKU=" + newProduct.SKU);
         if (rspns.IsSuccess)
         {
@@ -187,19 +221,37 @@
             //Lưu lại side giầy tìm được
             curentSide = newProduct.LR;
             currentSKU = newProduct.SKU;
+            valid = true;
 
-            //Tự động đổi lại side
-            if (newProduct.LR == ProductSide.Left)
+            if (string.IsNullOrWhiteSpace(newProduct.EPC))
             {
-                newProduct.LR = ProductSide.Right;
+                validColor = BadgeColor.Success;
+                valid = false;
+                validMessage = $"Shoes with SKU {newProduct.SKU} are already exist with empty EPC. Do you mean to update EPC value?";
             }
             else
             {
-                newProduct.LR = ProductSide.Left;
+                validColor = BadgeColor.Error;
+                validMessage = $"Shoes with SKU {newProduct.SKU} are already exist with valid EPCs";
+                valid = false;
             }
+
+            //Tự động đổi lại side
+            //if (newProduct.LR == ProductSide.Left)
+            //{
+            //    newProduct.LR = ProductSide.Right;
+            //}
+            //else
+            //{
+            //    newProduct.LR = ProductSide.Left;
+            //}
         }
         else
         {
+            valid = false;
+            validMessage = $"No shoe with SKU {newProduct.SKU} found. Do you mean to create new one?";
+            validColor = BadgeColor.Warning;
+
             await _dialog.ErrorAlert(rspns.Message);
         }
     }
@@ -281,7 +333,7 @@
                 {
                     readTag.Status = 2;
                     readTag.RSSI = 0;
-                    Tags.Remove(readTag);
+                    //Tags.Remove(readTag);
                 }
                 else
                 {
@@ -335,8 +387,4 @@
         }
     }
 
-    async void IDisposable.Dispose()
-    {
-        await rfReaderConnect.stopReader();
-    }
 }

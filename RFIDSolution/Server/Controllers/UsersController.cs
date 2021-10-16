@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities.Identity;
+using RFIDSolution.Shared.DTO;
 using RFIDSolution.Shared.Models;
 
 namespace RFIDSolution.Server.Controllers
@@ -40,12 +41,14 @@ namespace RFIDSolution.Server.Controllers
                             || x.PhoneNumber.Contains(keyword))
                 .Select(x => new UserModel() {
                     Id = x.Id,
+                    Status = x.Status,
                     Avatar = x.Avatar,
                     Email = x.Email,
                     UserName = x.UserName,
                     FullName = x.FullName,
                     Phone = x.Phone,
                     Note = x.Note,
+                    DepartmentName = x.Department.DEPT_NAME,
                     RoleName = string.Join(", ", x.UserRoles.Select(a => a.Role.Name))
                 })
                 .AsQueryable();
@@ -62,13 +65,59 @@ namespace RFIDSolution.Server.Controllers
             var user = await _context.Users
                 .Where(x => x.Id == id)
                 .Select(x => new UserModel() {
+                    Id = x.Id,
+                    Status = x.Status,
                     Avatar = x.Avatar,
                     Email = x.Email,
                     UserName = x.UserName,
                     FullName = x.FullName,
                     Phone = x.Phone,
                     Note = x.Note,
-                    RoleName = string.Join(", ", x.UserRoles.Select(a => a.Role.Name)),
+                    DepartmentName = x.Department.DEPT_NAME,
+                    //RoleName = string.Join(", ", x.UserRoles.Select(a => a.Role.Name)),
+                    //Roles = x.UserRoles.Select(a => new RoleModel()
+                    //{
+                    //    Name = a.Role.Name,
+                    //    RoleId = a.Role.Id, 
+                    //}).ToList(),
+                    //Logs = x.Logs.Select(x => new Shared.DAL.Entities.LogModel()
+                    //{
+                    //    LogContent = x.LogContent,
+                    //    ExceptionMessage = x.ExceptionMessage,
+                    //    RequestUrl = x.RequestUrl,
+                    //    RequestIpAddress = x.RequestIpAddress,
+                    //    RequestBody = x.RequestBody,
+                    //    CreatedDate = x.CREATED_DATE
+                    //}).ToList()
+                })
+                .FirstOrDefaultAsync();
+            if (user == null)
+            {
+                return rspns.Failed("User does not exist!");
+            }
+
+            return rspns.Succeed(user);
+        }
+
+        // GET: api/Users/5
+        [HttpGet("byUserName/{userName}")]
+        public async Task<ActionResult<ResponseModel<UserModel>>> GetByUserName(string userName)
+        {
+            var rspns = new ResponseModel<UserModel>();
+
+            var user = await _context.Users
+                .Where(x => x.UserName == userName)
+                .Select(x => new UserModel()
+                {
+                    Id = x.Id,
+                    Status = x.Status,
+                    Avatar = x.Avatar,
+                    Email = x.Email,
+                    UserName = x.UserName,
+                    FullName = x.FullName,
+                    Phone = x.Phone,
+                    Note = x.Note,
+                    DepartmentName = x.Department.DEPT_NAME,
                 })
                 .FirstOrDefaultAsync();
             if (user == null)
@@ -82,7 +131,7 @@ namespace RFIDSolution.Server.Controllers
         // PUT: api/Users/5
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<ResponseModel<object>> PutUserEntity(int id, UserRequestModel value)
+        public async Task<ResponseModel<object>> PutUserEntity(int id, UserModel value)
         {
             var rspns = new ResponseModel<object>();
 
@@ -99,34 +148,11 @@ namespace RFIDSolution.Server.Controllers
             user.Email = value.Email;
             user.Note = value.Note;
             user.Phone = value.Phone;
+            user.DEPARTMENT_ID = value.DepartmentId;
+            user.DepartmentName = _context.DEPT_DEF.Find(value.DepartmentId).DEPT_NAME;
+            user.Note = value.Note;
 
-
-            //user.Avatar = SaveImage(user.Avatar);
-
-            //try
-            //{
-            //    RoleEntity newRole = await _roleManager.FindByNameAsync(userDTO.RoleName);
-            //    if(newRole == null)
-            //    {
-            //        throw new Exception("Please select a valid role!");
-            //    }
-
-            //    string oldRole = user.UserRoles.FirstOrDefault()?.Role?.Name;
-            //    if (oldRole != "" && oldRole != null)
-            //    {
-            //        await _userManager.RemoveFromRoleAsync(user, oldRole);
-            //    }
-
-            //    await _userManager.AddToRoleAsync(user, newRole.Name);
-
-            //    await _context.SaveChangesAsync();
-            //    rspns.Succeed();
-            //}
-            //catch (Exception ex)
-            //{
-            //    rspns.Failed(ex.Message);
-            //}
-
+            _context.SaveChanges();
             return rspns.Succeed();
         }
 
@@ -137,12 +163,53 @@ namespace RFIDSolution.Server.Controllers
             var rspns = new ResponseModel<object>();
             var user = new UserEntity();
             user.FullName = value.FullName;
+            user.Status = Shared.Enums.AppEnums.UserStatus.Active;
+            user.DEPARTMENT_ID = value.DepartmentId;
+            user.DepartmentName = _context.DEPT_DEF.Find(value.DepartmentId).DEPT_NAME;
             user.Email = value.Email;
             user.Note = value.Note;
             user.Phone = value.Phone;
             user.UserName = value.UserName;
 
             var result =  await _userManager.CreateAsync(user, value.Password);
+            if (result.Succeeded)
+            {
+                return rspns.Succeed();
+            }
+            else
+            {
+                return rspns.Failed(result.Errors.FirstOrDefault().Description);
+            }
+        }
+
+        // POST: api/Users/Role/5/4
+        [HttpPost("role/{userid}/{roleId}")]
+        public async Task<ActionResult<ResponseModel<object>>> AddRoleToUser(int userId, int roleId)
+        {
+            var rspns = new ResponseModel<object>();
+            var user = _context.Users.Where(x => x.Id == userId).FirstOrDefault();
+            var role = _context.Roles.Where(x => x.Id == roleId).FirstOrDefault();
+
+            var result = await _userManager.AddToRoleAsync(user, role.Name);
+            if (result.Succeeded)
+            {
+                return rspns.Succeed();
+            }
+            else
+            {
+                return rspns.Failed(result.Errors.FirstOrDefault().Description);
+            }
+        }
+
+        // POST: api/Users/Role/5/4
+        [HttpDelete("role/{userId}/{roleId}")]
+        public async Task<ResponseModel<object>> RemoveUserRole(int userId, int roleId)
+        {
+            var rspns = new ResponseModel<object>();
+            var user = _context.Users.Where(x => x.Id == userId).FirstOrDefault();
+            var role = _context.Roles.Where(x => x.Id == roleId).FirstOrDefault();
+
+            var result = await _userManager.RemoveFromRoleAsync(user, role.Name);
             if (result.Succeeded)
             {
                 return rspns.Succeed();
@@ -187,18 +254,17 @@ namespace RFIDSolution.Server.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        public async Task<ResponseModel<object>> DeleteUserEntity(int id)
+        public async Task<ResponseModel<bool>> DeleteUserEntity(int id)
         {
-            var rspns = new ResponseModel<object>();
-            var userEntity = await _context.Users.FindAsync(id);
+            var rspns = new ResponseModel<bool>();
+            var userEntity = _context.Users.Find(id);
             if (userEntity == null)
             {
                 return rspns.Failed("User does not exist!");
             }
 
             await _userManager.DeleteAsync(userEntity);
-            rspns.Succeed();
-            return rspns;
+            return rspns.Succeed();
         }
 
         private bool UserEntityExists(int id)

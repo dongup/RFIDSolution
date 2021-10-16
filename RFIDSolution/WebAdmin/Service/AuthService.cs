@@ -35,13 +35,12 @@ namespace RFIDSolution.WebAdmin.Service
             if (rspns.IsSuccess)
             {
                 await _localStorage.SetItemAsync<String>("authToken", rspns.Result.Token);
-                _stateProvider.MarkUserAsAuthenticated(rspns.Result.User.UserName);
+                _stateProvider.MarkUserAsAuthenticated(rspns.Result.User);
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", rspns.Result.Token);
             }
 
             return rspns;
         }
-
 
         public async Task LogOut()
         {

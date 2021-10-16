@@ -51,7 +51,7 @@ namespace RFIDSolution.Server.Controllers
                     INVENTORY_DATE =x.CREATED_DATE.ToVNString(),
                     TOTAL_FOUND = x.InventoryDetails.Where(a => a.STATUS == InventoryProductStatus.Found).Count(),
                     TOTAL = x.InventoryDetails.Count(),
-                    TIME_AGO = x.CREATED_DATE.TimeAgo()
+                    TIME_AGO = x.CREATED_DATE.TimeAgo(),
                 }).ToList();
 
             return rspns.Succeed(result);
@@ -87,6 +87,9 @@ namespace RFIDSolution.Server.Controllers
                     TIME_AGO = x.CREATED_DATE.TimeAgo(),
                     CREATED_USER = x.CREATED_USER,
                     NOTE = x.NOTE,
+                    CANCEL_BY = x.CANCEL_USER,
+                    CANCEL_DATE = x.CANCEL_DATE,
+                    CANCEL_REASON = x.CANCEL_REASON,
                     InventoryProducts = x.InventoryDetails
                     .Select(a => new ProductInventoryModel()
                     {
@@ -135,7 +138,11 @@ namespace RFIDSolution.Server.Controllers
                     CREATED_USER = x.CREATED_USER,
                     TOTAL_FOUND = x.InventoryDetails.Where(a => a.STATUS == InventoryProductStatus.Found).Count(),
                     TOTAL = x.InventoryDetails.Count(),
-                    TIME_AGO = x.CREATED_DATE.TimeAgo()
+                    TIME_AGO = x.CREATED_DATE.TimeAgo(),
+                    NOTE = x.NOTE,
+                    CANCEL_BY = x.CANCEL_USER,
+                    CANCEL_DATE = x.CANCEL_DATE,
+                    CANCEL_REASON = x.CANCEL_REASON
                 }).AsQueryable();
 
             return rspns.Succeed(new PaginationResponse<InventoryModel>(result, pageItem, pageIndex));
@@ -149,6 +156,7 @@ namespace RFIDSolution.Server.Controllers
             var result = _context.INVENTORY_DTL
                 .Where(x => (string.IsNullOrEmpty(keyword) 
                             || x.Product.PRODUCT_CODE.Contains(keyword)
+                            || x.Product.EPC.Contains(keyword)
                             || x.Product.Model.MODEL_NAME.Contains(keyword)
                             || x.Product.PRODUCT_CATEGORY.Contains(keyword))
                             && x.INVENTORY_ID == id
@@ -172,7 +180,6 @@ namespace RFIDSolution.Server.Controllers
 
             return rspns.Succeed(new PaginationResponse<ProductInventoryModel>(result, pageItem, pageIndex));
         }
-
 
         [HttpPut("{id}")]
         public ResponseModel<object> updateInventoryResult(int id, InventoryModel value)
@@ -229,5 +236,54 @@ namespace RFIDSolution.Server.Controllers
             _context.SaveChanges();
             return rspns.Succeed();
         }
+
+        [HttpPut("complete/{id}")]
+        public ResponseModel<object> CompletePlan(int id)
+        {
+            var rspns = new ResponseModel<object>();
+
+            var plan = _context.INVENTORY.Find(id);
+            if (plan == null) return rspns.NotFound();
+
+            plan.INVENTORY_STATUS = InventoryStatus.Completed;
+            plan.COMPLETE_DATE = DateTime.Now;
+            plan.COMPLETE_USER = CurrentUser.FullName;
+
+            _context.SaveChanges();
+
+            return rspns.Succeed();
+        }
+
+        [HttpPut("cancel/{id}")]
+        public ResponseModel<object> CancelPlan(int id, [FromBody] string reason)
+        {
+            var rspns = new ResponseModel<object>();
+
+            var plan = _context.INVENTORY.Find(id);
+            if (plan == null) return rspns.NotFound();
+
+            plan.INVENTORY_STATUS = InventoryStatus.Canceled;
+            plan.CANCEL_REASON = reason;
+            plan.CANCEL_USER = CurrentUser.FullName;
+            plan.CANCEL_DATE = DateTime.Now;
+
+            _context.SaveChanges();
+
+            return rspns.Succeed();
+        }
+
+        [HttpDelete("{id}")]
+        public ResponseModel<object> Post(int id)
+        {
+            var rspns = new ResponseModel<object>();
+            var savedItem = _context.INVENTORY.Find(id);
+            savedItem.IS_DELETED = true;
+            savedItem.DELETED_DATE = DateTime.Now;
+            savedItem.UPDATED_USER = CurrentUser.FullName;
+
+            _context.SaveChanges();
+            return rspns.Succeed();
+        }
+
     }
 }

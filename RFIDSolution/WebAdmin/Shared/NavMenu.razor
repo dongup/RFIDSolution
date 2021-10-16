@@ -3,98 +3,37 @@
     <span class="mb-2">Version: 2.0.0</span>
 </div>
 
-<div>
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> HOME
-            </NavLink>
-        </li>
+<div class="side-nav">
+    <ul class="list-unstyled">
+        <NavMenuItem Title="Dash board" Icon="oi-dashboard" Href=""></NavMenuItem>
+        <NavMenuItem Title="All shoes" Icon="oi-menu" Href="products"></NavMenuItem>
+        <NavMenuItem Title="Mapping tag" Icon="oi-plus" Href="mappingproduct"></NavMenuItem>
+        <NavMenuItem Title="Transfer shoes" Icon="oi-transfer" IsLink="false">
+            <SubNavItem Text="Tranfer in/out" Href="transfer"></SubNavItem>
+            <SubNavItem Text="Transfer history" Href="transferhistory"></SubNavItem>
+        </NavMenuItem>
+        <NavMenuItem Title="Inventory plan" Icon="oi-project" Href="inventory"></NavMenuItem>
+        <NavMenuItem Title="Config" Icon="oi-cog" Href="config"></NavMenuItem>
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="products">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> ALL SHOES
-            </NavLink>
-        </li>
+        <NavMenuItem Title="Shoe properties" Icon="oi-list" Href="properties" IsLink="false">
+            <SubNavItem Text="Models" Href="properties/models"></SubNavItem>
+            <SubNavItem Text="Categories" Href="properties/categories"></SubNavItem>
+        </NavMenuItem>
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="mappingproduct">
-                <span class="oi oi-plus" aria-hidden="true"></span> MAPPING TAG
-            </NavLink>
-        </li>
+        <NavMenuItem Title="User management" Icon="oi-person" Href="users" IsLink="false">
+            <SubNavItem Text="Users" Href="users/manage"></SubNavItem>
+            <SubNavItem Text="Departments" Href="users/departments"></SubNavItem>
+            @*<SubNavItem Text="Roles" Href="roles"></SubNavItem>*@
+        </NavMenuItem>
 
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="transfer">
-                <span class="oi oi-transfer" aria-hidden="true"></span> TRANSFER SHOE
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="transferhistory">
-                <span class="oi oi-list" aria-hidden="true"></span> TRANSFER HISTORY
-            </NavLink>
-        </li>
-
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="inventory">
-                <span class="oi oi-list" aria-hidden="true"></span> INVENTORY PLANS
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="config">
-                <span class="oi oi-cog" aria-hidden="true"></span> READER CONFIG
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="shoemodels">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> SHOE MODELS
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="shoecategories">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> SHOE CATEGORIES
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="users">
-                <span class="oi oi-person" aria-hidden="true"></span> USER MANAGE
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="departments">
-                <span class="oi oi-person" aria-hidden="true"></span> DEPARTMENTS
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="report/transfer">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> TRANSFER REPORT
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="report/inventory">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> INVENTORY REPORT
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="report/warning">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> WARNING REPORT
-            </NavLink>
-        </li>
-
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="report/stock">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> STOCK REPORT
-            </NavLink>
-        </li>
+        <NavMenuItem Title="Reports" Icon="oi-script" Href="report" IsLink="false">
+            <SubNavItem Text="Inboud" Href="report/inbound"></SubNavItem>
+            <SubNavItem Text="Transfer" Href="report/transfer"></SubNavItem>
+            <SubNavItem Text="Inventory" Href="report/inventory"></SubNavItem>
+            <SubNavItem Text="Warning" Href="report/warning"></SubNavItem>
+            <SubNavItem Text="Stock" Href="report/stock"></SubNavItem>
+        </NavMenuItem>
+        @*<NavMenuItem Title="System logs" Icon="oi-copywriting" Href="logs"></NavMenuItem>*@
     </ul>
 </div>
 

@@ -1,0 +1,84 @@
+﻿<div class="row" style="width: 600px">
+    <div class="col-md-12">
+        <Form>
+            <ListItem Title="User name" Bordered="false">
+                <input type="text" class="form-control form-control-sm" @bind-value="@item.UserName">
+            </ListItem>
+            <ListItem Title="Password" Bordered="false">
+                <input type="password" class="form-control form-control-sm" @bind-value="@item.Password">
+            </ListItem>
+            <ListItem Title="Full name" Bordered="false">
+                <input type="text" class="form-control form-control-sm" @bind-value="@item.FullName">
+            </ListItem>
+            <ListItem Title="Department" Bordered="false">
+                <EditForm Model="item" Context="formContext">
+                    <InputSelect @bind-Value="item.DepartmentId" TValue="int?" class="form-control form-control-sm">
+                        <option disabled>Choose department</option>
+                        @foreach (var dept in Departments)
+                        {
+                            <option value="@(dept.DEPT_ID)">@dept.DEPT_NAME</option>
+                        }
+                    </InputSelect>
+                </EditForm>
+            </ListItem>
+            <ListItem Title="Email" Bordered="false">
+                <input type="text" class="form-control form-control-sm" @bind-value="@item.Email">
+            </ListItem>
+            <ListItem Title="Phone" Bordered="false">
+                <input type="text" class="form-control form-control-sm" @bind-value="@item.Phone">
+            </ListItem>
+          
+            <ListItem Title="Remarks" Bordered="false">
+                <EditForm Model="item" Context="formContext">
+                    <InputTextArea type="text" class="form-control form-control" @bind-Value="@item.Note"></InputTextArea>
+                </EditForm>
+            </ListItem>
+        </Form>
+    </div>
+
+    <div class="col-md-12 mt-2 d-flex">
+        <div class="spacer"></div>
+        <button @onclick="() => ModalInstance.CancelAsync()" class="btn btn-light me-2">CANCEL</button>
+        <button @onclick="OK" class="btn btn-primary">CREATE</button>
+    </div>
+</div>
+
+@using Grpc.Core;
+
+@using RFIDSolution.Shared.Models.Products
+
+@inject DefineService defineService
+@inject HttpClient _httpClient
+@inject DialogService _dialog
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+    public UserRequestModel item { get; set; } = new UserRequestModel();
+
+    private List<DepartmentResponse> Departments = new List<DepartmentResponse>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Departments = await defineService.GetDepartmnets();
+        item.DepartmentId = Departments.Select(x => x.DEPT_ID).FirstOrDefault();
+    }
+
+    async Task OK()
+    {
+        if (!await _dialog.Confirm($"Are you sure want to add new user?")) return;
+
+        var httpReq = await _httpClient.PostAsJsonAsync<UserRequestModel>($"users", item);
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"User added");
+            item = new UserRequestModel();
+            await ModalInstance.CloseAsync(ModalResult.Ok<bool>(true));
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+
+    }
+}

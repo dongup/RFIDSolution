@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using RFIDSolution.Shared.DAL.Entities;
+using RFIDSolution.Shared.DAL.Entities.Identity;
+using static RFIDSolution.Shared.Enums.AppEnums;
 
 namespace RFIDSolution.WebApi.Models
 {
@@ -11,8 +13,10 @@ namespace RFIDSolution.WebApi.Models
 
         }
 
-        public LogModel(HttpContext httpContext) : base()
+        public LogModel(HttpContext httpContext, UserEntity user) : base()
         {
+            if (user == null) return;
+
             _context = httpContext;
             RequestIpAddress = httpContext.Connection.RemoteIpAddress.ToString();
             Method = httpContext.Request.Method;
@@ -22,15 +26,19 @@ namespace RFIDSolution.WebApi.Models
             switch (Method)
             {
                 case "PUT":
-                    Level = LogLevel.Put;
-                    LogContent = $"Ip {RequestIpAddress} đã update dữ liệu";
+                    Level = LogLevelEnum.Put;
+                    LogContent = $"User {user.UserName} update data at ip {RequestIpAddress} ";
                     break;
                 case "DELETE":
-                    Level = LogLevel.Delete;
-                    LogContent = $"Ip {RequestIpAddress} đã xóa dữ liệu";
+                    Level = LogLevelEnum.Delete;
+                    LogContent = $"User {user.UserName} deleted data at ip {RequestIpAddress} ";
+                    break;
+                case "POST":
+                    Level = LogLevelEnum.Info;
+                    LogContent = $"User {user.UserName} added data at ip {RequestIpAddress} ";
                     break;
                 default:
-                    Level = LogLevel.Info;
+                    Level = LogLevelEnum.Info;
                     break;
             }
         }

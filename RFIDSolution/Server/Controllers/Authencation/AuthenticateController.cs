@@ -6,6 +6,7 @@ using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities.Identity;
 using RFIDSolution.Shared.DTO;
 using RFIDSolution.Shared.Models;
+using System.Threading.Tasks;
 
 namespace BaseApiWithIdentity.Controllers.Authorization
 {
@@ -15,11 +16,14 @@ namespace BaseApiWithIdentity.Controllers.Authorization
     {
         private readonly RoleManager<RoleEntity> roleManager;
         private readonly IConfiguration _configuration;
+        private readonly SignInManager<UserEntity> _signInManager;
 
-        public AuthenticateController(AppDbContext context, UserManager<UserEntity> _userManager, RoleManager<RoleEntity> roleManager, IConfiguration configuration) : base(context, _userManager)
+        public AuthenticateController(AppDbContext context, UserManager<UserEntity> _userManager, RoleManager<RoleEntity> roleManager, IConfiguration configuration, SignInManager<UserEntity> signInManager) 
+            : base(context, _userManager)
         {
             this.roleManager = roleManager;
             _configuration = configuration;
+            _signInManager = signInManager;
         }
 
         [HttpPost]
@@ -28,6 +32,22 @@ namespace BaseApiWithIdentity.Controllers.Authorization
             var rspns = new ResponseModel<UserEntity>();
 
             return rspns.Succeed(CurrentUser);
+        }
+
+        [HttpGet("confirmpassword/{password}")]
+        public async Task<ResponseModel<bool>> ConfirmPassword(string password)
+        {
+            var rspns = new ResponseModel<bool>();
+
+            var result = await _signInManager.CheckPasswordSignInAsync(CurrentUser, password, false);
+            if (result.Succeeded)
+            {
+                return rspns.Succeed(true);
+            }
+            else
+            {
+                return rspns.Succeed(false);
+            }
         }
     }
 }

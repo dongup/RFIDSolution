@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RFIDSolution.DataAccess.DAL.Entities;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Shared;
 using RFIDSolution.Shared.Models.Shared;
+using RFIDSolution.Shared.Utils;
 using Symbol.RFID3;
 using System;
 using System.Collections.Generic;
@@ -19,13 +21,14 @@ namespace RFIDSolution.Server.SignalRHubs
         public ConfigurationEntity SysConfig = new ConfigurationEntity();
         public RFIDReader readerApi;
         public ReadNotifyHandler readNotify;
-        private static PostFilter postFilter = null;
-        private static AntennaInfo antennaInfo = null;
-        private static TriggerInfo triggerInfo = new TriggerInfo();
+        private static readonly PostFilter postFilter = null;
+        private static readonly AntennaInfo antennaInfo = null;
+        private static readonly TriggerInfo triggerInfo = new TriggerInfo();
         public ReaderStatusModel ReaderStatus = new ReaderStatusModel();
         public bool connecting = false;
 
         public List<int> TransmitPowerValues = new List<int>();
+        public List<AntennaEntity> Antennas = new List<AntennaEntity>();
         public List<AntenaModel> AvailableAntennas = new List<AntenaModel>();
 
 
@@ -46,13 +49,14 @@ namespace RFIDSolution.Server.SignalRHubs
         {
             _context = context;
             SysConfig = _context.CONFIG.ToList().FirstOrDefault();
+            Antennas = _context.ANTENNAS.AsNoTracking().ToList();
         }
 
         /// <summary>
         /// Bắt đầu đọc tag
         /// </summary>
         /// <returns></returns>
-        public async Task StartInventory()
+        public void StartInventory()
         {
             Console.WriteLine("Starting inventory process...");
             //Chờ tới khi stop xong mới start cái mới
@@ -74,7 +78,7 @@ namespace RFIDSolution.Server.SignalRHubs
         /// Kết thúc đọc tag
         /// </summary>
         /// <returns></returns>
-        public async Task StopInventory()
+        public void StopInventory()
         {
             readerApi.Actions.Inventory.Stop();
             ReaderStatus.IsInventoring = false;
@@ -88,8 +92,13 @@ namespace RFIDSolution.Server.SignalRHubs
         {
             connecting = true;
             _context.Entry(SysConfig).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
-
-            SysConfig = _context.CONFIG.ToList().FirstOrDefault();
+            try
+            {
+                SysConfig = _context.CONFIG.ToList().FirstOrDefault();
+            }
+            catch 
+            {
+            }
 
             Console.WriteLine("Connecting reader: " + SysConfig.READER_IP);
             string ip = SysConfig.READER_IP;
@@ -113,7 +122,7 @@ namespace RFIDSolution.Server.SignalRHubs
                     ReaderStatus.IsSuccess = true;
                     ReaderStatus.Message = "Reader connected at " + ip;
 
-                    logReaderEvent("Reader connected at " + ip, RdrLog.Connect);
+                    LogReaderEvent("Reader connected at " + ip, RdrLog.Connect);
                     Console.WriteLine("Connected reader " + ip);
                     connecting = false;
                 }
@@ -123,7 +132,7 @@ namespace RFIDSolution.Server.SignalRHubs
                     ReaderStatus.IsConnected = false;
                     ReaderStatus.Message = "Reader connection failed, please try again!";
                     Console.WriteLine("Connected reader failed, error: " + ex.InnerException?.Message);
-                    logReaderEvent("Reader connect failed", RdrLog.Error);
+                    LogReaderEvent("Reader connect failed", RdrLog.Error);
                     connecting = false;
                     return;
                 }
@@ -150,7 +159,10 @@ namespace RFIDSolution.Server.SignalRHubs
             {
                 readerApi.Events.ReadNotify -= readNotify;
             }
-            readNotify = new ReadNotifyHandler(async (s, e) => await scanDataReceived(e));
+            readNotify = new ReadNotifyHandler((s, e) =>
+            {
+                ScanDataReceived(e);
+            });
             readerApi.Events.ReadNotify += readNotify;
             readerApi.Events.StatusNotify += StatusChanged;
         }
@@ -158,6 +170,23 @@ namespace RFIDSolution.Server.SignalRHubs
         public void ReConnect()
         {
             readerApi.Reconnect();
+        }
+
+        public List<LightStatusModel> GetGPOStatus()
+        {
+            //int numGPOPort = readerApi.ReaderCapabilities.NumGPOPorts;
+            List<LightStatusModel> lightStatuses = new List<LightStatusModel>();
+
+            for(int i = 1; i <= 2; i++)
+            {
+                var gpo = readerApi.Config.GPO[i];
+                LightStatusModel lightStatus = new LightStatusModel();
+                lightStatus.PortIndex = i;
+                lightStatus.PortState = gpo.PortState == GPOs.GPO_PORT_STATE.TRUE;
+                lightStatuses.Add(lightStatus);
+            }
+
+            return lightStatuses;
         }
 
         public void CheckAntennaStatus()
@@ -178,7 +207,7 @@ namespace RFIDSolution.Server.SignalRHubs
                 Console.WriteLine("checking antenna: " + antena.ANTENNA_ID);
 
                 //Tìm thông tin config của id antena đã lưu và set config cho reader
-                var savedAntenna = _context.ANTENNAS.FirstOrDefault(x => x.ANTENNA_ID == antena.ANTENNA_ID);
+                var savedAntenna = Antennas.FirstOrDefault(x => x.ANTENNA_ID == antena.ANTENNA_ID);
                 if(savedAntenna != null)
                 {
                     Antennas.Config antennaConfig = antennaInfor.GetConfig();
@@ -186,14 +215,14 @@ namespace RFIDSolution.Server.SignalRHubs
                     //Console.WriteLine("Power: " + savedAntenna.ANTENNA_POWER);
                     if(powerIndex != -1)
                     {
-                        //Console.WriteLine("Power found");
+                        Console.WriteLine("Antenna Power found: " + powerIndex);
                         antennaConfig.TransmitPowerIndex = (ushort)powerIndex;
                         antennaInfor.SetConfig(antennaConfig);
                     }
                     //Nếu không tìm thấy power index thì set power cao nhất có thể và update lại config cho hợp lệ
                     else
                     {
-                        //Console.WriteLine("Power not found");
+                        Console.WriteLine("Antenna Power not found setting max power: ");
                         antennaConfig.TransmitPowerIndex = (ushort)(TransmitPowerValues.Count - 1);
                         antennaInfor.SetConfig(antennaConfig);
                         savedAntenna.ANTENNA_POWER = TransmitPowerValues[antennaConfig.TransmitPowerIndex];
@@ -210,19 +239,54 @@ namespace RFIDSolution.Server.SignalRHubs
 
         private void StatusChanged(object sender, StatusEventArgs e)
         {
-            //Handle sự kiện reader bị mất kết nối
-            //if (e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.CONNECTION_LOST)
-            //{
-            //    ReaderStatus.IsConnected = false;
-            //    ReaderStatus.Message = "Reader connection lost!";
-            //    Console.WriteLine("Reader connection lost");
-            //}
+           //Handle sự kiện reader bị mất kết nối
+            if(e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.CONNECTION_LOST
+                || e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.READER_INITIATED_DISCONNECTION
+                || e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.READER_EXCEPTION)
+            {
+                ReaderStatus.IsConnected = false;
+                ReaderStatus.Message = "Reader connection lost!";
+                Console.WriteLine("Reader connection lost");
+
+                //Gửi mail và ghi log ở 1 thread khác
+                LogReaderEvent("Reader disconnected due to connection issue", RdrLog.Disconnect);
+
+            }
+            else if(e.StatusEventData.AntennaEventData.AntennaEvent == Symbol.RFID3.ANTENNA_EVENT_TYPE.ANTENNA_DISCONNECTED)
+            {
+                int antennaId = e.StatusEventData.AntennaEventData.AntennaID;
+
+                Console.WriteLine($"Antenna {antennaId} disconnected");
+                ReaderStatus.Message = $"Antenna {e.StatusEventData.AntennaEventData.AntennaID} disconnected";
+
+                //CheckAntennaStatus();
+                var anten = AvailableAntennas.FirstOrDefault(x => x.ANTENNA_ID == antennaId);
+                if(anten != null)
+                {
+                    anten.ANTENNA_STATUS = Shared.Enums.AppEnums.AntennaStatus.Disconnected;
+                    ReaderStatus.AvaiableAntennas = AvailableAntennas;
+                    //Console.WriteLine("Sending status to client");
+                }
+            }
+            else if (e.StatusEventData.AntennaEventData.AntennaEvent == Symbol.RFID3.ANTENNA_EVENT_TYPE.ANTENNA_CONNECTED)
+            {
+                int antennaId = e.StatusEventData.AntennaEventData.AntennaID;
+
+                Console.WriteLine($"Antenna {antennaId} connected");
+                ReaderStatus.Message = $"Antenna {e.StatusEventData.AntennaEventData.AntennaID} connected";
+
+                CheckAntennaStatus();
+                ReaderStatus.AvaiableAntennas = AvailableAntennas;
+            }
 
             OnStatusChanged.Invoke(e);
         }
 
-        public void OpenGPOPort(int port)
+        public bool OpenGPOPort(int port)
         {
+            if (!ReaderStatus.IsConnected) return false;
+            Console.WriteLine($"[{DateTime.Now.ToVNString()}] Opening port " + port);
+
             readerApi.Config.GPO[port].PortState = GPOs.GPO_PORT_STATE.TRUE;
             var delay = SysConfig.GPO_RESET_TIME;
             if (delay != 0)
@@ -232,11 +296,15 @@ namespace RFIDSolution.Server.SignalRHubs
                     readerApi.Config.GPO[port].PortState = GPOs.GPO_PORT_STATE.FALSE;
                 });
             }
+            return true;
         }
 
-        public void ShutDownGPOPort(int port)
+        public bool ShutDownGPOPort(int port)
         {
+            if (!ReaderStatus.IsConnected) return false;
+
             readerApi.Config.GPO[port].PortState = GPOs.GPO_PORT_STATE.FALSE;
+            return true;
         }
 
         public void Disconnect()
@@ -256,7 +324,7 @@ namespace RFIDSolution.Server.SignalRHubs
                     ReaderStatus.IsSuccess = true;
                     ReaderStatus.Message = "Reader disconnected";
                     string userName = "Admin";
-                    logReaderEvent($"User {userName} explicitly disconnect the reader", RdrLog.Disconnect);
+                    LogReaderEvent($"User {userName} explicitly disconnect the reader", RdrLog.Disconnect);
                     Console.WriteLine("Reader disconnected");
                 }
                 catch (Exception ex)
@@ -272,7 +340,7 @@ namespace RFIDSolution.Server.SignalRHubs
         /// </summary>
         /// <param name="e"></param>
         /// <returns></returns>
-        private async Task scanDataReceived(ReadEventArgs e)
+        private void ScanDataReceived(ReadEventArgs e)
         {
             try
             {
@@ -281,7 +349,7 @@ namespace RFIDSolution.Server.SignalRHubs
                 if (!ReaderStatus.IsConnected)
                 {
                     readerApi.Actions.Inventory.Stop();
-                    Console.WriteLine("inventory stoped");
+                    //Console.WriteLine("inventory stoped");
                     return;
                 }
 
@@ -294,12 +362,12 @@ namespace RFIDSolution.Server.SignalRHubs
                 for (int tagIndex = 0; tagIndex < tagData.Length; tagIndex++)
                 {
                     TagData tag = tagData[tagIndex];
-                    await sendTag(tag);
+                    SendTag(tag);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                //Console.WriteLine(ex.Message);
                 readerApi.Actions.Inventory.Stop();
                 ReaderStatus.IsInventoring = false;
             }
@@ -310,15 +378,17 @@ namespace RFIDSolution.Server.SignalRHubs
         /// </summary>
         /// <param name="tag"></param>
         /// <returns></returns>
-        public async Task sendTag(TagData tag)
+        public void SendTag(TagData tag)
         {
             if (tag == null) return;
-            var tagResponse = new RFTagResponse();
-            tagResponse.EPCID = tag.TagID;
-            tagResponse.RSSI = tag.PeakRSSI;
-            tagResponse.SignalStrenght = tag.PeakRSSI + 100 > 100 ? 100 : tag.PeakRSSI + 100 < 0 ? 0 : tag.PeakRSSI + 100;
-            tagResponse.LastSeen = DateTime.Now.Ticks;
-            tagResponse.AntennaID = tag.AntennaID;
+            var tagResponse = new RFTagResponse
+            {
+                EPCID = tag.TagID,
+                RSSI = tag.PeakRSSI,
+                SignalStrenght = tag.PeakRSSI + 100 > 100 ? 100 : tag.PeakRSSI + 100 < 0 ? 0 : tag.PeakRSSI + 100,
+                LastSeen = DateTime.Now.Ticks,
+                AntennaID = tag.AntennaID
+            };
             if (tag.ContainsLocationInfo)
             {
                 tagResponse.RelativeDistance = tag.LocationInfo.RelativeDistance;
@@ -328,20 +398,25 @@ namespace RFIDSolution.Server.SignalRHubs
             OnTagRead.Invoke(tagResponse);
         }
 
-        public void logReaderEvent(string content, RdrLog type)
+        public void LogReaderEvent(string content, RdrLog type)
         {
-            try { 
-                ReaderLogEntity newLog = new ReaderLogEntity();
-                newLog.LOG_CONTENT = content;
-                newLog.LOG_TYPE = type;
-                newLog.CREATED_DATE = DateTime.Now;
-                newLog.NOTE = "";
+            try {
+                ReaderLogEntity newLog = new ReaderLogEntity
+                {
+                    LOG_CONTENT = content,
+                    LOG_TYPE = type,
+                    CREATED_DATE = DateTime.Now,
+                    NOTE = ""
+                };
 
                 _context.READER_LOGS.Add(newLog);
                 _context.SaveChangesAsync();
+
+                //Gửi mail
+
             }catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                //Console.WriteLine(ex.Message);
             } 
         }
     }

@@ -1,0 +1,9 @@
+﻿<li><NavLink href="@Href" class="d-inline-flex align-items-center rounded ps-2" aria-current="page">@Text</NavLink></li>
+
+@code {
+    [Parameter]
+    public string Href { get; set; }
+
+    [Parameter]
+    public string Text { get; set; }
+}

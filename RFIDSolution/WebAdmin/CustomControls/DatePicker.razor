@@ -1,0 +1,26 @@
+﻿<div class="d-flex">
+    <div class="badge m-bg-primary me-2 d-flex align-items-center">
+        <span class="oi oi-timer me-1"></span>
+        @Label
+    </div>
+    <div class="wp-150 me-2 spacer">
+        <EditForm Model="Date">
+            <InputDate TValue="DateTime" Value="Date" ValueChanged="async (e) => { Date = e; await dateChanged(); }" ValueExpression="() => Date" class="form-control form-control-sm"></InputDate>
+        </EditForm>
+    </div>
+</div>
+@code{
+    [Parameter]
+    public DateTime Date { get; set; } = DateTime.Now;
+
+    [Parameter]
+    public EventCallback<DateTime> DateChanged { get; set; }
+
+    [Parameter]
+    public string Label { get; set; }
+
+    private async Task dateChanged()
+    {
+        await DateChanged.InvokeAsync(Date);
+    }
+}

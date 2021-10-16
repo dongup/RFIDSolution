@@ -1,0 +1,236 @@
+﻿<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <!--Thông tin user-->
+            <div class="col-md-6">
+                @if (!isEditing)
+                {
+                    <ListItem Title="User name" Bordered="false">@item.UserName</ListItem>
+                    <ListItem Title="Full name" Bordered="false">@item.FullName</ListItem>
+                    <ListItem Title="Department" Bordered="false">@item.DepartmentName</ListItem>
+                    <ListItem Title="Email" Bordered="false">@item.Email</ListItem>
+                    <ListItem Title="Phone" Bordered="false">@item.Phone</ListItem>
+                    <ListItem Title="Status" Bordered="false">
+                        <StatusBadge Success="@(item.Status == UserStatus.Active)" Error="@(item.Status == UserStatus.Disabled)">@item.Status.GetDescription()</StatusBadge>
+                    </ListItem>
+                    <ListItem Title="Remarks" Bordered="false">@item.Note</ListItem>
+                }
+                else
+                {
+                    <Form>
+                        <ListItem Title="User name" Bordered="false">
+                            <input type="text" class="form-control form-control-sm" @bind-value="@item.UserName">
+                        </ListItem>
+                        <ListItem Title="Full name" Bordered="false">
+                            <input type="text" class="form-control form-control-sm" @bind-value="@item.FullName">
+                        </ListItem>
+                        <ListItem Title="Department" Bordered="false">
+                            <EditForm Model="item" Context="formContext">
+                                <InputSelect @bind-Value="item.DepartmentId" TValue="int?" class="form-control form-control-sm">
+                                    <option disabled>Choose department</option>
+                                    @foreach (var dept in Departments)
+                                    {
+                                        <option value="@(dept.DEPT_ID)">@dept.DEPT_NAME</option>
+                                    }
+                                </InputSelect>
+                            </EditForm>
+                        </ListItem>
+                        <ListItem Title="Email" Bordered="false">
+                            <input type="text" class="form-control form-control-sm" @bind-value="@item.Email">
+                        </ListItem>
+                        <ListItem Title="Phone" Bordered="false">
+                            <input type="text" class="form-control form-control-sm" @bind-value="@item.Phone">
+                        </ListItem>
+                        <ListItem Title="Status" Bordered="false">
+                            <EditForm Model="item" Context="formContext">
+                                <InputSelect @bind-Value="item.Status" TValue="UserStatus" class="form-control form-control-sm">
+                                    <option value="@(UserStatus.Active)">@UserStatus.Active.GetDescription()</option>
+                                    <option value="@(UserStatus.Disabled)">@UserStatus.Disabled.GetDescription()</option>
+                                </InputSelect>
+                            </EditForm>
+                        </ListItem>
+                        <ListItem Title="Remarks" Bordered="false">
+                            <EditForm Model="item" Context="formContext">
+                                <InputTextArea type="text" class="form-control form-control" @bind-Value="@item.Note"></InputTextArea>
+                            </EditForm>
+                        </ListItem>
+                    </Form>
+                }
+            </div>
+
+            <div class="col-md-6 d-none">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <b><label>SYSTEM ROLES</label></b>
+                    </li>
+                    @if (item.Roles.Count == 0)
+                    {
+                        <li class="list-group-item">
+                            <NoData Text="No role has been assign to this user"></NoData>
+                        </li>
+                    }
+                    else
+                    {
+                        @foreach (var role in item.Roles)
+                        {
+                            <li class="list-group-item pe-0">
+                                <div class="d-flex align-items-center">
+                                    <span>@role.Name</span>
+                                    <div class="spacer"></div>
+                                    <span class="oi oi-trash text-danger" @onclick="() => removeRole(role)"></span>
+                                </div>
+                            </li>
+                        }
+                    }
+                    @if (true)
+                    {
+                        <li class="list-group-item p-0">
+                            <div class="d-flex align-items-center">
+                                <EditForm Model="item" Context="formContext" class="w-100 me-2">
+                                    <InputSelect @bind-Value="newRoleId" TValue="int" class="form-control">
+                                        @foreach (var role in Roles)
+                                        {
+                                            <option value="@(role.RoleId)">@role.Name</option>
+                                        }
+                                    </InputSelect>
+                                </EditForm>
+                                <div class="spacer"></div>
+                                <span title="Add role to user" class="oi oi-plus text-success" @onclick="() => addRole()"></span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="d-flex w-100">
+            @if (isEditing)
+            {
+                <button class="btn btn-light me-2" @onclick="() => editUser()"><span class="oi oi-check me-1 text-success"></span>SAVE CHANGES</button>
+                <button class="btn btn-light me-2" @onclick="async () => { isEditing = false; await loadData(); }"><span class="oi oi-action-undo me-1"></span>CANCEL EDIT</button>
+            }
+            else
+            {
+                <button class="btn btn-light me-2" @onclick="() => isEditing = true"><span class="oi oi-pencil text-warning me-1"></span>EDIT</button>
+            }
+
+            <button class="btn btn-light me-2" @onclick="() => resetPassword()"><span class="oi oi-reload text-warning me-1"></span>RESET PASSWORD</button>
+
+            <button class="btn btn-light me-2" @onclick="() => deleteUser()"><span class="oi oi-trash text-danger me-1"></span>DELETE USER</button>
+            <div class="spacer"></div>
+        </div>
+    </div>
+
+</div>
+
+@inject DialogService _dialog
+@inject HttpClient _client
+@inject UserService userService
+@inject DefineService defineService
+@code {
+    [Parameter]
+    public UserModel item { get; set; } = new UserModel();
+
+    [Parameter]
+    public int Userid { get; set; } = 0;
+
+    [Parameter]
+    public EventCallback OnChange { get; set; }
+
+    private TableState tableState = new TableState(10);
+
+    private List<RoleModel> Roles = new List<RoleModel>();
+    private List<DepartmentResponse> Departments = new List<DepartmentResponse>();
+    private int newRoleId = 0;
+    private string baseUrl = "users";
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Roles = await userService.GetRoles();
+        Departments = await defineService.GetDepartmnets();
+        await loadData();
+    }
+
+    public async Task resetPassword()
+    {
+        await _dialog.ResetPassword(Userid);
+    }
+
+    public async Task addRole()
+    {
+        var sledRow = Roles.Where(x => x.RoleId == newRoleId).FirstOrDefault();
+        if (!await _dialog.Confirm($"Are you sure add role {sledRow.Name} to user {item.UserName}?")) return;
+
+        var httpReq = await _client.PostAsJsonAsync<object>($"{baseUrl}/role/{item.Id}/{sledRow.RoleId}", new object());
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"Role {sledRow.Name} added to user {item.UserName}");
+            await loadData();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    public async Task removeRole(RoleModel role)
+    {
+        if (!await _dialog.Confirm($"Are you sure remote role {role.Name} from user {item.UserName}?")) return;
+
+        var httpReq = await _client.DeleteAsync($"{baseUrl}/role/{item.Id}/{role.RoleId}");
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"Role {role.Name} removed from user {item.UserName}");
+            await loadData();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    public async Task loadData()
+    {
+        if (Userid == 0) return;
+
+        item = await userService.GetUserById(Userid);
+    }
+
+    private async Task editUser()
+    {
+        if (!await _dialog.Confirm($"Are you sure want to save changes?")) return;
+
+        var httpReq = await _client.PutAsJsonAsync($"{baseUrl}/{item.Id}", item);
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"User updated");
+            await loadData();
+            await OnChange.InvokeAsync();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task deleteUser()
+    {
+        if (!await _dialog.Confirm($"Are you sure you want to delete user {item.UserName}?")) return;
+
+        var httpReq = await _client.DeleteAsync($"{baseUrl}/{item.Id}");
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"User {item.UserName} deleted");
+            await loadData();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+}

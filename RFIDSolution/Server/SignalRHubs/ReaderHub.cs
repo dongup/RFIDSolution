@@ -15,20 +15,20 @@ namespace TaiyoshaEPE.WebApi.Hubs
 {
     public class ReaderHub : Hub
     {
-        public ReaderHepler readerApi => Program.Reader;
-        private AppDbContext _context;
+        public ReaderHepler ReaderApi => Program.Reader;
 
-        private static bool reading = false;
+        public static List<RFClient> RFClients { get => rFClients; set => rFClients = value; }
 
         public ReaderHub(AppDbContext context) 
         {
-            _context = context;
         }
+
+        private static readonly List<RFClient> rfClients = new List<RFClient>();
 
         /// <summary>
         /// List các thiết bị đang đọc tín hiệu
         /// </summary>
-        public static List<RFClient> RFClients = new List<RFClient>();
+        private static List<RFClient> rFClients = rfClients;
 
         /// <summary>
         /// Thêm handler cho sự kiện đọc tag khi một client bắt đầu đọc
@@ -37,6 +37,20 @@ namespace TaiyoshaEPE.WebApi.Hubs
         /// <returns></returns>
         public async Task StartInventory(RFTagRequest request)
         {
+            //Code test khi khong co reader
+            //RFTagResponse newTag = new RFTagResponse();
+            //newTag.EPCID = Guid.NewGuid().ToString();
+            //newTag.AntennaID = 1;
+            //newTag.LastSeen = DateTime.Now.Ticks;
+            //newTag.RSSI = 12;
+            //await Clients.Caller.SendAsync("ReceiveTag", newTag);
+
+            if (!ReaderApi.ReaderStatus.IsConnected)
+            {
+                await Clients.Caller.SendAsync("OnError", "Reader is not connected!");
+                return;
+            }
+
             var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
             //Nếu là người mới thì thêm vào danh sách
             if (client == null)
@@ -48,38 +62,16 @@ namespace TaiyoshaEPE.WebApi.Hubs
                 client.ClientProxy = Clients.Caller;
                 RFClients.Add(client);
             }
-            readerApi.OnTagRead += client.ReadHandler;
-            var epcs = _context.PRODUCT.Select(x => x.EPC).ToList();
-            var rssis = new List<int>() { 34,45,23,45,23,54,23,67,29 };
-
-            var randomEpcs = new List<string>();
-            for(int i = 0; i < 1; i++)
-            {
-                randomEpcs.Add(Guid.NewGuid().ToString());
-            }
-            reading = true;
-            while (reading)
-            {
-                await Task.Delay(100);
-                RFTagResponse newTag = new RFTagResponse();
-                //newTag.EPCID = epcs.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
-                newTag.EPCID = randomEpcs.OrderByDescending(x => Guid.NewGuid()).FirstOrDefault();
-                newTag.AntennaID = 1;
-                newTag.LastSeen = DateTime.Now.Ticks;
-                newTag.RSSI = rssis.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
-                readerApi.OnTagRead.Invoke(newTag);
-            }
+            ReaderApi.OnTagRead += client.ReadHandler;
         }
 
-        public async Task StopInventory()
+        public void StopInventory()
         {
-            reading = false;
-
             var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
             Console.WriteLine("Client stop Id: " + Context.ConnectionId);
             if (client != null)
             {
-                readerApi.OnTagRead -= client.ReadHandler;
+                ReaderApi.OnTagRead -= client.ReadHandler;
             }
         }
 
@@ -88,16 +80,16 @@ namespace TaiyoshaEPE.WebApi.Hubs
             //Nếu client đã disconnect thì bỏ handler ngùng send data
             if(!RFClients.Any(x => x.Id == client.Id))
             {
-                readerApi.OnTagRead -= client.ReadHandler;
+                ReaderApi.OnTagRead -= client.ReadHandler;
                 //Chỉ sử dụng khi không có reader
-                readerApi.OnTagRead = null;
+                //readerApi.OnTagRead = null;
                 return;
             }    
 
             if (client == null) return;
-            if (tag.AntennaID == client.TagRequest.AntenId)
+            //Console.WriteLine("Sending tags " + client.TagRequest.AntenIds.FirstOrDefault());
+            if (client.TagRequest.AntenIds.Contains(tag.AntennaID))
             {
-                //Console.WriteLine($"[{DateTime.Now.Ticks}] Sending to: " + client.Id);
                 await client.ClientProxy.SendAsync("ReceiveTag", tag);
             }
         }
@@ -109,7 +101,7 @@ namespace TaiyoshaEPE.WebApi.Hubs
             var client = RFClients.FirstOrDefault(x => x.Id == Context.ConnectionId);
             if (client != null)
             {
-                readerApi.OnTagRead -= client.ReadHandler;
+                ReaderApi.OnTagRead -= client.ReadHandler;
                 RFClients.Remove(client);
             }
         }

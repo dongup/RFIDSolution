@@ -10,10 +10,20 @@
         }
     </button>
     <label class="text-center" style="font-size: 32px">@(reading? "STOP SCAN" : "START SCAN")</label>
-    <p>Reader service status: @(HubStatus? "Connected" : "Disconected")</p>
+
+    @if (HubStatus)
+    {
+        <p>Reader service status:  <span class="text-success">Connected</span></p>
+    }
+    else
+    {
+        <p>Reader service status: <span class="text-danger">Disconnected <span class="oi oi-reload" @onclick="async () => await reConnecthub()"></span></span></p>
+    }
+
     <p>Antenna port: @AntennaId</p>
 </div>
 
+@implements IDisposable 
 @using Microsoft.AspNetCore.SignalR.Client
 @inject DialogService _dialog
 @code {
@@ -28,22 +38,30 @@
 
     public string SizeClass => $"col-md-{Size}";
 
-    private bool reading = false;
-    private bool connected = false;
+    public bool reading = false;
+    public bool connected = false;
     private HubConnection hubConnection;
     private bool HubStatus => hubConnection?.State == HubConnectionState.Connected;
 
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-        if (hubConnection == null)
-        {
-            hubConnection = new HubConnectionBuilder()
-                  .WithUrl($"{Program.RootApiUrl}readerhub")
-                  .Build();
-            hubConnection.On<RFTagResponse>("ReceiveTag", ReceiveTag);
-        }
+
+        hubConnection = new HubConnectionBuilder()
+                .WithUrl($"{Program.RootApiUrl}readerhub")
+                .Build();
+        hubConnection.On<RFTagResponse>("ReceiveTag", ReceiveTag);
+        hubConnection.On<string>("OnError", onError);
+
         await hubConnection.StartAsync();
+    }
+
+    private async Task reConnecthub()
+    {
+        if (hubConnection.State != HubConnectionState.Connected)
+        {
+            await hubConnection.StartAsync();
+        }
     }
 
     private async Task ReceiveTag(RFTagResponse tag)
@@ -58,30 +76,37 @@
         if (reading)
         {
             await startReader();
-            await _dialog.SuccessAlert("Reader started!");
+            //await _dialog.SuccessAlert("Reader started!");
         }
         else
         {
             await stopReader();
-            await _dialog.ErrorAlert("Reader stoped!");
+            //await _dialog.ErrorAlert("Reader stoped!");
         }
+    }
+
+    private async Task onError(string message) {
+        await _dialog.ErrorAlert(message);
+        reading = false;
+        connected = false;
+        StateHasChanged();
     }
 
     public async Task startReader()
     {
-        if (hubConnection.State != HubConnectionState.Connected)
-        {
-            await hubConnection.StartAsync();
-        }
-        await hubConnection.InvokeAsync("StartInventory", new RFTagRequest() { AntenId = AntennaId });
+        await reConnecthub();
+        await hubConnection.InvokeAsync("StartInventory", new RFTagRequest() { AntenIds = new List<int>() { AntennaId } });
     }
 
     public async Task stopReader()
     {
-        if (hubConnection.State != HubConnectionState.Connected)
-        {
-            await hubConnection.StartAsync();
-        }
+        await reConnecthub();
         await hubConnection.InvokeAsync("StopInventory");
+    }
+
+    async void IDisposable.Dispose()
+    {
+        await stopReader();
+        await hubConnection.DisposeAsync();
     }
 }

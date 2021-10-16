@@ -20,6 +20,14 @@ namespace RFIDSolution.Shared.Models
             return this;
         }
 
+        public ResponseModel<T> Succeed(T Result, string message)
+        {
+            IsSuccess = true;
+            Message = message;
+            this.Result = Result;
+            return this;
+        }
+
         public ResponseModel<T> Succeed()
         {
             IsSuccess = true;

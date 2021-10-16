@@ -28,6 +28,11 @@ namespace RFIDSolution.Shared.DAL.Shared
         public int TAG_TIME_OUT { get; set; }
 
         /// <summary>
+        /// Số ngày mượn tối đa
+        /// </summary>
+        public int DEFAULT_TRANSFER_DEADLINE { get; set; } = 30;
+
+        /// <summary>
         /// Số giây đèn led sẽ sáng khi có cảnh báo, nếu = 0 nghĩa là sáng tới lúc bị tắt thì thôi
         /// </summary>
         public int GPO_RESET_TIME { get; set; }

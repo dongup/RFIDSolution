@@ -1,5 +1,9 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using RFIDSolution.Shared;
+using RFIDSolution.Shared.Models;
+using RFIDSolution.WebAdmin.Models;
+using RFIDSolution.WebAdmin.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,20 +34,41 @@ namespace RFIDSolution.WebAdmin.Services
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
 
+            Program.TokenHeader = new AuthenticationHeaderValue("bearer", savedToken);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", savedToken);
+            
+            ClaimsPrincipal claims = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(savedToken), "jwt"));
 
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(savedToken), "jwt")));
+            string departmentId = claims.Claims.FirstOrDefault(x => x.Type == UserClaim.DepartmentId)?.Value;
+            departmentId = string.IsNullOrEmpty(departmentId) ? "0" : departmentId;
+
+            UserService.UserName = claims.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+
+            return new AuthenticationState(claims);
         }
 
-        public void MarkUserAsAuthenticated(string userName)
+        public void MarkUserAsAuthenticated(UserModel user)
         {
-            var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, userName) }, "apiauth"));
+            var claims = new[] { 
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(UserClaim.FullName, user.FullName),
+                new Claim(UserClaim.Department, user.DepartmentName??""),
+                new Claim(UserClaim.DepartmentId, user.DepartmentId?.ToString()??""),
+            };
+
+            var claimIdentity = new ClaimsIdentity(claims, "apiauth");
+            var authenticatedUser = new ClaimsPrincipal(claimIdentity);
+
             var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
+            
             NotifyAuthenticationStateChanged(authState);
         }
 
         public void MarkUserAsLoggedOut()
         {
+            Program.TokenHeader = null;
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+
             var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
             var authState = Task.FromResult(new AuthenticationState(anonymousUser));
             NotifyAuthenticationStateChanged(authState);

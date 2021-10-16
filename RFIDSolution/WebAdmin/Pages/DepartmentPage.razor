@@ -87,7 +87,7 @@ else
 }
 
 @attribute [Authorize]
-@page "/departments"
+@page "/users/departments"
 @using RFIDSolution.Shared.Models.Products;
 @inject DialogService _dialog
 @inject HttpClient _httpClient
@@ -98,7 +98,7 @@ else
     private string keyword = "";
     private bool loading = true;
     private bool addingItem = false;
-    private string addText => !addingItem ? "ADD SHOE DEPTEGORY" : "CANCEL ADD";
+    private string addText => !addingItem ? "ADD DEPARTMENT" : "CANCEL ADD";
     private string addClass => addingItem ? "oi oi-circle-x text-danger" : "oi oi-plus text-success";
 
     private List<DepartmentResponse> shoeModels = new List<DepartmentResponse>();

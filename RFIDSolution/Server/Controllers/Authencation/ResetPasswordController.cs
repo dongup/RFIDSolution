@@ -27,9 +27,9 @@ namespace BaseApiWithIdentity.Controllers.Authorization
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPost("{userId}")]
-        public async Task<ResponseModel<object>> ResetPassword(int userId, ResetPwdModel info)
+        public async Task<ResponseModel<bool>> ResetPassword(int userId, ResetPwdModel info)
         {
-            var rspns = new ResponseModel<object>();
+            var rspns = new ResponseModel<bool>();
             UserEntity user = _context.Users.Find(userId);
 
             if (user == null) return rspns.Failed("User does not exist!");
@@ -39,7 +39,7 @@ namespace BaseApiWithIdentity.Controllers.Authorization
             if (rslt.Succeeded)
             {
                 await _signInManager.SignOutAsync();
-                return rspns.Succeed();
+                return rspns.Succeed(true);
             }
             else
             {

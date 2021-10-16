@@ -5,6 +5,11 @@
         <button class="btn btn-light" @onclick="async () => { await loadData(); }"><span class="oi oi-reload text-primary"></span>Refresh data</button>
     </HeaderContent>
     <FilterContent>
+        <div class="row">
+            <div class="col-md-3">
+                <DatePicker Label="Date" Date="toDate" DateChanged="async (e) => { toDate = e; await loadData(); }"></DatePicker>
+            </div>
+        </div>
     </FilterContent>
 </TableHeader>
 
@@ -28,8 +33,8 @@ else
                             <p class="m-0">Hàng mẫu</p>
                         </div>
                         <div class="d-flex">
-                            <label class="col-md-2">Thời gian/Date</label>
-                            <p class="m-0">@dateRange.Start.ToShortVNString() - @dateRange.End.ToShortVNString()</p>
+                            <label class="col-md-2">Thời gian/Date </label>
+                            <p class="m-0">@toDate.ToShortVNString()</p>
                         </div>
                     </div>
                 </div>
@@ -57,7 +62,8 @@ else
                         <th>STAGE</th>
                         <th>LOCATION</th>
                         <th>POC</th>
-                        <th>EPC</th>
+                        <th>LR</th>
+                        <th>STATUS</th>
                         <th>REMARKS</th>
                     </tr>
                 </thead>
@@ -79,7 +85,8 @@ else
                                 <MyTd>@item.Stage</MyTd>
                                 <MyTd>@item.Location</MyTd>
                                 <MyTd>@item.POC</MyTd>
-                                <MyTd>@item.EPC</MyTd>
+                                <MyTd>@item.LRStr</MyTd>
+                                <MyTd>@item.ProductStatusStr</MyTd>
                                 <MyTd>@item.Remarks</MyTd>
                             </tr>
                             count++;
@@ -120,7 +127,7 @@ else
 
     private ProductModel reply = new ProductModel();
     private List<ProductModel> products = new List<ProductModel>();
-    private DateRange dateRange = new DateRange(DateTime.Now.Month);
+    private DateTime toDate = DateTime.Now;
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,7 +137,7 @@ else
 
     private async Task downLoadReport()
     {
-        string url = $"stockreport?fromDate={dateRange.Start.ToVNString()}&toDate={dateRange.End.ToVNString()}";
+        string url = $"stockreport?fromDate=&toDate={toDate.ToVNString()}";
         await js.DownLoadFile(url);
     }
 
@@ -138,7 +145,7 @@ else
     {
         loading = true;
         //reply = await productService.GetAsync(filter);
-        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductModel>>>($"reports/stockreportdata?fromDate={dateRange.Start.ToShortVNString()}&toDate={dateRange.End.ToShortVNString()}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<ProductModel>>>($"reports/stockreportdata?fromDate=&toDate={toDate.ToShortVNString()}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
         if (rspns.IsSuccess)
         {
             products = rspns.Result.Data;

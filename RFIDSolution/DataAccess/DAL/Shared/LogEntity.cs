@@ -1,7 +1,9 @@
-﻿using System;
+﻿using RFIDSolution.Shared.DAL.Entities.Identity;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static RFIDSolution.Shared.Enums.AppEnums;
 
 namespace RFIDSolution.Shared.DAL.Entities
 {
@@ -45,7 +47,7 @@ namespace RFIDSolution.Shared.DAL.Entities
         /// <summary>
         /// 1: Information; 2: Error; 3: Warring
         /// </summary>
-        public LogLevel Level { get; set; }
+        public LogLevelEnum Level { get; set; }
 
         [NotMapped]
         public bool showDetail = false;
@@ -58,16 +60,16 @@ namespace RFIDSolution.Shared.DAL.Entities
             string color = "badge ";
             switch (Level)
             {
-                case LogLevel.Error:
+                case LogLevelEnum.Error:
                     color += "badge-danger";
                     break;
-                case LogLevel.Put:
+                case LogLevelEnum.Put:
                     color += "badge-success";
                     break;
-                case LogLevel.Delete:
+                case LogLevelEnum.Delete:
                     color += "badge-warning";
                     break;
-                case LogLevel.Info:
+                case LogLevelEnum.Info:
                     color += "badge-info";
                     break;
                 default:
@@ -76,19 +78,12 @@ namespace RFIDSolution.Shared.DAL.Entities
             return color;
         }
 
-        public enum LogLevel
-        {
-            [Description("Log lỗi")]
-            Error = 1,
-            [Description("Log update")]
-            Put = 2,
-            [Description("Log delete")]
-            Delete = 3,
-            [Description("Log thông tin")]
-            Info = 4
-        }
-
         public int? RequestUserId { get; set; }
+
+        public string RequestUser { get; set; }
+
+        [ForeignKey(nameof(RequestUserId))]
+        public UserEntity UserEntity { get; set; }
 
         public string ExceptionMessage { get; set; }
 

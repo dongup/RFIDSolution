@@ -1,0 +1,36 @@
+﻿<div class="row" style="width: 600px">
+    <div class="col-md-12">
+        
+    </div>
+
+    <div class="col-md-12 mt-2 d-flex">
+        <div class="spacer"></div>
+        <button @onclick="() => ModalInstance.CancelAsync()" class="btn btn-light me-2">CANCEL</button>
+        <button @onclick="OK" class="btn btn-primary">UPDATE</button>
+    </div>
+</div>
+
+@using Grpc.Core;
+
+@using RFIDSolution.Shared.Models.Products
+
+@inject DefineService shoeModelService
+@inject HttpClient _httpClient
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+    [Parameter]
+    public ProductModel item { get; set; }
+
+    private List<ModelResponse> models = new List<ModelResponse>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        models = await shoeModelService.GetModels();
+    }
+
+    void OK()
+    {
+        ModalInstance.CloseAsync(ModalResult.Ok<bool>(true));
+    }
+}

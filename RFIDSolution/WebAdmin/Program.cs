@@ -13,24 +13,32 @@ using RFIDSolution.WebAdmin.Services;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using RFIDSolution.WebAdmin.Service;
+using RFIDSolution.Shared.Models;
+using Microsoft.Extensions.Configuration;
+using System.Net.Http.Json;
+using System.Net.Http.Headers;
 
 namespace RFIDSolution.Shared
 {
     public class Program
     {
-        public static string RootApiUrl = "http://192.168.1.30:5000/";
-        public static string ApiUrl = "http://192.168.1.30:5000/api/";
+        public static string RootApiUrl = "http://10.88.11.164:8080/";
+        public static string ApiUrl = "http://10.88.11.164:8080/api/";
+        public static AuthenticationHeaderValue TokenHeader;
+
 
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
+            ApiUrl = builder.Configuration.GetConnectionString("apiUrl");
+            RootApiUrl = builder.Configuration.GetConnectionString("rootApiUrl");
+
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(ApiUrl) });
 
             var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
             var channel = GrpcChannel.ForAddress(RootApiUrl, new GrpcChannelOptions { HttpClient = httpClient });
-
             
             builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
             builder.Services.AddBlazoredLocalStorage();
@@ -40,6 +48,7 @@ namespace RFIDSolution.Shared
             builder.Services.AddScoped<JsService>();
             builder.Services.AddScoped<DefineService>();
             builder.Services.AddScoped<NavigationService>();
+            builder.Services.AddScoped<UserService>();
 
             builder.Services.AddBlazoredModal();
             builder.Services.AddTransient<DialogService>();

@@ -32,13 +32,13 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public int ALERT_FREQ { get; set; }
 
-        public AlterConfirmStatus ALERT_CONF_STATUS { get; set; }
+        public AlterConfirmStatus ALERT_CONF_STATUS { get; set; } = AlterConfirmStatus.Pending;
 
         public string ALERT_CONF_REASON { get; set; }
 
         public string ALERT_CONF_USER { get; set; }
 
-        public DateTime ALERT_CONF_TIME { get; set; }
+        public DateTime? ALERT_CONF_TIME { get; set; }
 
         [ForeignKey(nameof(PRODUCT_ID))]
         public ProductEntity Product { get; set; }

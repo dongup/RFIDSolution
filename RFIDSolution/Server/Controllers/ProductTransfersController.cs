@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities;
+using RFIDSolution.Shared.DAL.Entities.Identity;
 using RFIDSolution.Shared.Models;
 using RFIDSolution.Shared.Models.ProductInout;
 using RFIDSolution.Shared.Utils;
@@ -17,13 +19,15 @@ namespace RFIDSolution.Server.Controllers
     [ApiController]
     public class ProductTransfersController : ApiControllerBase
     {
-        public ProductTransfersController(AppDbContext context) : base(context)
-        {
+        private SignInManager<UserEntity> _signManager;
 
+        public ProductTransfersController(AppDbContext context, SignInManager<UserEntity> signInManager) : base(context)
+        {
+            _signManager = signInManager;
         }
 
         [HttpGet]
-        public async Task<ResponseModel<PaginationResponse<TransferInoutModel>>> Get(string keyword = "", int pageItem = 10, int pageIndex = 0)
+        public ResponseModel<PaginationResponse<TransferInoutModel>> Get(string keyword = "", int pageItem = 10, int pageIndex = 0)
         {
             var rspns = new ResponseModel<PaginationResponse<TransferInoutModel>>();
 
@@ -50,7 +54,7 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ResponseModel<TransferInoutModel>> GetById(int id)
+        public ResponseModel<TransferInoutModel> GetById(int id)
         {
             var rspns = new ResponseModel<TransferInoutModel>();
 
@@ -71,11 +75,14 @@ namespace RFIDSolution.Server.Controllers
                     TIME_END = x.TIME_END,
                     TRANSFER_NOTE = x.TRANSFER_NOTE,
                     RETURN_NOTE = x.RETURN_NOTE,
+                    CREATED_USER = x.CREATED_USER,
+                    CREATED_USER_DEPT = x.CREATED_USER_DEPT,
                     NOTE = x.NOTE,
                     Products = x.TransferDetails.Select(a => new ProductTransferModel()
                     {
                         EPC = a.Product.EPC,
                         ModelName = a.Product.Model.MODEL_NAME,
+                        ProductCategory = a.Product.PRODUCT_CATEGORY,
                         ProductId = a.PRODUCT_ID,
                         TRANSFER_BY = a.TRANSFER_BY,
                         TRANSFER_NOTE = a.TRANSFER_NOTE,
@@ -92,7 +99,7 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpGet("byProductId/{id}")]
-        public async Task<ResponseModel<TransferInoutModel>> GetByProductId(int id)
+        public ResponseModel<TransferInoutModel> GetByProductId(int id)
         {
             var rspns = new ResponseModel<TransferInoutModel>();
 
@@ -113,6 +120,7 @@ namespace RFIDSolution.Server.Controllers
                     TIME_START = x.TIME_START,
                     TRANSFER_NOTE = x.TRANSFER_NOTE,
                     RETURN_NOTE = x.RETURN_NOTE,
+                    CREATED_USER = x.CREATED_USER,
                     TIME_END = x.TIME_END,
                     NOTE = x.NOTE,
                     Products = x.TransferDetails.Select(a => new ProductTransferModel() {
@@ -135,6 +143,18 @@ namespace RFIDSolution.Server.Controllers
             return rspns.Succeed(result);
         }
 
+        [HttpPost("print/{id}")]
+        public ResponseModel<bool> Print(int id)
+        {
+            var rspns = new ResponseModel<bool>();
+
+            var savedItem = _context.PRODUCT_TRANSFER.Find(id);
+            savedItem.PrintNote += $"[{DateTime.Now.ToVNString()}] {CurrentUser.FullName} printed transfer sheet \r\n";
+            _context.SaveChanges();
+
+            return rspns.Succeed();
+        }
+
         [HttpGet("reasons")]
         public ResponseModel<List<string>> GetReasons()
         {
@@ -155,12 +175,9 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpPost("transferOut")]
-        public async Task<ResponseModel<bool>> transferOut(TransferOutRequest value)
+        public async Task<ResponseModel<bool>> TransferOut(TransferOutRequest value)
         {
             var rspns = new ResponseModel<bool>();
-
-            //Kiểm tra mật khẩu xác nhận
-            //Để sau
 
             //Kiểm tra cờ onhold, not avaiable
             var products = _context.PRODUCT.Where(x => value.Products.Select(a => a.ProductId).Contains(x.PRODUCT_ID));
@@ -168,21 +185,25 @@ namespace RFIDSolution.Server.Controllers
             {
                 return rspns.Failed("One or more shoe are not avaiable for transfer out, please check again!");
             }
-            
-            //Lưu giữ liệu
-            TransferEntity newTransfer = new TransferEntity();
-            newTransfer.TIME_START = DateTime.Now;
-            newTransfer.TRANSFER_REASON = value.TRANSFER_REASON;
-            newTransfer.TRANSFER_TO = value.TRANSFER_TO;
-            newTransfer.TRANSFER_BY = value.TRANSFER_BY;
-            newTransfer.TRANSFER_STATUS = Shared.Enums.AppEnums.InoutStatus.Borrowing;
-            newTransfer.REF_DOC_DATE = value.REF_DOC_DATE.ToDateTime();
-            newTransfer.REF_DOC_NO = value.REF_DOC_NO;
-            newTransfer.CREATED_DATE = DateTime.Now;
-            newTransfer.TRANSFER_NOTE = value.REF_DOC_NO;
 
-            newTransfer.CREATED_USER_ID = CurrentUserId;
-            newTransfer.CREATED_USER = CurrentUser.FullName;
+            //Lưu giữ liệu
+            TransferEntity newTransfer = new TransferEntity
+            {
+                TIME_START = DateTime.Now,
+                TRANSFER_REASON = value.TRANSFER_REASON,
+                TRANSFER_TO = _context.DEPT_DEF.Find(value.DEPARTMENT_ID)?.DEPT_NAME,
+                TRANSFER_BY = value.TRANSFER_BY,
+                TRANSFER_STATUS = Shared.Enums.AppEnums.InoutStatus.Borrowing,
+                REF_DOC_DATE = value.REF_DOC_DATE.ToDateTime(),
+                REF_DOC_NO = value.REF_DOC_NO,
+                CREATED_DATE = DateTime.Now,
+                TRANSFER_NOTE = value.TRANSFER_NOTE,
+                TRANSFER_DEPT_ID = value.DEPARTMENT_ID,
+
+                CREATED_USER_ID = CurrentUserId,
+                CREATED_USER = CurrentUser.FullName,
+                CREATED_USER_DEPT = CurrentUser.DepartmentName,
+            };
 
             _context.PRODUCT_TRANSFER.Add(newTransfer);
             _context.SaveChanges();
@@ -211,7 +232,7 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpPost("transferIn")]
-        public async Task<ResponseModel<bool>> transferIn(TransferInRequest value)
+        public async Task<ResponseModel<bool>> TransferIn(TransferInRequest value)
         {
             var rspns = new ResponseModel<bool>();
 
@@ -262,6 +283,21 @@ namespace RFIDSolution.Server.Controllers
 
             //Trả kết quả
             return rspns.Succeed();
+        }
+
+        [HttpGet("documentcode")]
+        public ResponseModel<string> GetNewDocumentCode()
+        {
+            var rspns = new ResponseModel<string>();
+            int newId = _context.PRODUCT_TRANSFER.OrderByDescending(x => x.TRANSFER_ID).Select(x => x.TRANSFER_ID).FirstOrDefault() + 1;
+            string newCode = newId.ToString("D6");
+            while (_context.PRODUCT_TRANSFER.Any(x => x.REF_DOC_NO == newCode))
+            {
+                newId++;
+                newCode = newId.ToString("D6");
+            }
+
+            return rspns.Succeed(newCode);
         }
     }
 }

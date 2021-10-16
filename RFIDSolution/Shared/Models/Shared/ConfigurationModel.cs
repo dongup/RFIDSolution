@@ -22,6 +22,8 @@ namespace RFIDSolution.Shared.Models.Shared
 
         public int TAG_TIME_OUT { get; set; }
 
+        public int DEFAULT_TRANSFER_DEADLINE { get; set; }
+
         public bool IS_DELETED { get; set; }
     }
 }

@@ -44,7 +44,7 @@ namespace RFIDSolution.Shared.Models.ProductInout
 
         public string RETURN_NOTE { get; set; }
 
-        public DateTime RETURN_TIME { get; set; }
+        public DateTime? RETURN_TIME { get; set; }
         public string ProductCategory { get; set; }
         public string ColorWay { get; set; }
         public string Size { get; set; }

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>ac4ce4a4-0b34-4f83-9e7b-eed859b8ebb4</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -47,7 +48,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Authencation\" />
     <Folder Include="wwwroot\ExcelResults\" />
   </ItemGroup>
 </Project>

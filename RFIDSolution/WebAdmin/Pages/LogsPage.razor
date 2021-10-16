@@ -1,0 +1,163 @@
+﻿<TableHeader>
+    <HeaderContent>
+        <button class="btn btn-light" @onclick="async () => { await loadData(); }"><span class="oi oi-reload mr-2 text-primary"></span>Refresh data</button>
+    </HeaderContent>
+    <FilterContent>
+        <div class="row">
+            <div class="col-md-4">
+                <InputSearch TextChanged='async (text) => { keyword = text??""; await loadData(); }' PlaceHolder="Search log content, ip, url ..."></InputSearch>
+            </div>
+            <div class="col-md-3 d-flex">
+                <div class="badge m-bg-primary me-2 d-flex align-items-center">
+                    <span class="oi oi-tags me-1"></span>
+                    Filter level
+                </div>
+                <div class="spacer">
+                    <select class="form-control" @onchange="async (e) => { shoeStatus = int.Parse(e.Value.ToString()); await loadData(); }">
+                        <option value="0">Any level</option>
+                        <option value="@((int)LogLevelEnum.Info)">@LogLevelEnum.Info.GetDescription()</option>
+                        <option value="@((int)LogLevelEnum.Error)">@LogLevelEnum.Error.GetDescription()</option>
+                        <option value="@((int)LogLevelEnum.Delete)">@LogLevelEnum.Delete.GetDescription()</option>
+                        <option value="@((int)LogLevelEnum.Put)">@LogLevelEnum.Put.GetDescription()</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </FilterContent>
+</TableHeader>
+
+@if (loading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <div class="m-2 bg-white">
+        <div>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>CONTENT</th>
+                        <th>CREATED TIME</th>
+                        <th>TIME AGO</th>
+                        <th>REQUEST URL</th>
+                        <th>REQUEST IP</th>
+                        <th>REQUEST USER</th>
+                        <th>LOG LEVEL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (products.Count > 0)
+                    {
+                        int count = 1;
+                        @foreach (var item in products)
+                        {
+                            <SelectableRow OnClick="() => showShoeDetail(item)" @bind-Selected="item.ShowDetail">
+                                <MyTd>@item.Id</MyTd>
+                                <MyTd>@item.LogContent</MyTd>
+                                <MyTd>@item.CreatedDate</MyTd>
+                                <MyTd>@item.CreatedDate.TimeAgo()</MyTd>
+                                <MyTd>@item.RequestUrl</MyTd>
+                                <MyTd>@item.RequestIpAddress</MyTd>
+                                <MyTd>@item.RequestUser</MyTd>
+                                <MyTd><StatusBadge Success="@(item.Level == LogLevelEnum.Put)" Error="@(item.Level == LogLevelEnum.Error)" Warning="@(item.Level == LogLevelEnum.Delete)" Info="@(item.Level == LogLevelEnum.Info)"></StatusBadge></MyTd>
+                            </SelectableRow>
+                            <TableRowDetail Show="item.ShowDetail">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <ListItem Title="Content" Bordered="false">@item.LogContent</ListItem>
+                                                <ListItem Title="Created time" Bordered="false">@item.CreatedDate - @item.CreatedDate.TimeAgo()</ListItem>
+                                                <ListItem Title="Request url" Bordered="false">@item.RequestUrl</ListItem>
+                                                <ListItem Title="Request ip" Bordered="false">@item.RequestIpAddress</ListItem>
+                                                <ListItem Title="Request user" Bordered="false">@item.RequestUser</ListItem>
+                                            </div>
+                                            @if(item.Level == LogLevelEnum.Put || item.Level == LogLevelEnum.Info || item.Level == LogLevelEnum.Error)
+                                            {
+                                                <div class="col-md-6">
+                                                    <EditForm Model="item" class="row">
+                                                        <FormInputTextarea Text="@item.RequestBody" Title="Request body" Size="12" Row="5"></FormInputTextarea>
+                                                    </EditForm>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableRowDetail>
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        <NoData></NoData>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="1000">
+                            <Pagination TableState="tableState" TotalPageDisplay="5" StateChanged="async () => await loadData()"></Pagination>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+
+@using RFIDSolution.Shared.DAL.Entities
+@attribute [Authorize]
+@inject HttpClient _client
+@inject DialogService _dialog
+@page "/logs"
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; }
+
+    private bool loading = true;
+    private bool addingItem = false;
+    private string keyword = "";
+    private int shoeStatus = 0;
+    private int activeTab = 0;
+
+    private TableState tableState = new TableState(20);
+
+    private List<LogModel> products = new List<LogModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MainLayout.Instance.PageTitle = "System logs";
+        await loadData();
+    }
+
+    private async Task showShoeDetail(LogModel item)
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<LogModel>>($"logs/{item.Id}");
+        if (rspns.IsSuccess)
+        {
+            item.RequestBody = rspns.Result.RequestBody;
+            StateHasChanged();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task loadData()
+    {
+        loading = true;
+        //reply = await productService.GetAsync(filter);
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<LogModel>>>($"logs?level={shoeStatus}&keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
+        if (rspns.IsSuccess)
+        {
+            products = rspns.Result.Data;
+            tableState.TotalRow = rspns.Result.TotalRow;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+        loading = false;
+    }
+}

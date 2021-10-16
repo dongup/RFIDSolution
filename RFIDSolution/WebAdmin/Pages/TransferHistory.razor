@@ -62,7 +62,7 @@ else
                                             <!--Thông tin mượn trả-->
                                             <div class="col-md-4">
                                                 <ListItem Title="Transfer reason" Bordered="false" LeftToRight="false">@item.TRANSFER_REASON</ListItem>
-                                                <ListItem Title="Transfer date" Bordered="false" LeftToRight="false">@item.TIME_START</ListItem>
+                                                <ListItem Title="Transfer date" Bordered="false" LeftToRight="false">@item.TIME_START.ToVNString()</ListItem>
                                                 <ListItem Title="Time ago" Bordered="false" LeftToRight="false">@item.TIME_START.TimeAgo()</ListItem>
                                                 <ListItem Title="Transfer to" Bordered="false" LeftToRight="false">@item.TRANSFER_TO</ListItem>
                                                 <ListItem Title="Transfer by" Bordered="false" LeftToRight="false">@item.TRANSFER_BY</ListItem>
@@ -76,7 +76,7 @@ else
 
                                                 @if (item.TRANSFER_STATUS == InoutStatus.Returned)
                                                 {
-                                                    <ListItem Title="Return date" Bordered="false" LeftToRight="false">@item.TIME_END</ListItem>
+                                                    <ListItem Title="Return date" Bordered="false" LeftToRight="false">@item.TIME_END.ToVNString()</ListItem>
                                                     <ListItem Title="Return by" Bordered="false" LeftToRight="false">@item.RETURN_BY</ListItem>
                                                     <ListItem Title="Total time" Bordered="false" LeftToRight="false">@item.totalTransferTime</ListItem>
                                                     <ListItem Title="Return note" Bordered="false" LeftToRight="false">@item.RETURN_NOTE</ListItem>
@@ -85,15 +85,17 @@ else
 
                                             <!--Thông tin giày đã mượn/trả-->
                                             <div class="col-md-8">
-                                                <label>All shoe transfered</label>
+                                                <label>Transfered shoes </label>
                                                 <table class="table table-bordered table-hover">
                                                     <thead>
                                                         <tr>
-                                                            <th>EPC</th>
+                                                            <th>SHOE ID</th>
                                                             <th>SKU</th>
                                                             <th>MODEL</th>
-                                                            <th>STATUS</th>
                                                             <th>TRANSFER NOTE</th>
+                                                            <th>STATUS</th>
+                                                            <th>RETURN TIME</th>
+                                                            <th>RETURN BY</th>
                                                             <th>RETURN NOTE</th>
                                                         </tr>
                                                     </thead>
@@ -104,14 +106,16 @@ else
                                                             @foreach (var prod in item.Products)
                                                             {
                                                                 <tr class="hand">
-                                                                    <td>@prod.EPC</td>
+                                                                    <td>@prod.ProductId</td>
                                                                     <td>@prod.SKU</td>
                                                                     <td>@prod.ModelName</td>
+                                                                    <td>@prod.TRANSFER_NOTE</td>
                                                                     <td>
                                                                         <TransferStatusBadge Status="prod.STATUS">
                                                                         </TransferStatusBadge>
                                                                     </td>
-                                                                    <td>@prod.TRANSFER_NOTE</td>
+                                                                    <td>@prod.RETURN_TIME?.ToVNString()</td>
+                                                                    <td>@prod.RETURN_BY</td>
                                                                     <td>@prod.RETURN_NOTE</td>
                                                                 </tr>
                                                                 count++;
@@ -126,6 +130,10 @@ else
                                                 </table>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <div class="card-header">
+                                        <button class="btn btn-light" @onclick="() => printTransfer(item.TRANSFER_ID)"><span class="oi oi-print me-2"></span>PRINT</button>
                                     </div>
                                 </div>
                             </TableRowDetail>
@@ -168,6 +176,11 @@ else
     {
         MainLayout.Instance.PageTitle = "Transfer history";
         await loadData();
+    }
+
+    private async Task printTransfer(int transferId)
+    {
+        await _dialog.ShowPrintModal(transferId);
     }
 
     private async Task loadItemDetail(TransferInoutModel item)

@@ -1,0 +1,64 @@
+﻿<div class="row" style="width: 500px; ">
+    <div class="col-md-12 py-2" style="background-color: darkgray;">
+        <RFIDSolution.WebAdmin.Pages.TransferSheet model="model" products="products" DivId="@divId"></RFIDSolution.WebAdmin.Pages.TransferSheet>
+    </div>
+
+    <div class="col-md-12 mt-2 d-flex">
+        <div class="spacer"></div>
+        <button @onclick="() => ModalInstance.CancelAsync()" class="btn btn-light me-2">Cancel</button>
+        <button @onclick="OK" class="btn btn-primary">Print</button>
+    </div>
+</div>
+
+@inject HttpClient _client
+@inject DialogService _dialog
+@inject JsService _js
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+    [Parameter]
+    public int TransferId { get; set; }
+
+    public TransferInoutModel model { get; set; } = new TransferInoutModel();
+
+    public List<ProductModel> products = new List<ProductModel>();
+
+    private string divId = "divId";
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        await loadItemDetail();
+    }
+
+    private async Task OK()
+    {
+        await _js.PrintDiv(divId);
+
+        await _client.PostAsJsonAsync<object>($"ProductTransfers/print/{TransferId}", new object());
+
+        await ModalInstance.CloseAsync();
+    }
+
+    private async Task loadItemDetail()
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<TransferInoutModel>>($"ProductTransfers/{TransferId}");
+        if (rspns.IsSuccess)
+        {
+            model = rspns.Result;
+            products = rspns.Result.Products.Select(x => new ProductModel()
+            {
+                ModelName = x.ModelName,
+                SKU = x.SKU,
+                Note = x.TRANSFER_NOTE,
+                Category = x.ProductCategory,
+            }).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+}

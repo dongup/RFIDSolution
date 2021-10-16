@@ -38,7 +38,7 @@ namespace RFIDSolution.Shared.Models.Products
 
         public string ALERT_CONF_USER { get; set; }
 
-        public DateTime ALERT_CONF_TIME { get; set; }
+        public DateTime? ALERT_CONF_TIME { get; set; }
 
         public string WARNING_TIME { get; set; }
 

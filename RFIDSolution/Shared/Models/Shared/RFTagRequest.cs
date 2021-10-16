@@ -13,6 +13,6 @@ namespace RFIDSolution.Shared.Models.Shared
 
         }
 
-        public int AntenId { get; set; }
+        public List<int> AntenIds { get; set; } = new List<int>();
     }
 }

@@ -47,28 +47,36 @@
                     else
                     {
                         <!--Transfer out-->
-                        <Form OnValidSubmit="() => { }">
+                        <Form OnValidSubmit="async () => { await transferOut(); }">
                             <div class="row">
                                 <div class="col-md-6">
                                     <h3 class="text-danger" style="font-weight: bold">TRANSFER OUT</h3>
                                     <div class="row">
                                         <FormInputText Title="Transfer reason" @bind-Text="@transferOutModel.TRANSFER_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
-                                        <FormInputText Title="Transfer to" @bind-Text="@transferOutModel.TRANSFER_TO" Size="3"></FormInputText>
                                         <FormInputText Title="Transfer by" @bind-Text="@transferOutModel.TRANSFER_BY" Required="true" Size="3" InValidFeedBack="Please enter transfer user"></FormInputText>
-                                        <FormInputText Title="Document no" @bind-Text="@transferOutModel.REF_DOC_NO" Size="3"></FormInputText>
-                                        <FormInputText Title="Document date" @bind-Text="@transferOutModel.REF_DOC_DATE" Size="3"></FormInputText>
+                                        <div class="col-md-3">
+                                            <SelectSearch Value="@transferOutModel.TRANSFER_DEPT_ID" ValueChanged="(e) => { transferOutModel.TRANSFER_DEPT_ID = e; transferOutModel.TRANSFER_TO = departments.FirstOrDefault(x => x.DEPT_ID == transferOutModel.TRANSFER_DEPT_ID)?.DEPT_NAME; }" 
+                                                          Title="Transfer to" InvalidFeedBack="@("Please select a valid department")"
+                                                          PlaceHolder="Choose department" Items="departments" Requried="true" TItem="DepartmentResponse" TValue="int?">
+                                                <ItemTemplate>
+                                                    <option value="@context.DEPT_ID">@context.DEPT_NAME</option>
+                                                </ItemTemplate>
+                                            </SelectSearch>
+                                        </div>
+                                        <FormInputText Title="Document no" @bind-Text="@transferOutModel.REF_DOC_NO" Size="3" Disabled="true"></FormInputText>
+                                        <FormInputText Title="Document date" @bind-Text="@transferOutModel.REF_DOC_DATE" Size="3" Disabled="true"></FormInputText>
                                         <div>
                                             <label>Note</label>
                                             <textarea value="@transferOutModel.TRANSFER_NOTE" @onchange="(e) => transferOutModel.TRANSFER_NOTE = e.Value.ToString()" rows="3" class="form-control"></textarea>
                                         </div>
                                         <div class="col-md-12 mt-2 d-flex">
-                                            <button type="submit" class="btn btn-danger btn-lg" @onclick="async () => { await transferOut(); }"><span class="oi oi-arrow-circle-right me-1"></span> Transfer Out</button>
+                                            <button type="submit" class="btn btn-danger btn-lg"><span class="oi oi-arrow-circle-right me-1"></span> Transfer Out</button>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6 text-center">
-                                    <div style="overflow-y: auto;display: flex;flex-direction: column;align-items: center;background: #f4f5f8;">
-                                        <TransferSheet model="transferOutModel" products="products" DivId="@divId"></TransferSheet>
+                                    <div style="overflow-y: auto;display: flex;flex-direction: column;align-items: center;background: #f4f5f8; max-height: 100%; max-width: 500px" class="py-4">
+                                        <TransferSheet model="transferOutModel" products="validProducts" DivId="@divId"></TransferSheet>
                                     </div>
                                 </div>
                             </div>
@@ -295,8 +303,9 @@
 @inject HttpClient _client
 @inject DialogService _dialog
 @inject JsService js 
+@inject DefineService defineService
+@inject UserService userService 
 
-@implements IDisposable
 @page "/transfer"
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
@@ -306,6 +315,7 @@
     private string baseUrl = "ProductTransfers";
     private string divId = "divId";
 
+    private List<DepartmentResponse> departments = new List<DepartmentResponse>();
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
     private TransferInoutModel transferOutModel = new TransferInoutModel();
     private TransferInoutModel transferInModel = new TransferInoutModel();
@@ -323,13 +333,16 @@
 
     private ProductModel sledProduct = new ProductModel();
     private List<ProductModel> products = new List<ProductModel>();
+    private List<ProductModel> validProducts = new List<ProductModel>();
     private List<string> reasonsList = new List<string>();
 
     protected override async Task OnInitializedAsync()
     {
         MainLayout.Instance.PageTitle = "Transfer shoe";
+        departments = await defineService.GetDepartmnets();
         await getReasonList();
         await loadAntenas();
+        await refreshData();
     }
 
     private async Task showProductDetail(ProductModel product)
@@ -364,9 +377,6 @@
 
     private async Task transferOut()
     {
-        //Yêu cầu mật khẩu xác nhận
-        //Để sau
-
         //Kiểm tra số lượng giày đã scan
         if (products.Count <= 0)
         {
@@ -379,7 +389,6 @@
             await _dialog.ErrorAlert("Please remove all Unknown tag first!");
             return;
         }
-
         //Kiểm tra trạng thái của những giày đã scan, nếu có giày đang được mượn thì không cho transfer
         var notAvaiableShoes = products.Where(x => x.ProductStatus == ProductStatus.Transfered || x.ProductStatus == ProductStatus.Unavailable);
         foreach (var item in notAvaiableShoes)
@@ -395,6 +404,8 @@
         //Xác nhận xuất
         if (!await _dialog.Confirm($"Are you sure want to transfer {products.Count} shoe(s) out?")) return;
 
+        //Yêu cầu mật khẩu xác nhận
+        if (!await _dialog.ConfirmPassword()) return;
 
         //Request server
         var requestModel = new TransferOutRequest(transferOutModel);
@@ -406,6 +417,7 @@
             await js.PrintDiv(divId);
             await _dialog.SuccessAlert("Transfer out succeed!");
             products = new List<ProductModel>();
+            await refreshData();
         }
         else
         {
@@ -446,7 +458,7 @@
         }
 
         //Xác nhận xuất
-        if (!await _dialog.Confirm($"Are you sure want to transfer {products.Count} shoe(s) in?")) return;
+        if (!await _dialog.Confirm($"Are you sure want to transfer in {products.Count} shoe(s) in?")) return;
 
         //Request server
         var requestModel = new TransferInRequest(transferInModel, products);
@@ -454,7 +466,7 @@
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
         if (rspns.IsSuccess)
         {
-            await _dialog.SuccessAlert("Transfer out succeed!");
+            await _dialog.SuccessAlert("Transfer in succeed!");
             products = new List<ProductModel>();
             transferInModel = new TransferInoutModel();
         }
@@ -543,6 +555,17 @@
         }
     }
 
+    private async Task refreshData()
+    {
+        UserModel currentUser = await UserService.getCurrentUser();
+
+        transferOutModel.REF_DOC_NO = await defineService.GetNewTransferDocumentCode();
+        transferOutModel.TRANSFER_BY = currentUser.FullName;
+        transferOutModel.CREATED_USER = currentUser.FullName;
+        transferOutModel.CREATED_USER_DEPT = currentUser.DepartmentName;
+        StateHasChanged();
+    }
+
     private async Task<ProductModel> findProductByEPC(string EPC)
     {
         ProductModel product = new ProductModel();
@@ -550,6 +573,10 @@
         if (rspns.IsSuccess)
         {
             product = rspns.Result;
+            if(product.ProductStatus == ProductStatus.Available)
+            {
+                validProducts.Add(product);
+            }
         }
         else
         {
@@ -587,9 +614,4 @@
         }
     }
 
-    async void IDisposable.Dispose()
-    {
-        //Console.WriteLine("Compoent disposed");
-        await readerConnecter.stopReader();
-    }
 }

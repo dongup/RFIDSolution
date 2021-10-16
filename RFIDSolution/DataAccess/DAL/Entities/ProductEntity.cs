@@ -24,15 +24,12 @@ namespace RFIDSolution.Shared.DAL.Entities
         public string PRODUCT_NAME { get; set; }
 
         [StringLength(50)]
-        [Required]
         public string PRODUCT_CODE { get; set; }
 
         [StringLength(150)]
-        [Required]
-        public string EPC { get; set; }
+        public string EPC { get; set; } = "";
 
-        [Required]
-        public int MODEL_ID { get; set; }
+        public int? MODEL_ID { get; set; }
 
         public string PRODUCT_ARTICLE { get => pRODUCT_ARTICLE; set => pRODUCT_ARTICLE = value; }
 

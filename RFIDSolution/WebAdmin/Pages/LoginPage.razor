@@ -11,19 +11,23 @@
     <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
         <DataAnnotationsValidator />
         <div class="card">
-            <div class="card-header">
-                <h5 class="m-0 text-center">
+            <div class="card-body d-flex flex-column align-items-center">
+                <img src="/images/logo_huali.jpg" width="125" height="125" />
+                <h4 class="m-0 text-center">
+                    ANNORA
+                </h4>
+                <h6 class="m-0 text-center">
                     RFID SAMPLE SHOES MANAGEMENT SYSTEM
-                </h5>
+                </h6>
             </div>
             <div class="card-body">
                 <label>Tên tài khoản</label>
                 <input placeholder="Tên tài khoản" class="form-control no-transform" @bind-value="@model.UserName" />
                 <label class="mt-2">Mật khẩu</label>
-                <input type="password" placeholder="Tên tài khoản" class="form-control no-transform" @bind-value="@model.Password" />
+                <input type="password" placeholder="Mật khẩu" class="form-control no-transform" @bind-value="@model.Password" />
                 @if (!success)
                 {
-                    <p></p>
+                    <p class="m-0 mt-2 text-danger">@validMessage</p>
                 }
             </div>
             <div class="card-footer">
@@ -32,16 +36,16 @@
         </div>
     </EditForm>
 </div>
+
 @using RFIDSolution.Shared.Models;
 @using RFIDSolution.Shared.Models.Indentity
 @using RFIDSolution.WebAdmin.Service;
-
 @inject IAuthService authService
 @inject HttpClient _httpClient
 @code {
     LoginModel model = new LoginModel();
     bool success = true;
-    string errorMsg = "";
+    string validMessage = "";
 
     private async void OnValidSubmit(EditContext context)
     {
@@ -54,9 +58,10 @@
         }
         else
         {
-            errorMsg = rspns.Message;
+            validMessage = rspns.Message;
             success = false;
         }
+        StateHasChanged();
     }
 }
 

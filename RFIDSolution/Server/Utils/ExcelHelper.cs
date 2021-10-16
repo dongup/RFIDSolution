@@ -16,7 +16,6 @@ namespace RFIDSolution.Server.Utils
     {
         public XSSFWorkbook hssfworkbook;
 
-        private string rootPath = "";
         private string filePath;
 
         public ExcelHelper()

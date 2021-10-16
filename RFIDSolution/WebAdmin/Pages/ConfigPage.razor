@@ -5,36 +5,26 @@
                 <div class="card-body">
                     <Form OnValidSubmit="() => updateConfig()">
                         <div class="row">
-                            <div class="col-md-4">
-                                <div class="w-100 flex-column align-content-center">
-                                    <span class="w-100 text-center @(IsConnected? "text-success" : "text-danger")" style="font-size: 18px; font-weight: bold">
-                                        @(IsConnected? "READER CONNECTED" : "READER DISCONNECTED")
-                                    </span>
-                                    @if (IsConnected)
-                                    {
-                                        <span class="oi oi-link-intact icon-xl text-success mt-4 w-100 text-center"></span>
-                                    }
-                                    else
-                                    {
-                                        <span class="oi oi-link-broken icon-xl text-danger mt-4 w-100 text-center"></span>
-                                    }
-                                    <button class="btn @(IsConnected? "btn-outline-danger" : "btn-outline-success") w-100 mt-4" @onclick="() => toogleReader()"
-                                            type="button" disabled=@connecting>
-                                        <Loading Visible="connecting" Width="36px" Height="36px"></Loading>
-                                        <span class="text-center w-100 h-100">
-                                            @(IsConnected? "DISCONNECT" : "RECONNECT")
-                                        </span>
-                                    </button>
-                                </div>
+                            <div class="col-md-3">
+                                <ReaderStatus></ReaderStatus>
                             </div>
-                            <div class="col-md-8">
-                                <div class="row flex-column">
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-12 d-flex align-items-center">
+                                        <div class="spacer"></div>
+                                        @foreach(var light in lightStatuses)
+                                        {
+                                            <label class="me-2">@light.Type.GetDescription():</label>
+                                            <button type="button" class="btn @(light.PortState? "btn-success" : "btn-danger") p-1 me-2" @onclick="() => toogleLED(light.PortIndex, !light.PortState)">@(light.PortState? "ON" : "OFF")</button>
+                                        }
+                                    </div>
+
                                     <FormInputText @bind-Text="@config.READER_IP" InValidFeedBack="Please enter reader's ip address" Title="IP address" PlaceHolder="Enter reader's ip address" Required="true" Size="12"></FormInputText>
                                     <FormInputNumber @bind-Value="@config.READER_PORT" InValidFeedBack="Please enter reader's port number" Title="Port" PlaceHolder="Enter reader's port" Required="true" Size="12"></FormInputNumber>
                                     <FormInputNumber @bind-Value="@config.TAG_TIME_OUT" InValidFeedBack="Please enter tag's time out" Title="Time out" PlaceHolder="Enter tag's time out" Required="false" Size="12"></FormInputNumber>
                                     <div class="col-md-12 d-flex mt-2">
                                         <button class="btn btn-primary me-4" type="submit"><span class="oi oi-check me-2"></span> SAVE</button>
-                                        <button class="btn btn-secondary me-4" type="button" @onclick="async () => await loadPage()"><span class="oi oi-reload me-2"></span> REFRESH DATA</button>
+                                        <button class="btn btn-secondary me-4" type="button" @onclick="async () => await loadPage()"><span class="oi oi-reload me-2"></span>REFRESH</button>
                                     </div>
                                 </div>
                             </div>
@@ -51,7 +41,7 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>INDEX</th>
+                                <th>PORT</th>
                                 <th>NAME</th>
                                 <th>LOCATION</th>
                                 <th>POWER</th>
@@ -197,7 +187,7 @@
                                     <td class="wp-150">@e.CREATED_DATE.ToVNString()</td>
                                     <td>@e.LOG_CONTENT</td>
                                     <td class="wp-100">
-                                        <StatusBadge Success="e.LOG_TYPE == RdrLog.Connect" Error="e.LOG_TYPE == RdrLog.Disconnect || e.LOG_TYPE == RdrLog.Disconnect"
+                                        <StatusBadge Success="e.LOG_TYPE == RdrLog.Connect" Error="e.LOG_TYPE == RdrLog.Disconnect || e.LOG_TYPE == RdrLog.Error"
                                                      Info="e.LOG_TYPE == RdrLog.Info">
                                             @e.LOG_TYPE.GetDescription()
                                         </StatusBadge>
@@ -230,6 +220,7 @@
     private ReaderStatusModel ReaderStatus = new ReaderStatusModel();
     private ConfigurationModel config = new ConfigurationModel();
     private bool connecting = false;
+    private List<LightStatusModel> lightStatuses = new List<LightStatusModel>();
 
     private bool addingItem = false;
     private string addText => !addingItem ? "ADD NEW ANTENNA" : "CANCEL ADD";
@@ -253,7 +244,7 @@
         if (hubConnection == null)
         {
             hubConnection = new HubConnectionBuilder()
-                  .WithUrl($"{Program.RootApiUrl}/ReaderStatusHub")
+                  .WithUrl($"{Program.RootApiUrl}ReaderStatusHub")
                   .Build();
             hubConnection.On<ReaderStatusModel>("StatusChanged", ReaderStatusChanged);
             hubConnection.On<ReaderStatusModel>("AntennaStatusChanged", AntennaStatusChanged);
@@ -268,7 +259,43 @@
         await loadAntennaPowers();
         await loadAntenas();
         await checkStatus();
+        await checkAntennaStatus();
         await loadReaderEvent();
+        await getLightStatus();
+    }
+
+    private async Task getLightStatus()
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<List<LightStatusModel>>>($"ReaderStatus/lightStatus");
+        if (rspns.IsSuccess)
+        {
+            lightStatuses = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task toogleLED(int portId, bool status)
+    {
+        var port = lightStatuses.FirstOrDefault(x => x.PortIndex == portId);
+        if (port.Type == GPOPortType.Power) return;
+
+        string action = status ? "turnOnPort" : "turnOffPort";
+        string actionShort = status ? "on" : "off";
+
+        var req = await _client.PostAsJsonAsync($"ReaderStatus/{action}?port={portId}", new object());
+        var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"{port.Type.GetDescription()} turned {actionShort}!");
+            await getLightStatus();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
     }
 
     private async Task loadReaderEvent()
@@ -365,7 +392,7 @@
     {
         if (!await _dialog.Confirm("Are you sure you want to delete this antenna?")) return;
 
-        var httpReq = await _client.DeleteAsync($"{antennaUrl}/{item.ANTENNA_ID}");
+        var httpReq = await _client.DeleteAsync($"{antennaUrl}/{item.ID}");
         var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<bool>>();
 
         if (rspns.IsSuccess)

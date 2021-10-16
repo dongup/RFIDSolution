@@ -28,6 +28,8 @@ namespace RFIDSolution.Shared.DAL.Entities.Identity
         [ForeignKey(nameof(DEPARTMENT_ID))]
         public DepartmentEntity Department { get; set; }
 
+        public string DepartmentName { get; set; }
+
         public UserStatus Status { get; set; } = UserStatus.Active;
 
         public DateTime CreatedDate { get; set; }
@@ -38,6 +40,8 @@ namespace RFIDSolution.Shared.DAL.Entities.Identity
 
         public int UpdatedUserId { get; set; }
 
-        public virtual ICollection<UserRoleEntity> UserRoles { get; set; }
+        public virtual ICollection<LogEntity> Logs { get; set; } = new HashSet<LogEntity>();
+
+        public virtual ICollection<UserRoleEntity> UserRoles { get; set; } = new HashSet<UserRoleEntity>();
     }
 }

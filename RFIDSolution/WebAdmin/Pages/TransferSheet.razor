@@ -1,4 +1,4 @@
-﻿<div class="p-4 d-flex" style="width: fit-content;" id="@(DivId)">
+﻿<div class="d-flex align-items-center flex-column" style="width: 100%;" id="@(DivId)">
     <div class="bill" id="card-white">
         <div class="h-100">
             <div class="p-3 h-100" style="background-color: white">
@@ -9,10 +9,10 @@
                         <tr>
                             <td>
                                 <div class="d-flex mt-2">
-                                    <img src="/images/iotsoft_logo.jpg" style="width: 45px; height: 45px; margin-right: 12px" />
+                                    <img src="/images/logo_huali.jpg" style="width: 45px; height: 45px; margin-right: 12px" />
                                     <div>
-                                        <span class="m-0 text-bold ">CÔNG TY TNHH IOT SOFTWARE VIỆT NAM</span><br />
-                                        <span class="m-0 " style="font-size: 10px !important">Địa chỉ: 13/3D Huỳnh Văn Nghệ, Khu phố 2, Thành phố Biên Hòa, Đồng Nai</span>
+                                        <span class="m-0 text-bold ">CÔNG TY TNHH GIẦY ANNORA VIỆT NAM</span><br />
+                                        <span class="m-0 " style="font-size: 10px !important">Địa chỉ: Khu kinh tế Nghi Sơn, Xã Xuân Lâm, Huyện Tĩnh Gia, Tỉnh Thanh Hoá</span>
                                     </div>
                                 </div>
                             </td>
@@ -43,7 +43,7 @@
                         <tr>
                             <td colspan="1000">
                                 <div class="d-flex" style="font-size: 11px">
-                                    <span class="me-4">Người nhận(Receiver): @model.TRANSFER_BY</span>
+                                    <span class="me-4">Người nhận(Receiver):  @model.TRANSFER_BY </span>
                                     <span>   Bộ phận(Dept): @model.TRANSFER_TO </span>
                                 </div>
                             </td>
@@ -51,7 +51,9 @@
                         <tr>
                             <td colspan="1000">
                                 <div class="d-flex" style="font-size: 11px">
-                                    <span class="me-4">Người giao(Handover): @model.CREATED_USER</span>
+                                    <span class="me-4">
+                                        Người giao(Handover): @model.CREATED_USER
+                                    </span>
                                     <span>   Bộ phận(Dept): @model.CREATED_USER_DEPT </span>
                                 </div>
                             </td>
@@ -69,6 +71,7 @@
                                             <th style="width: 25px;" class="text-center">STT<br />(No.)</th>
                                             <th class="text-center">Tên hàng <br />(Model)</th>
                                             <th class="text-center">Mã hàng <br /> (SKU)</th>
+                                            <th class="text-center">Loại hàng <br /> (Category)</th>
                                             <th class="text-center">Ghi chú <br /> (Remarks)</th>
                                         </tr>
                                     </thead>
@@ -82,6 +85,7 @@
                                                 <td class="text-center">@i</td>
                                                 <td>@item.ModelName</td>
                                                 <td>@item.SKU</td>
+                                                <td>@item.Category</td>
                                                 <td>@item.Note</td>
                                             </tr>
                                         }
@@ -103,7 +107,7 @@
                                         <tr style="font-size: 10px">
                                             <td class="text-center"><b>Người nhận</b> <br /> (Receiver)</td>
                                             <td class="text-center"><b>Người giao</b> <br /> (Handover)</td>
-                                            <td class="text-center"><b>Trưởng kho</b> <br /> (Warehouse Leader)</td>
+                                            <td class="text-center"><b>Trưởng kho</b> <br /> (Storage room steward)</td>
                                             <td class="text-center"><b>Trưởng bộ phận</b> <br /> (Chief of dept)</td>
                                         </tr>
                                         <tr>
@@ -133,5 +137,12 @@
     [Parameter]
     public string DivId { get; set; } = "";
 
+    private UserModel user = new UserModel();
+
     public DateTime now = DateTime.Now;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //user = await UserService.getCurrentUser();
+    }
 }

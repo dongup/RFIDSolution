@@ -164,6 +164,7 @@ namespace RFIDSolution.Server.Controllers
 
             var query = _context.PRODUCT
                 .Where(x => x.PRODUCT_CODE == SKU)
+                .OrderBy(x => x.EPC)
                 .Select(x => new ProductModel()
                 {
                     ID = x.PRODUCT_ID,
@@ -190,7 +191,7 @@ namespace RFIDSolution.Server.Controllers
                     Note =x.NOTE,
                     CategoryId = x.CATEGORY_ID,
                 }).FirstOrDefault();
-            if (query == null) return rspns.NotFound("");
+            if (query == null) return rspns.NotFound($"SKU: {SKU} did not exist!");
             return rspns.Succeed(query);
         }
 
@@ -271,31 +272,61 @@ namespace RFIDSolution.Server.Controllers
                 return rspns.Failed($"Shoe's EPC {item.EPC} is already exist!");
             }
 
-            var entity = new ProductEntity();
-            entity.PRODUCT_CODE = item.SKU;
-            entity.EPC = item.EPC;
-            entity.MODEL_ID = item.ModelId;
-            entity.PRODUCT_SIZE = item.Size;
-            entity.PRODUCT_POC = item.POC;
-            entity.PRODUCT_LOCATION = item.Location;
-            entity.PRODUCT_REMARKS = item.Remarks;
-            entity.DEV_NAME = item.DevStyleName;
-            entity.PRODUCT_SEASON = item.Season;
-            entity.PRODUCT_STAGE = item.Stage;
-            entity.COLOR_NAME = item.ColorWay;
+            //Nếu có tồn tại 1 product có cùng SKU mà không có EPC thì update lại
+            if(_context.PRODUCT.Any(x => x.PRODUCT_CODE == item.SKU && string.IsNullOrEmpty(x.EPC)))
+            {
+                var savedEntity = _context.PRODUCT.Where(x => x.PRODUCT_CODE == item.SKU && string.IsNullOrEmpty(x.EPC)).FirstOrDefault();
+                savedEntity.EPC = item.EPC;
 
-            var cat = _context.CAT_DEF.FirstOrDefault(x => x.CAT_ID == item.CategoryId);
-            if (cat == null) return rspns.Failed($"{item.Category} is not a valid category!");
+                if(!_context.RFID_TAG.Any(x => x.EPC == item.EPC))
+                {
+                    RFIDTagEntity tagEntity = new RFIDTagEntity();
+                    tagEntity.EPC = item.EPC;
+                    tagEntity.CREATED_DATE = DateTime.Now;
+                    tagEntity.CREATED_USER = CurrentUser.FullName;
+                    tagEntity.CREATED_USER_ID = CurrentUser.Id;
 
-            entity.PRODUCT_CATEGORY = cat.CAT_NAME;
-            entity.CATEGORY_ID = cat.CAT_ID;
-            entity.REF_DOC_NO = item.RefDocNo;
-            entity.REF_DOC_DATE = item.RefDocDate;
-            entity.CREATED_USER_ID = CurrentUser.Id;
-            entity.CREATED_USER = CurrentUser.FullName;
+                    _context.RFID_TAG.Add(tagEntity);
+                }
 
-            _context.PRODUCT.Add(entity);
-            await _context.SaveChangesAsync();
+                _context.SaveChanges();
+            }
+            else
+            {
+                //Ngược lại thì thêm mới
+                var entity = new ProductEntity();
+                entity.PRODUCT_CODE = item.SKU;
+                entity.EPC = item.EPC;
+                entity.MODEL_ID = item.ModelId;
+                entity.PRODUCT_SIZE = item.Size;
+                entity.PRODUCT_POC = item.POC;
+                entity.PRODUCT_LOCATION = item.Location;
+                entity.PRODUCT_REMARKS = item.Remarks;
+                entity.DEV_NAME = item.DevStyleName;
+                entity.PRODUCT_SEASON = item.Season;
+                entity.PRODUCT_STAGE = item.Stage;
+                entity.COLOR_NAME = item.ColorWay;
+
+                var cat = _context.CAT_DEF.FirstOrDefault(x => x.CAT_ID == item.CategoryId);
+                if (cat == null) return rspns.Failed($"{item.Category} is not a valid category!");
+
+                entity.PRODUCT_CATEGORY = cat.CAT_NAME;
+                entity.CATEGORY_ID = cat.CAT_ID;
+                entity.REF_DOC_NO = item.RefDocNo;
+                entity.REF_DOC_DATE = item.RefDocDate;
+                entity.CREATED_USER_ID = CurrentUser.Id;
+                entity.CREATED_USER = CurrentUser.FullName;
+
+                _context.PRODUCT.Add(entity);
+                await _context.SaveChangesAsync();
+
+                RFIDTagEntity tagEntity = new RFIDTagEntity();
+                tagEntity.EPC = entity.EPC;
+                tagEntity.CREATED_USER_ID = entity.CREATED_USER_ID;
+                tagEntity.CREATED_USER = entity.CREATED_USER;
+                _context.RFID_TAG.Add(tagEntity);
+                _context.SaveChanges();
+            }
 
             return rspns.Succeed();
         }

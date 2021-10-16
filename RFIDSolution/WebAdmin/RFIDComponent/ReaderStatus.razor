@@ -1,0 +1,152 @@
+﻿<div class="w-100 flex-column align-items-center text-center">
+    <p class="w-100 m-0 text-center @(IsConnected? "text-success" : "text-danger")" style="font-size: 16px; font-weight: bold">
+        @(IsConnected? "Reader connected" : "Reader disconnected")
+    </p>
+    @if (IsConnected)
+    {
+        <img class="hand" width="136" height="136" src="/images/connect.png"/>
+    }
+    else
+    {
+        <img class="hand" width="136" height="136" src="/images/dis_connect.png"/>
+    }
+    @if (ShowButton)
+    {
+        <button class="btn w-100 mt-2 @(IsConnected? "btn-light" : "btn-light") mt-4 ps-2 pe-2" @onclick="() => toogleReader()"
+                type="button" disabled=@connecting>
+            <Loading Visible="connecting" Width="36px" Height="36px"></Loading>
+            <span class="text-center w-100 h-100">
+                @(IsConnected? "Disconnect" : "Reconnect")
+            </span>
+        </button>
+    }
+</div>
+
+@implements IDisposable 
+@inject HttpClient _client
+@using Microsoft.AspNetCore.SignalR.Client
+@inject DialogService _dialog
+@code {
+    [Parameter]
+    public bool ShowButton { get; set; } = true;
+
+    private HubConnection hubConnection;
+    private bool HubStatus => hubConnection?.State == HubConnectionState.Connected;
+    private bool IsConnected => readerStatus.IsConnected;
+    private ReaderStatusModel readerStatus = new ReaderStatusModel();
+    private ConfigurationModel config = new ConfigurationModel();
+    private bool connecting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+                .WithUrl($"{Program.RootApiUrl}ReaderStatusHub")
+                .Build();
+        hubConnection.On<ReaderStatusModel>("StatusChanged", readerStatusChanged);
+
+        await hubConnection.StartAsync();
+
+        await checkStatus();
+    }
+
+    #region Reader region
+    private async Task checkStatus()
+    {
+        await hubConnection.InvokeAsync("CheckStatus");
+    }
+
+    private async Task checkAntennaStatus()
+    {
+        await hubConnection.InvokeAsync("CheckAntennaStatus");
+    }
+
+    private async Task readerStatusChanged(ReaderStatusModel readerStatus)
+    {
+        connecting = false;
+
+        if (readerStatus.IsSuccess)
+        {
+            await _dialog.SuccessAlert(readerStatus.Message);
+        }
+        else
+        {
+            await _dialog.ErrorAlert(readerStatus.Message);
+        }
+
+        this.readerStatus.AvaiableAntennas = readerStatus.AvaiableAntennas;
+        this.readerStatus.IsSuccess = readerStatus.IsSuccess;
+        this.readerStatus.Message = readerStatus.Message;
+        this.readerStatus.IsConnected = readerStatus.IsConnected;
+        this.readerStatus.IsInventoring = readerStatus.IsInventoring;
+
+        StateHasChanged();
+    }
+
+    private async Task toogleReader()
+    {
+        if (readerStatus.IsConnected)
+        {
+            if (!await _dialog.Confirm("Are you sure want to disconnect reader???")) return;
+
+            await Disconnect();
+        }
+        else
+        {
+            await Reconnect();
+        }
+    }
+
+    private async Task Reconnect()
+    {
+        connecting = true;
+        if (!HubStatus)
+        {
+            await hubConnection.StartAsync();
+        }
+
+        await hubConnection.InvokeAsync("ConnectReader");
+    }
+
+    private async Task Disconnect()
+    {
+        if (!HubStatus)
+        {
+            await hubConnection.StartAsync();
+        }
+
+        await hubConnection.InvokeAsync("DisconnectReader");
+    }
+
+    private async Task loadConfig()
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<ConfigurationModel>>("config");
+        if (rspns.IsSuccess)
+        {
+            config = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task updateConfig()
+    {
+        var req = await _client.PutAsJsonAsync<ConfigurationModel>("config", config);
+        var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<bool>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert("Reader configs updated, please disconnect and reconnect to apply your changes!");
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+    #endregion
+
+    async void IDisposable.Dispose()
+    {
+        await hubConnection.DisposeAsync();
+    }
+}

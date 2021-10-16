@@ -19,6 +19,16 @@ namespace RFIDSolution.Shared.Service
             _modal = modal;
         }
 
+        public async Task<bool> ShowPrintModal(int transferId)
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("TransferId", transferId);
+
+            var modal = _modal.Show<PrintTransferModal>("Print transfer sheet", parameters);
+            var res = await modal.Result;
+            return res.Cancelled ? false : true;
+        }
+
         public async Task<bool> ShowEditProductModal(ProductModel model)
         {
             var parameters = new ModalParameters();
@@ -27,6 +37,52 @@ namespace RFIDSolution.Shared.Service
             var modal = _modal.Show<ProductEditModal>("Update shoe information", parameters);
             var res = await modal.Result;
             return res.Cancelled ? false : true;
+        }
+
+        public async Task<bool> AddUser()
+        {
+            var parameters = new ModalParameters();
+            var modal = _modal.Show<AddUserModal>("Create new user", parameters);
+            var res = await modal.Result;
+            return res.Cancelled ? false : true;
+        }
+
+        public async Task<bool> ResetPassword(int userId)
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("UserId", userId);
+            var modal = _modal.Show<ResetPasswordModal>("Reset user password", parameters);
+            var res = await modal.Result;
+            return res.Cancelled ? false : true;
+        }
+
+        public async Task<bool> ConfirmPassword()
+        {
+            var parameters = new ModalParameters();
+            var modal = _modal.Show<ConfirmPassword>("Confirm password", parameters);
+            var res = await modal.Result;
+            return res.Cancelled ? false : true;
+        }
+
+        public async Task<string> InputDialog(string title, string placeHolder, bool required = false, string invalidMessage = "")
+        {
+            var parameters = new ModalParameters();
+            parameters.Add("PlaceHolder", placeHolder);
+            parameters.Add("Required", required);
+            parameters.Add("InvalidFeedback", invalidMessage);
+
+            var modal = _modal.Show<InputModal>(title, parameters);
+            var res = await modal.Result;
+            string result = "";
+            if (res.Cancelled)
+            {
+                result = "";
+            }
+            else
+            {
+                result = (string)res.Data;
+            }
+            return result;
         }
 
         public async Task<bool> Confirm(string message)
@@ -38,7 +94,6 @@ namespace RFIDSolution.Shared.Service
             var res = await modal.Result;
             return res.Cancelled ? false : true;
         }
-
 
         public async Task<bool> AlertModal(string message)
         {

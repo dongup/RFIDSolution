@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NPOI.HSSF.UserModel;
 using NPOI.HSSF.Util;
 using NPOI.SS.UserModel;
@@ -228,12 +229,15 @@ namespace RFIDSolution.Server.Controllers
             cell.CellComment = comment;
         }
 
-        [HttpGet("stockreport")]
-        public async Task<IActionResult> GetStockReport()
+        [HttpGet("inboundreport")]
+        public async Task<IActionResult> GetInboudReport(string fromDate, string toDate)
         {
+            DateTime dFromDate = fromDate.ToDateTime();
+            DateTime dToDate = toDate.ToDateTime();
             var rspns = new ResponseModel<List<ProductModel>>();
 
             var query = _context.PRODUCT
+                .Where(x => (x.CREATED_DATE >= dFromDate && x.CREATED_DATE <= dToDate))
                 .OrderByDescending(x => x.CREATED_DATE)
                 .Select(x => new
                 {
@@ -248,29 +252,33 @@ namespace RFIDSolution.Server.Controllers
                     Stage = x.PRODUCT_STAGE,
                     Location = x.PRODUCT_LOCATION,
                     POC = x.PRODUCT_POC,
-                    EPC = x.EPC,
-                    REMARKS = x.PRODUCT_REMARKS
+                    LR = x.LR.GetDescription(),
+                    REMARKS = x.PRODUCT_REMARKS,
+                    TimeIn = x.CREATED_DATE.ToVNString()
                 }).ToList();
 
             DataTable dataExcel = new DataTable();
-            using (var reader = ObjectReader.Create(query, "ID", "SKU", "ModelName", "Category", "ColorWay", "Size", "DevStyleName", "Season", "Stage", "Location", "POC", "EPC", "REMARKS"))
+            using (var reader = ObjectReader.Create(query, "ID", "SKU", "ModelName", "Category", "ColorWay", "Size", "DevStyleName", "Season", "Stage", "Location", "POC", "LR", "TimeIn", "REMARKS"))
             {
                 dataExcel.Load(reader);
             }
 
-            string fileName = FileNameBuilder("STOCK REPORT", takeAll: false);
-            string file = CreateExcel(dataExcel, "StockTemplate.xlsx", fileName, 6, false, "Sheet1");
+            string fileName = FileNameBuilder("INBOUD REPORT", takeAll: false);
+            string file = CreateExcel(dataExcel, "InboudTemplate.xlsx", fileName, 6, false, "Sheet1");
             updateExcelFile(file, $"{DateTime.Now.ToVNString()}", 3, 10);
 
             return Download(file);
         }
 
-        [HttpGet("stockreportdata")]
-        public async Task<ResponseModel<PaginationResponse<ProductModel>>> GetStockReportData(int pageItem, int pageIndex)
+        [HttpGet("inboundreportdata")]
+        public async Task<ResponseModel<PaginationResponse<ProductModel>>> GetInboudReportData(string fromDate, string toDate, int pageItem, int pageIndex)
         {
+            DateTime dFromDate = fromDate.ToDateTime();
+            DateTime dToDate = toDate.ToDateTime();
             var rspns = new ResponseModel<PaginationResponse<ProductModel>>();
 
             var query = _context.PRODUCT
+                .Where(x => (x.CREATED_DATE >= dFromDate && x.CREATED_DATE <= dToDate))
                 .OrderByDescending(x => x.CREATED_DATE)
                 .Select(x => new ProductModel()
                 {
@@ -285,12 +293,129 @@ namespace RFIDSolution.Server.Controllers
                     Stage = x.PRODUCT_STAGE,
                     Location = x.PRODUCT_LOCATION,
                     POC = x.PRODUCT_POC,
-                    EPC = x.EPC,
+                    LRStr = x.LR.GetDescription(),
+                    CreatedDate = x.CREATED_DATE,
+                    Remarks = x.PRODUCT_REMARKS,
+                }).AsQueryable();
+
+            return rspns.Succeed(new PaginationResponse<ProductModel>(query, pageItem, pageIndex));
+        }
+
+        [HttpGet("stockreport")]
+        public async Task<IActionResult> GetStockReport(string fromDate, string toDate)
+        {
+            var rspns = new ResponseModel<List<ProductModel>>();
+            DateTime dFromDate = fromDate.ToDateTime();
+            DateTime dToDate = toDate.ToDateTime();
+
+            var query = _context.PRODUCT
+                .Where(x => x.CREATED_DATE <= dToDate)
+                .OrderByDescending(x => x.PRODUCT_CODE)
+                .ThenBy(x => x.CREATED_DATE)
+                .Select(x => new ProductModel()
+                {
+                    ID = x.PRODUCT_ID,
+                    SKU = x.PRODUCT_CODE,
+                    ModelName = x.Model.MODEL_NAME,
+                    Category = x.PRODUCT_CATEGORY,
+                    ColorWay = x.COLOR_NAME,
+                    Size = x.PRODUCT_SIZE,
+                    DevStyleName = x.DEV_NAME,
+                    Season = x.PRODUCT_SEASON,
+                    Stage = x.PRODUCT_STAGE,
+                    Location = x.PRODUCT_LOCATION,
+                    POC = x.PRODUCT_POC,
+                    LRStr = x.LR.GetDescription(),
+                    ProductStatus = x.PRODUCT_STATUS,
+                    ReturnTime = x.TransferDetails
+                        .Where(a => a.TRANSFER_TIME <= dToDate)
+                        .OrderByDescending(a => a.TRANSFER_TIME)
+                        .Select(x => x.RETURN_TIME)
+                        .FirstOrDefault(),
+                    Remarks = x.PRODUCT_REMARKS
+                }).ToList();
+
+            foreach (var item in query)
+            {
+                if (item.ReturnTime == null) continue;
+                DateTime returnTime = (DateTime)item.ReturnTime;
+
+                if (returnTime <= dToDate)
+                {
+                    item.ProductStatus = ProductStatus.Available;
+                }
+                else
+                {
+                    item.ProductStatus = ProductStatus.Transfered;
+                }
+            }
+
+            DataTable dataExcel = new DataTable();
+            using (var reader = ObjectReader.Create(query, "ID", "SKU", "ModelName", "Category", "ColorWay", "Size", "DevStyleName", "Season", "Stage", "Location", "POC", "LRStr", "ProductStatusStr", "Remarks"))
+            {
+                dataExcel.Load(reader);
+            }
+
+            string fileName = FileNameBuilder("STOCK REPORT", takeAll: false);
+            string file = CreateExcel(dataExcel, "StockTemplate.xlsx", fileName, 6, false, "Sheet1");
+            updateExcelFile(file, $"{DateTime.Now.ToVNString()}", 3, 10);
+
+            return Download(file);
+        }
+
+        [HttpGet("stockreportdata")]
+        public async Task<ResponseModel<PaginationResponse<ProductModel>>> GetStockReportData(string fromDate, string toDate, int pageItem, int pageIndex)
+        {
+            var rspns = new ResponseModel<PaginationResponse<ProductModel>>();
+            DateTime dFromDate = fromDate.ToDateTime();
+            DateTime dToDate = toDate.ToDateTime();
+
+            var query = _context.PRODUCT
+                .Include(x => x.TransferDetails)
+                .Where(x => x.CREATED_DATE <= dToDate)
+                 .OrderByDescending(x => x.PRODUCT_CODE)
+                .ThenBy(x => x.CREATED_DATE)
+                .Select(x => new ProductModel()
+                {
+                    ID = x.PRODUCT_ID,
+                    SKU = x.PRODUCT_CODE,
+                    ModelName = x.Model.MODEL_NAME,
+                    Category = x.PRODUCT_CATEGORY,
+                    ColorWay = x.COLOR_NAME,
+                    Size = x.PRODUCT_SIZE,
+                    DevStyleName = x.DEV_NAME,
+                    Season = x.PRODUCT_SEASON,
+                    Stage = x.PRODUCT_STAGE,
+                    Location = x.PRODUCT_LOCATION,
+                    POC = x.PRODUCT_POC,
+                    LRStr = x.LR.GetDescription(),
+                    ProductStatus = x.PRODUCT_STATUS,
+                    ReturnTime = x.TransferDetails
+                        .Where(a => a.TRANSFER_TIME <= dToDate)
+                        .OrderByDescending(a => a.TRANSFER_TIME)
+                        .Select(x => x.RETURN_TIME)
+                        .FirstOrDefault(),
                     CreatedDate = x.CREATED_DATE,
                     Remarks = x.PRODUCT_REMARKS
                 }).AsQueryable();
 
-            return rspns.Succeed(new PaginationResponse<ProductModel>(query, pageItem, pageIndex));
+            var result = new PaginationResponse<ProductModel>(query, pageItem, pageIndex);
+            foreach(var item in result.Data)
+            {
+                if (item.ReturnTime == null) continue;
+                DateTime returnTime = (DateTime)item.ReturnTime;
+
+                if (returnTime <= dToDate)
+                {
+                    item.ProductStatus = ProductStatus.Available;
+                }
+                else
+                {
+                    item.ProductStatus = ProductStatus.Transfered;
+                }
+            }
+
+            return rspns.Succeed(result);
         }
 
         [HttpGet("transferreport")]
@@ -464,7 +589,7 @@ namespace RFIDSolution.Server.Controllers
                     ALERT_CONF_REASON = x.ALERT_CONF_REASON,
                     ALERT_CONF_USER = x.ALERT_CONF_USER,
                     ALERT_CONF_TIME = x.ALERT_CONF_TIME,
-                    TotalWarningSecond = (int)(x.ALERT_CONF_TIME - x.CREATED_DATE).TotalSeconds,
+                    TotalWarningSecond = x.ALERT_CONF_TIME == null? 0 : (int)((DateTime)x.ALERT_CONF_TIME - x.CREATED_DATE).TotalSeconds,
                 }).AsQueryable();
 
             DataTable dataExcel = new DataTable();
@@ -505,7 +630,7 @@ namespace RFIDSolution.Server.Controllers
                     ALERT_CONF_REASON = x.ALERT_CONF_REASON,
                     ALERT_CONF_USER = x.ALERT_CONF_USER,
                     ALERT_CONF_TIME = x.ALERT_CONF_TIME,
-                    TotalWarningSecond = (int)(x.ALERT_CONF_TIME - x.CREATED_DATE).TotalSeconds,
+                    TotalWarningSecond = x.ALERT_CONF_TIME == null ? 0 : (int)((DateTime)x.ALERT_CONF_TIME - x.CREATED_DATE).TotalSeconds,
                 }).AsQueryable();
 
             return rspns.Succeed(new PaginationResponse<ProductAlertModel>(query, pageItem, pageIndex));

@@ -1,0 +1,218 @@
+﻿<div class="card m-2 bg-white">
+    <div class="card-header d-flex align-items-center">
+        <h5 class="text-body m-0">CURRENT ITEMS FOUND AT CHECKPOINT - Total: <span class="text-success">@products.Count</span></h5>
+        <div class="spacer"></div>
+        <button class="float-end btn btn-secondary" @onclick="() => { products.Clear(); }"><span class="oi oi-delete"></span> CLEAR SCAN RESULT</button>
+    </div>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>EPC</th>
+                <th>SKU</th>
+                <th>SHOE STATUS</th>
+                <th>MODEL</th>
+                <th>LAST SEEN</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (products.Count > 0)
+            {
+                int count = 1;
+                @foreach (var item in products)
+                {
+                    <tr class="hand">
+                        <td>@item.ID</td>
+                        <td>@item.EPC</td>
+                        <td>@item.SKU</td>
+                        <td>
+                            <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
+                        </td>
+                        <td>@item.ModelName</td>
+                        <td>@item.TagResponse.LastSeen.ToTimeString()</td>
+                    </tr>
+                    count++;
+                }
+            }
+            else
+            {
+                <NoData></NoData>
+            }
+        </tbody>
+        <tfoot></tfoot>
+    </table>
+</div>
+
+@page "/checkpoint"
+@inject DialogService _dialog
+@inject HttpClient _httpClient
+@attribute [Authorize]
+@inject DefineService shoeModelService
+@using RFIDSolution.Shared.Models.Products;
+@implements IDisposable
+@using Microsoft.AspNetCore.SignalR.Client
+@inject DialogService _dialog
+@code {
+    public List<int> AntennaIds { get; set; } = new List<int>();
+
+    private List<RFTagResponse> Tags = new List<RFTagResponse>();
+    private List<ProductModel> products = new List<ProductModel>();
+
+    public bool reading = false;
+    public bool connected = false;
+    private HubConnection hubConnection;
+    private bool HubStatus => hubConnection?.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        MainLayout.Instance.PageTitle = "Check point";
+
+        hubConnection = new HubConnectionBuilder()
+                .WithUrl($"{Program.RootApiUrl}readerhub")
+                .Build();
+        hubConnection.On<RFTagResponse>("ReceiveTag", OnTagRead);
+        hubConnection.On<string>("OnError", onError);
+
+        await hubConnection.StartAsync();
+        await loadAntenas();
+        await startReader();
+    }
+
+    public async Task loadAntenas()
+    {
+        var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<List<AntenaModel>>>($"Antennas");
+        if (rspns.IsSuccess)
+        {
+            AntennaIds = rspns.Result
+                .Where(x => x.LOCATION == AntennaLocation.CheckPoint)
+                .Select(x => x.ANTENNA_ID)
+                .ToList();
+        }
+        else
+        {
+            await _dialog.SuccessAlert(rspns.Message);
+        }
+    }
+
+    private async Task reConnecthub()
+    {
+        if (hubConnection.State != HubConnectionState.Connected)
+        {
+            await hubConnection.StartAsync();
+        }
+    }
+
+    private async Task OnTagRead(RFTagResponse tag)
+    {
+        Console.WriteLine("Tag read");
+        tag.Status = 1;
+        var product = products.FirstOrDefault(x => x.EPC == tag.EPCID);
+
+        if (product == null)
+        {
+            var searchProduct = await findProductByEPC(tag.EPCID.Trim());
+            if (searchProduct != null)
+            {
+                product = searchProduct;
+
+                tag.FirstSeen = DateTime.Now.Ticks;
+                product.TagResponse = tag;
+                products.Add(product);
+            }
+            //Nếu không tìm thấy giày thì show dòng tag bị lỗi
+            else
+            {
+                product = new ProductModel();
+                product.EPC = tag.EPCID;
+                product.TagResponse = tag;
+                product.SKU = "";
+                product.ProductStatus = ProductStatus.Unknown;
+                product.ModelName = "";
+                products.Add(product);
+            }
+        }
+        else
+        {
+            product.TagResponse = tag;
+        }
+
+        var awayProducts = new List<ProductModel>();
+        foreach (var item in products)
+        {
+            var readTag = item.TagResponse;
+            DateTime lastSeen = readTag.LastSeen.ToDateTime();
+            //Nếu tag đã không được đọc trong 3 giây thì coi như đã đi ra khỏi vùng phủ sóng
+            if ((DateTime.Now - lastSeen).TotalSeconds >= 3)
+            {
+                readTag.Status = 2;
+                readTag.RSSI = 0;
+                awayProducts.Add(item);
+                //Nếu item đang show chi tiết đã ra ngoài vùng phủ sóng thì không show nữa
+            }
+        }
+
+        //xóa những tag đã ra khỏi vùng phủ sóng
+        foreach (var item in awayProducts)
+        {
+            products.Remove(item);
+        }
+        StateHasChanged();
+    }
+
+    private async Task<ProductModel> findProductByEPC(string EPC)
+    {
+        ProductModel product = new ProductModel();
+        var rspns = await _httpClient.GetFromJsonAsync<ResponseModel<ProductModel>>("products/byepc?epc=" + EPC);
+        if (rspns.IsSuccess)
+        {
+            product = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+        return product;
+    }
+
+    private async Task toggleReader()
+    {
+        reading = !reading;
+        if (reading)
+        {
+            await startReader();
+            //await _dialog.SuccessAlert("Reader started!");
+        }
+        else
+        {
+            await stopReader();
+            //await _dialog.ErrorAlert("Reader stoped!");
+        }
+    }
+
+    private async Task onError(string message)
+    {
+        await _dialog.ErrorAlert(message);
+        reading = false;
+        connected = false;
+        StateHasChanged();
+    }
+
+    public async Task startReader()
+    {
+        await reConnecthub();
+        await hubConnection.InvokeAsync("StartInventory", new RFTagRequest() { AntenIds = AntennaIds });
+    }
+
+    public async Task stopReader()
+    {
+        await reConnecthub();
+        await hubConnection.InvokeAsync("StopInventory");
+    }
+
+    async void IDisposable.Dispose()
+    {
+        await stopReader();
+        await hubConnection.DisposeAsync();
+    }
+}

@@ -30,7 +30,7 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public DateTime TRANSFER_TIME { get; set; }
 
-        public DateTime RETURN_TIME { get; set; }
+        public DateTime? RETURN_TIME { get; set; }
 
         [StringLength(100)]
         public string TRANSFER_BY { get; set; }

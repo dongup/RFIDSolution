@@ -55,7 +55,6 @@ namespace RFIDSolution.Server.SignalRHubs
             //readerApi._context = _context;
             readerApi.CheckAntennaStatus();
             ReaderStatus.AvaiableAntennas = readerApi.AvailableAntennas;
-            Console.WriteLine("Avaible antenna: " + ReaderStatus.AvaiableAntennas.Count);
             caller.SendAsync("AntennaStatusChanged", ReaderStatus);
         }
 
@@ -68,41 +67,14 @@ namespace RFIDSolution.Server.SignalRHubs
                 || e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.READER_INITIATED_DISCONNECTION
                 || e.StatusEventData.DisconnectionEventData.DisconnectEventInfo == Symbol.RFID3.DISCONNECTION_EVENT_TYPE.READER_EXCEPTION)
             {
-                readerApi.ReaderStatus.IsConnected = false;
-                readerApi.ReaderStatus.Message = "Reader connection lost!";
-                Console.WriteLine("Reader connection lost");
-
-                //Gửi mail và ghi log ở 1 thread khác
-                readerApi.logReaderEvent("Reader disconnected due to connection issue", RdrLog.Disconnect);
-
                 clientProxy.SendAsync("StatusChanged", ReaderStatus);
             }
             else if(e.StatusEventData.AntennaEventData.AntennaEvent == Symbol.RFID3.ANTENNA_EVENT_TYPE.ANTENNA_DISCONNECTED)
-            {
-                int antennaId = e.StatusEventData.AntennaEventData.AntennaID;
-
-                Console.WriteLine($"Antenna {antennaId} disconnected");
-                readerApi.ReaderStatus.Message = $"Antenna {e.StatusEventData.AntennaEventData.AntennaID} disconnected";
-
-                //readerApi.CheckAntennaStatus();
-                var anten = readerApi.AvailableAntennas.FirstOrDefault(x => x.ANTENNA_ID == antennaId);
-                if(anten != null)
-                {
-                    anten.ANTENNA_STATUS = Shared.Enums.AppEnums.AntennaStatus.Disconnected;
-                    readerApi.ReaderStatus.AvaiableAntennas = readerApi.AvailableAntennas;
-                    Console.WriteLine("Sending status to client");
-                    clientProxy.SendAsync("StatusChanged", ReaderStatus);
-                }
+            { 
+                clientProxy.SendAsync("StatusChanged", ReaderStatus);
             }
             else if (e.StatusEventData.AntennaEventData.AntennaEvent == Symbol.RFID3.ANTENNA_EVENT_TYPE.ANTENNA_CONNECTED)
             {
-                int antennaId = e.StatusEventData.AntennaEventData.AntennaID;
-
-                Console.WriteLine($"Antenna {antennaId} connected");
-                readerApi.ReaderStatus.Message = $"Antenna {e.StatusEventData.AntennaEventData.AntennaID} connected";
-
-                readerApi.CheckAntennaStatus();
-                readerApi.ReaderStatus.AvaiableAntennas = readerApi.AvailableAntennas;
                 clientProxy.SendAsync("StatusChanged", ReaderStatus);
             }
         }
@@ -123,7 +95,7 @@ namespace RFIDSolution.Server.SignalRHubs
             else
             {
                 readerApi.Connect();
-                await readerApi.StartInventory();
+                readerApi.StartInventory();
                 ReaderStatus.AvaiableAntennas = readerApi.AvailableAntennas;
             }
 

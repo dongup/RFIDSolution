@@ -9,6 +9,16 @@ namespace RFIDSolution.Shared.Enums
 {
     public class AppEnums
     {
+        public enum GPOPortType
+        {
+            [Description("Light power")]
+            Power = 0,
+            [Description("Green light")]
+            Green = 1,
+            [Description("Red light")]
+            Red = 2,
+        }
+
         /// <summary>
         /// Giầy trái hay phải
         /// </summary>
@@ -133,6 +143,27 @@ namespace RFIDSolution.Shared.Enums
             Active = 1,
             [Description("Disabled")]
             Disabled = 2
+        }
+
+        public enum LogLevelEnum
+        {
+            [Description("Log lỗi")]
+            Error = 1,
+            [Description("Log update")]
+            Put = 2,
+            [Description("Log delete")]
+            Delete = 3,
+            [Description("Log thông tin")]
+            Info = 4
+        }
+
+        public enum BadgeColor
+        {
+            Error,
+            Warning,
+            Success,
+            Info,
+            Primary
         }
     }
 }

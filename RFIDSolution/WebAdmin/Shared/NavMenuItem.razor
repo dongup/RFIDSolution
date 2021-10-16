@@ -1,0 +1,76 @@
+﻿<li class="mb-1">
+    <button class="btn align-items-center rounded collapsed w-100 @(active)" @onclick="onItemClick">
+        <span class="oi @Icon me-2"></span>
+
+        @Title
+
+        <div class="spacer"></div>
+
+        @if (ChildContent != null)
+        {
+            @if (expand)
+            {
+                <span class="oi oi-caret-bottom me-2" style="font-size: 12px"></span>
+            }
+            else
+            {
+                <span class="oi oi-caret-left me-2" style="font-size: 12px"></span>
+            }
+        }
+    </button>
+    @if (expand && ChildContent != null)
+    {
+        <div>
+            <ul class="list-unstyled fw-normal pb-1 small sub-menu ms-4">
+                @ChildContent
+            </ul>
+        </div>
+    }
+</li>
+
+@inject NavigationManager nav
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Href { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string Icon { get; set; }
+
+    [Parameter]
+    public bool IsLink { get; set; } = true;
+
+    private bool expand = false;
+    private string active;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Href = Href ?? "";
+        string url = nav.ToBaseRelativePath(nav.Uri)??"";
+
+        if (url == Href || url.Contains(Href))
+        {
+            active = "active";
+        }
+        else
+        {
+            active = "";
+        }
+        StateHasChanged();
+    }
+
+    private void onItemClick()
+    {
+        expand = !expand;
+        if (IsLink)
+        {
+            nav.NavigateTo(Href);
+        }
+    }
+}

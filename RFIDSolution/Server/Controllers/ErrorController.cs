@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static RFIDSolution.Shared.DAL.Entities.LogEntity;
+using static RFIDSolution.Shared.Enums.AppEnums;
 
 namespace RFIDSolution.Server.Controllers
 {
@@ -56,8 +57,8 @@ namespace RFIDSolution.Server.Controllers
 
                 rspns.StatusCode = HttpContext.Response.StatusCode;
 
-                LogModel log = new LogModel(HttpContext);
-                log.Level = LogLevel.Error;
+                LogModel log = new LogModel(HttpContext, CurrentUser);
+                log.Level = LogLevelEnum.Error;
                 log.ExceptionMessage = ex.InnerException == null ? ex.Message : ex.InnerException?.Message;
                 log.LogContent = log.ExceptionMessage;
                 log.ExceptionDetail = ex.StackTrace;
@@ -66,9 +67,11 @@ namespace RFIDSolution.Server.Controllers
 
                 log.RequestBody = await GetReqBody();
                 log.Token = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if (HttpContext.Response.StatusCode != 401)
+
+                HttpContext.Response.StatusCode = 200;
+                if (HttpContext.Response.StatusCode == 401)
                 {
-                    HttpContext.Response.StatusCode = 200;
+                    rspns.Message = "Your session has expired, please login again!";
                 }
 
                 _context.DetachAllEntities();

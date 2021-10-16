@@ -41,6 +41,12 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public DateTime? COMPLETE_DATE { get; set; }
 
+        public string CANCEL_REASON { get; set; }
+
+        public DateTime? CANCEL_DATE { get; set; }
+
+        public string CANCEL_USER { get; set; }
+
         public ICollection<InventoryDetailEntity> InventoryDetails { get; set; } = new HashSet<InventoryDetailEntity>();
     }
 }

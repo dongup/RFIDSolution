@@ -33,6 +33,7 @@ namespace RFIDSolution.Server.Controllers
                 config.READER_PERIOD = 0;
                 config.READER_TIMEOUT = 0;
                 config.TAG_TIME_OUT = 5;
+                config.DEFAULT_TRANSFER_DEADLINE = 30;
                 _context.CONFIG.Add(config);
                 _context.SaveChanges();
             }
@@ -60,6 +61,7 @@ namespace RFIDSolution.Server.Controllers
                 config.READER_PORT = value.READER_PORT;
                 config.READER_PERIOD = value.READER_PERIOD;
                 config.TAG_TIME_OUT = value.TAG_TIME_OUT;
+                config.DEFAULT_TRANSFER_DEADLINE = value.READER_PERIOD;
             }
 
             _context.SaveChanges();

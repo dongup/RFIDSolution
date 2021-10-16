@@ -1,17 +1,274 @@
-﻿@page "/"
+﻿<div class="m-2">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <label>Total shoes</label>
+                    <p class="title-number">@sumary.TotalShoe</p>
+                </div>
+            </div>
 
-<div class="p-4">
+            <div class="card mt-2">
+                <div class="card-body">
+                    <label>Total tags</label>
+                    <p class="title-number">@sumary.TotalTags</p>
+                </div>
+            </div>
 
-    <h1>Hello, world!</h1>
+            <div class="card mt-2">
+                <div class="card-body">
+                    <label>Total transfered shoes</label>
+                    <p class="title-number">@sumary.TotalTransferedShoe</p>
+                </div>
+            </div>
 
-    Welcome to your new app.
+            <div class="card mt-2">
+                <div class="card-body">
+                    <label>Total shoes in stock</label>
+                    <p class="title-number">@sumary.TotalShoeInStock</p>
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <div class="card-body">
+                    <label>Total pending/incompleted inventory plans</label>
+                    <p class="title-number">@sumary.TotalIncompletedPlan</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <ReaderStatus ShowButton="false"></ReaderStatus>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="m-0">Antena status</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>PORT</th>
+                                                <th>NAME</th>
+                                                <th>LOCATION</th>
+                                                <th>POWER</th>
+                                                <th class="text-center">STATUS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in antenas)
+                                            {
+
+                                                <tr class="hand">
+                                                    <td class="wp-100">@item.ANTENNA_ID</td>
+                                                    <td>@item.ANTENNA_NAME</td>
+                                                    <td class="wp-100">@item.LOCATION.GetDescription()</td>
+                                                    <td class="wp-100">@item.ANTENNA_POWER</td>
+                                                    <td class="wp-75 text-center">
+                                                        <StatusBadge Success="item.ANTENNA_STATUS == AntennaStatus.Connected" Error="item.ANTENNA_STATUS == AntennaStatus.Disconnected || item.ANTENNA_STATUS == AntennaStatus.Unknown">
+                                                            @item.ANTENNA_STATUS.GetDescription()
+                                                        </StatusBadge>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <div class="card-header">
+                    <h5 class="m-0">Overdued transfered shoes</h5>
+                </div>
+                <div>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>TRANSFER DATE</th>
+                                <th>TRANSFER REASON</th>
+                                <th>TRANSFER TO</th>
+                                <th>TRANSFER BY</th>
+                                <th>STATUS</th>
+                                <th>DOCUMENT NO</th>
+                                <th>DOCUMENT DATE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (transfers.Count > 0)
+                            {
+                                int count = 1;
+                                @foreach (var item in transfers)
+                                {
+                                    <tr>
+                                        <MyTd>@item.TRANSFER_ID</MyTd>
+                                        <MyTd>@item.TIME_START.ToVNString() (@item.TIME_START.TimeAgo())</MyTd>
+                                        <MyTd>@item.TRANSFER_REASON</MyTd>
+                                        <MyTd>@item.TRANSFER_TO</MyTd>
+                                        <MyTd>@item.TRANSFER_BY</MyTd>
+                                        <MyTd>
+                                            <TransferStatusBadge Status="item.TRANSFER_STATUS"></TransferStatusBadge>
+                                        </MyTd>
+                                        <MyTd>@item.REF_DOC_NO</MyTd>
+                                        <MyTd>@item.REF_DOC_DATE</MyTd>
+                                    </tr>
+                                    count++;
+                                }
+                            }
+                            else
+                            {
+                                <NoData></NoData>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="1000">
+                                    <Pagination TableState="transferState" TotalPageDisplay="5" StateChanged="async () => await loadTransferData()"></Pagination>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 @attribute [Authorize]
-@code{
-    protected override void OnInitialized()
+@page "/"
+@inject HttpClient _client
+@using Microsoft.AspNetCore.SignalR.Client
+@using RFIDSolution.Shared.Models.Dashboard
+@inject DialogService _dialog
+@code {
+    private HubConnection hubConnection;
+    private bool HubStatus => hubConnection?.State == HubConnectionState.Connected;
+    private bool IsConnected => ReaderStatus.IsConnected;
+    private ReaderStatusModel ReaderStatus = new ReaderStatusModel();
+    private ConfigurationModel config = new ConfigurationModel();
+    private bool connecting = false;
+
+    private bool addingItem = false;
+    private string addText => !addingItem ? "ADD NEW ANTENNA" : "CANCEL ADD";
+    private string addClass => addingItem ? "oi oi-circle-x text-danger" : "oi oi-plus text-success";
+
+    private List<ReaderLogModel> readerEvents = new List<ReaderLogModel>();
+    private TableState tableEventState = new TableState();
+    private int eventType = 0;
+
+    private List<AntenaModel> antenas = new List<AntenaModel>();
+    private List<int> antenaPowers = new List<int>();
+    private AntenaModel newAntena = new AntenaModel();
+    private string antennaUrl = "Antennas";
+    private string keyword = "";
+
+    private List<TransferInoutModel> transfers = new List<TransferInoutModel>();
+    private TableState transferState = new TableState(10);
+    private SumaryModel sumary = new SumaryModel();
+
+    protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-        StateHasChanged();
-        MainLayout.Instance.PageTitle = "Index";
+        MainLayout.Instance.PageTitle = "Dashboard";
+
+        hubConnection = new HubConnectionBuilder()
+                  .WithUrl($"{Program.RootApiUrl}ReaderStatusHub")
+                  .Build();
+        hubConnection.On<ReaderStatusModel>("AntennaStatusChanged", AntennaStatusChanged);
+
+        await loadPage();
     }
+
+    private async Task checkAntennaStatus()
+    {
+        await hubConnection.InvokeAsync("CheckAntennaStatus");
+    }
+
+    private void AntennaStatusChanged(ReaderStatusModel readerStatus)
+    {
+        ReaderStatus.AvaiableAntennas = readerStatus.AvaiableAntennas;
+        Console.WriteLine(readerStatus.AvaiableAntennas.Count);
+
+        foreach (var anten in antenas)
+        {
+            var findAnten = readerStatus.AvaiableAntennas.FirstOrDefault(x => x.ANTENNA_ID == anten.ANTENNA_ID);
+            if (findAnten != null)
+            {
+                anten.ANTENNA_STATUS = findAnten.ANTENNA_STATUS;
+                Console.WriteLine($"Antenna id {anten.ANTENNA_ID} status {anten.ANTENNA_STATUS.GetDescription()}");
+            }
+            else
+            {
+                anten.ANTENNA_STATUS = AntennaStatus.Unknown;
+            }
+        }
+        StateHasChanged();
+    }
+
+    private async Task loadPage()
+    {
+        await loadSumary();
+        await loadTransferData();
+        await loadAntenas();
+
+        if(hubConnection.State == HubConnectionState.Disconnected)
+        {
+            await hubConnection.StartAsync();
+        }
+        await hubConnection.InvokeAsync("CheckAntennaStatus");
+    }
+
+    private async Task loadSumary()
+    {
+        //reply = await productService.GetAsync(filter);
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<SumaryModel>>($"Dashboard/sumary");
+        if (rspns.IsSuccess)
+        {
+            sumary = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task loadTransferData()
+    {
+        //reply = await productService.GetAsync(filter);
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<TransferInoutModel>>>($"Dashboard/expiredTransfer?keyword={keyword}&pageItem={transferState.PageItem}&pageIndex={transferState.PageIndex}");
+        if (rspns.IsSuccess)
+        {
+            transfers = rspns.Result.Data;
+            transferState.TotalRow = rspns.Result.TotalRow;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    #region Antenas
+    public async Task loadAntenas()
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<List<AntenaModel>>>($"{antennaUrl}");
+        if (rspns.IsSuccess)
+        {
+            antenas = rspns.Result;
+        }
+        else
+        {
+            await _dialog.SuccessAlert(rspns.Message);
+        }
+    }
+    #endregion
+
 }

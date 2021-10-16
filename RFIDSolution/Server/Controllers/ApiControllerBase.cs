@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using System.Linq;
 
 namespace RFIDSolution.Server.Controllers
 {
+    [Authorize]
     public class ApiControllerBase : ControllerBase
     {
         private UserEntity currentUser { get; set; }

@@ -101,19 +101,17 @@ else
                                                     <ListItem Title="SKU" Bordered="false">@item.SKU</ListItem>
                                                     <ListItem Title="Model" Bordered="false">@item.ModelName</ListItem>
                                                     <ListItem Title="Shoe status" Bordered="false">
-                                                        <span class="@item.StatusColor">
-                                                            @item.ProductStatus.GetDescription()
-                                                        </span>
+                                                        <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
                                                     </ListItem>
                                                     <ListItem Title="L/R" Bordered="false">
                                                         @item.LR.GetDescription()
                                                     </ListItem>
                                                     <ListItem Title="Location" Bordered="false">@item.Location</ListItem>
-                                                    <ListItem Title="Season" Bordered="false">@item.Location</ListItem>
+                                                    <ListItem Title="Season" Bordered="false">@item.Season</ListItem>
                                                     <ListItem Title="Created user" Bordered="false">@item.CreatedUser</ListItem>
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <ListItem Title="Stage" Bordered="false">@item.Season</ListItem>
+                                                    <ListItem Title="Stage" Bordered="false">@item.Stage</ListItem>
                                                     <ListItem Title="Dev style number" Bordered="false">@item.DevStyleName</ListItem>
                                                     <ListItem Title="Color way" Bordered="false">@item.ColorWay</ListItem>
                                                     <ListItem Title="Size" Bordered="false">@item.Size</ListItem>
@@ -221,7 +219,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        MainLayout.Instance.PageTitle = "Products";
+        MainLayout.Instance.PageTitle = "All shoes";
         await loadData();
     }
 
@@ -240,18 +238,10 @@ else
         }
     }
 
-    private async Task addModel()
-    {
-
-    }
-
     private async Task editProduct(ProductModel item)
     {
         bool isSuccess = await _dialog.ShowEditProductModal(item);
-        if (isSuccess)
-        {
-            await loadData();
-        }
+        await loadData();
     }
 
     private async Task deleteProduct(ProductModel item)

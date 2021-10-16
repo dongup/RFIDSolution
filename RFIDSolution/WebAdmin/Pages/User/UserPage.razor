@@ -1,0 +1,172 @@
+﻿<TableHeader>
+    <HeaderContent>
+        <button class="btn btn-light" @onclick="async () => { await addUser(); }"><span class="oi oi-plus mr-2 text-success"></span>New user</button>
+        <button class="btn btn-light" @onclick="async () => { await loadData(); }"><span class="oi oi-reload mr-2 text-primary"></span>Refresh data</button>
+    </HeaderContent>
+    <FilterContent>
+        <div class="row">
+            <div class="col-md-4">
+                <InputSearch TextChanged='async (text) => { keyword = text??""; await loadData(); }' PlaceHolder="Search SKU, EPC, model name, location, ..."></InputSearch>
+            </div>
+            <div class="col-md-3 d-flex">
+                <div class="badge m-bg-primary me-2 d-flex align-items-center">
+                    <span class="oi oi-tags me-1"></span>
+                    Filter status
+                </div>
+                <div class="spacer">
+                    <select class="form-control" @onchange="async (e) => { shoeStatus = int.Parse(e.Value.ToString()); await loadData(); }">
+                        <option value="0">Any status</option>
+                        <option value="@((int)UserStatus.Active)">@UserStatus.Active.GetDescription()</option>
+                        <option value="@((int)UserStatus.Disabled)">@UserStatus.Disabled.GetDescription()</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </FilterContent>
+</TableHeader>
+
+@if (loading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <div class="m-2 bg-white">
+        <div>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>USER NAME</th>
+                        <th>FULL NAME</th>
+                        <th>EMAIL</th>
+                        <th>PHONE</th>
+                        <th>DEPARTMENT</th>
+                        <th>STATUS</th>
+                        <th>REMARKS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (products.Count > 0)
+                    {
+                        int count = 1;
+                        @foreach (var item in products)
+                        {
+                            <SelectableRow OnClick="() => showShoeDetail(item)" @bind-Selected="item.ShowDetail">
+                                <MyTd>@(item.Id)</MyTd>
+                                <MyTd>@item.UserName</MyTd>
+                                <MyTd>@item.FullName</MyTd>
+                                <MyTd>@item.Email</MyTd>
+                                <MyTd>@item.Phone</MyTd>
+                                <MyTd>@item.DepartmentName</MyTd>
+                                <MyTd>
+                                    <StatusBadge Success="@(item.Status == UserStatus.Active)" Error="@(item.Status == UserStatus.Disabled)">@item.Status.GetDescription()</StatusBadge>
+                                </MyTd>
+                                <MyTd>@item.Note</MyTd>
+                            </SelectableRow>
+                            <TableRowDetail Show="item.ShowDetail">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <UserDetail OnChange="loadData" Userid="item.Id"></UserDetail>
+                                    </div>
+                                </div>
+                            </TableRowDetail>
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        <NoData></NoData>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="1000">
+                            <Pagination TableState="tableState" TotalPageDisplay="5" StateChanged="async () => await loadData()"></Pagination>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+
+@attribute [Authorize]
+@inject HttpClient _client
+@inject DialogService _dialog
+@page "/users/manage"
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; }
+
+    private bool loading = true;
+    private bool addingItem = false;
+    private string keyword = "";
+    private int shoeStatus = 0;
+    private int activeTab = 0;
+
+    private string baseUrl = "users";
+    private TableState tableState = new TableState(20);
+
+    private UserModel reply = new UserModel();
+    private List<UserModel> products = new List<UserModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        MainLayout.Instance.PageTitle = "Manage user";
+        await loadData();
+    }
+
+    private async Task addUser()
+    {
+        await _dialog.AddUser();
+        await loadData();
+    }
+
+    private async Task showShoeDetail(UserModel item)
+    {
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<UserModel>>($"{baseUrl}/{item.Id}");
+        if (rspns.IsSuccess)
+        {
+            StateHasChanged();
+            item = rspns.Result;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task deleteUser(UserModel item)
+    {
+        if (!await _dialog.Confirm($"Are you sure you want to delete user {item.UserName}?")) return;
+
+        var httpReq = await _client.DeleteAsync($"{baseUrl}/{item.Id}");
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert("Shoe deleted");
+            await loadData();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task loadData()
+    {
+        loading = true;
+        //reply = await productService.GetAsync(filter);
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<UserModel>>>($"{baseUrl}?status={shoeStatus}&keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
+        if (rspns.IsSuccess)
+        {
+            products = rspns.Result.Data;
+            tableState.TotalRow = rspns.Result.TotalRow;
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+        loading = false;
+    }
+}

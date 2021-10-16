@@ -27,6 +27,8 @@ namespace RFIDSolution.Shared.Models
 
         public string TRANSFER_TO { get; set; }
 
+        public int? TRANSFER_DEPT_ID { get; set; }
+
         /// <summary>
         /// Người lấy
         /// </summary>
@@ -39,7 +41,7 @@ namespace RFIDSolution.Shared.Models
 
         public string REF_DOC_NO { get; set; }
 
-        public string REF_DOC_DATE { get; set; }
+        public string REF_DOC_DATE { get; set; } = DateTime.Now.ToShortVNString();
 
         public DateTime TIME_START { get; set; }
 

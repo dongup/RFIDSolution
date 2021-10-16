@@ -1,0 +1,90 @@
+﻿<div class="row" style="width: 600px">
+    <div class="col-md-12">
+        <Form>
+            <div class="row">
+                <FormInputText @bind-Text="item.EPC" Title="EPC" Disabled="true" Required="true" Size="6"></FormInputText>
+                <FormInputText @bind-Text="item.SKU" Title="SKU" Required="true" Size="6"></FormInputText>
+
+                <div class="col-md-6">
+                    <SelectSearch Title="Model" @bind-Value="item.ModelId" Items="models" PlaceHolder="Choose model" Requried="true" TItem="ModelResponse" TValue="int?">
+                        <ItemTemplate>
+                            <option value="@context.MODEL_ID">@context.MODEL_NAME</option>
+                        </ItemTemplate>
+                    </SelectSearch>
+                </div>
+
+                <div class="col-md-6">
+                    <SelectSearch Title="Model" @bind-Value="item.CategoryId" Items="categories" PlaceHolder="Choose model" Requried="true" TItem="CategoryResponse" TValue="int?">
+                        <ItemTemplate>
+                            <option value="@context.CAT_ID">@context.CAT_NAME</option>
+                        </ItemTemplate>
+                    </SelectSearch>
+                </div>
+
+                <div class="col-md-6 d-flex flex-column">
+                    <label>L/R</label>
+                    <InputSelect @bind-Value="item.LR" TValue="ProductSide" class="form-select">
+                        <option value="@ProductSide.Left">@ProductSide.Left.GetDescription()</option>
+                        <option value="@ProductSide.Right">@ProductSide.Right.GetDescription()</option>
+                    </InputSelect>
+                </div>
+
+                <FormInputText @bind-Text="item.Location" Title="Location" Required="true" Size="6"></FormInputText>
+                <FormInputText @bind-Text="item.Season" Title="Season" Required="true" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Stage" Title="Stage" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.DevStyleName" Title="Dev style name" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.ColorWay" Title="Color way" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Size" Title="Size" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Category" Title="Category" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.POC" Title="POC" Size="12"></FormInputText>
+                <FormInputText @bind-Text="item.Remarks" Title="Remark" Size="12"></FormInputText>
+            </div>
+        </Form>
+    </div>
+
+    <div class="col-md-12 mt-2 d-flex">
+        <div class="spacer"></div>
+        <button @onclick="() => ModalInstance.CancelAsync()" class="btn btn-light me-2">CANCEL</button>
+        <button @onclick="OK" class="btn btn-primary">UPDATE</button>
+    </div>
+</div>
+
+@using Grpc.Core;
+
+@using RFIDSolution.Shared.Models.Products
+
+@inject DefineService shoeModelService
+@inject HttpClient _httpClient
+@inject DialogService _dialog
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+
+    [Parameter]
+    public ProductModel item { get; set; }
+
+    private List<ModelResponse> models = new List<ModelResponse>();
+    private List<CategoryResponse> categories = new List<CategoryResponse>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        models = await shoeModelService.GetModels();
+        categories = await shoeModelService.GetCategories();
+    }
+
+    async Task OK()
+    {
+        if (!await _dialog.Confirm($"Are you sure want to save changes?")) return;
+
+        var httpReq = await _httpClient.PutAsJsonAsync<ProductModel>($"products/{item.ID}", item);
+        var rspns = await httpReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"Shoe updated");
+            await ModalInstance.CloseAsync(ModalResult.Ok<bool>(true));
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+}

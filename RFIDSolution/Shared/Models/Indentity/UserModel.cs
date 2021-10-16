@@ -1,4 +1,6 @@
-﻿using System;
+﻿using RFIDSolution.Shared.DAL.Entities;
+using RFIDSolution.Shared.DTO;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -28,12 +30,17 @@ namespace RFIDSolution.Shared.Models
 
         public string RoleName { get; set; }
         public string DepartmentName { get; set; }
+        public int? DepartmentId { get; set; }
 
         public string Note { get; set; }
 
         public UserStatus Status {get;set;}
 
+        public int activeTab = 1;
         public bool ShowDetail;
+
+        public List<LogModel> Logs { get; set; } = new List<LogModel>();
+        public List<RoleModel> Roles { get; set; } = new List<RoleModel>();
 
         protected DateTime CreatedDate { get; set; }
         protected int? CreatedUserId { get; set; }

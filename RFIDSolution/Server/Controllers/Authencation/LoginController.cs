@@ -16,20 +16,25 @@ using RFIDSolution.Shared.DAL.Entities.Identity;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.Models;
 using RFIDSolution.Shared.Models.Indentity;
+using RFIDSolution.WebAdmin.Models;
 
 namespace BaseApiWithIdentity.Controllers.Authorization
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LoginController : ApiControllerBase
+    public class LoginController : ControllerBase
     {
         private readonly RoleManager<RoleEntity> roleManager;
         private readonly IConfiguration _configuration;
+        private readonly AppDbContext _context;
+        private readonly UserManager<UserEntity> _userManager;
 
-        public LoginController(AppDbContext context,UserManager<UserEntity> _userManager, RoleManager<RoleEntity> roleManager, IConfiguration configuration) : base(context, _userManager)
+        public LoginController(AppDbContext context,UserManager<UserEntity> _userManager, RoleManager<RoleEntity> roleManager, IConfiguration configuration) 
         {
             this.roleManager = roleManager;
             _configuration = configuration;
+            _context = context;
+            this._userManager = _userManager;
         }
 
         [HttpPost]
@@ -38,9 +43,11 @@ namespace BaseApiWithIdentity.Controllers.Authorization
             var rspns = new ResponseModel<LoginResponseModel>();
 
             var user = _context.Users
-                .Include(x => x.UserRoles) 
+                .Include(x => x.UserRoles)
                 .ThenInclude(x => x.Role)
+                .Include(x => x.Department)
                 .FirstOrDefault(x => x.UserName == model.UserName);
+
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
@@ -48,6 +55,9 @@ namespace BaseApiWithIdentity.Controllers.Authorization
                 var authClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(UserClaim.FullName, user.FullName),
+                    new Claim(UserClaim.Department, user.Department?.DEPT_NAME??""),
+                    new Claim(UserClaim.DepartmentId, user.DEPARTMENT_ID?.ToString()??""),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 

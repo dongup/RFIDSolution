@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RFIDSolution.DataAccess.DAL.Entities;
 using RFIDSolution.Server.SignalRHubs;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace RFIDSolution.Server.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AntennasController : ApiControllerBase
@@ -49,7 +51,6 @@ namespace RFIDSolution.Server.Controllers
 
             return rspns.Succeed(result);
         }
-
 
         [HttpGet("availableantennas")]
         public async Task<ResponseModel<List<AntenaModel>>> GetAvailableAntennas()

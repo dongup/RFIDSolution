@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using RFIDSolution.DataAccess.DAL.Entities;
 using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.Models;
+using RFIDSolution.Shared.Models.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +17,10 @@ namespace RFIDSolution.Server.Controllers
     [ApiController]
     public class ReaderStatusController : ApiControllerBase
     {
-        public ReaderStatusController(AppDbContext context) : base(context)
+        private readonly IConfiguration configuration;
+        public ReaderStatusController(AppDbContext context, IConfiguration configuration) : base(context)
         {
-
+            this.configuration = configuration;
         }
 
         [HttpGet("clients")]
@@ -40,12 +43,65 @@ namespace RFIDSolution.Server.Controllers
             return rspns.Succeed(new PaginationResponse<ReaderLogEntity>(result, pageItem, pageIndex));
         }
 
+        [HttpGet("lightStatus")]
+        public ResponseModel<List<LightStatusModel>> GetPort()
+        {
+            var rspns = new ResponseModel<List<LightStatusModel>>();
+
+            var reader = Program.Reader;
+            if (!reader.ReaderStatus.IsConnected) return rspns.Failed("Get light status failed, please connect to reader first!");
+            List<LightStatusModel> lightStatuses = reader.GetGPOStatus();
+            //List<LightStatusModel> lightStatuses = new List<LightStatusModel>() { 
+            //    new LightStatusModel()
+            //    {
+            //        Type = Shared.Enums.AppEnums.GPOPortType.Green,
+            //        PortIndex = 1,
+            //        PortState = true,
+            //    },
+            //    new LightStatusModel()
+            //    {
+            //        Type = Shared.Enums.AppEnums.GPOPortType.Red,
+            //        PortIndex = 2,
+            //        PortState = false,
+            //    },
+            //    new LightStatusModel()
+            //    {
+            //        Type = Shared.Enums.AppEnums.GPOPortType.Power,
+            //        PortIndex = 0,
+            //        PortState = true,
+            //    },
+            //};
+
+            int portRed = configuration.GetSection("RFReaderConfig:RedGPOPort").Get<int>();
+            int portGreen = configuration.GetSection("RFReaderConfig:GreenGPOPort").Get<int>();
+            int portPower = configuration.GetSection("RFReaderConfig:PowerGPOPort").Get<int>();
+
+            LightStatusModel redLight = lightStatuses.FirstOrDefault(x => x.PortIndex == portRed);
+            if(redLight != null)
+            {
+                redLight.Type = Shared.Enums.AppEnums.GPOPortType.Red;
+            }
+
+            LightStatusModel greenLight = lightStatuses.FirstOrDefault(x => x.PortIndex == portGreen);
+            if (greenLight != null)
+            {
+                greenLight.Type = Shared.Enums.AppEnums.GPOPortType.Green;
+            }
+
+            //LightStatusModel powerLight = lightStatuses.FirstOrDefault(x => x.PortIndex == portPower);
+            //powerLight.Type = Shared.Enums.AppEnums.GPOPortType.Power;
+
+            return rspns.Succeed(lightStatuses);
+        }
+
+
         [HttpPost("turnOnPort")]
         public ResponseModel<bool> turnOnPort(int port)
         {
             var rspns = new ResponseModel<bool>();
+            int portPower = configuration.GetSection("RFReaderConfig:PowerGPOPort").Get<int>();
 
-            Program.Reader.OpenGPOPort(port);
+            if (!Program.Reader.OpenGPOPort(port)) return rspns.Failed("Turn on LED failed! Please connect to reader first!");
 
             return rspns.Succeed(true);
         }
@@ -55,7 +111,7 @@ namespace RFIDSolution.Server.Controllers
         {
             var rspns = new ResponseModel<bool>();
 
-            Program.Reader.ShutDownGPOPort(port);
+            if (!Program.Reader.ShutDownGPOPort(port)) return rspns.Failed("Turn off LED failed! Please connect to reader first!");
 
             return rspns.Succeed(true);
         }
