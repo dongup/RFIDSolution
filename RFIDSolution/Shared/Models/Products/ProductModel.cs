@@ -17,6 +17,7 @@ namespace RFIDSolution.Shared.Models
         }
 
         public int ID { get; set; }
+        public int ProductId { get; set; }
         public string SKU { get; set; }
         public string EPC { get; set; }
         public int? ModelId { get; set; }

@@ -38,7 +38,6 @@ namespace RFIDSolution.Middlewares
 
             if(context.Request.Method == "PUT" || context.Request.Method == "DELETE" || context.Request.Method == "POST")
             {
-
                 context.Request.EnableBuffering();
                 int bufferSize = 1024;
                 string body = "";

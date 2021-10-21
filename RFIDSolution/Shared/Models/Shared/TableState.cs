@@ -35,6 +35,27 @@ namespace RFIDSolution.WebAdmin.Models
                 {
                     PageIndex = 0;
                 }
+
+                if (PageItem == 1)
+                {
+                    total = TotalRow;
+                }
+                else if (TotalRow == PageItem)
+                {
+                    total = 1;
+                }
+                else
+                {
+                    if (TotalRow % PageItem == 0)
+                    {
+                        total = TotalRow / PageItem;
+                    }
+                    else
+                    {
+                        total = (TotalRow / PageItem) + 1;
+                    }
+                }
+
                 return total;
             }
         }

@@ -15,7 +15,7 @@
                     Filter status
                 </div>
                 <div class="spacer">
-                    <select class="form-control" @onchange="async (e) => { shoeStatus = int.Parse(e.Value.ToString()); await loadData(); }">
+                    <select class="form-control" @onchange="async (e) => { status = int.Parse(e.Value.ToString()); await loadData(); }">
                         <option value="0">Any status</option>
                         <option value="@((int)InventoryStatus.Pending)">@InventoryStatus.Pending.GetDescription()</option>
                         <option value="@((int)InventoryStatus.OnGoing)">@InventoryStatus.OnGoing.GetDescription()</option>
@@ -231,7 +231,7 @@ else
     private bool loading = true;
     private bool addingItem = false;
     private string keyword = "";
-    private int shoeStatus = 0;
+    private int status = 0;
     private int activeTab = 0;
     private string baseUrl = "inventory";
 
@@ -346,7 +346,7 @@ else
     {
         loading = true;
         //reply = await productService.GetAsync(filter);
-        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<InventoryModel>>>($"{baseUrl}?keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<PaginationResponse<InventoryModel>>>($"{baseUrl}?status={status}&keyword={keyword}&pageItem={tableState.PageItem}&pageIndex={tableState.PageIndex}");
         if (rspns.IsSuccess)
         {
             inventories = rspns.Result.Data;

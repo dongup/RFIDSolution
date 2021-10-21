@@ -38,6 +38,8 @@ namespace RFIDSolution.Shared.Models.ProductInout
 
         public InoutStatus STATUS { get; set; } = InoutStatus.Borrowing;
 
+        public TransferType TransferType { get; set; } = TransferType.Internal;
+
         public string statusClass => STATUS == InoutStatus.Borrowing? "badge bg-danger" : "badge bg-success";
 
         public string RETURN_BY { get; set; }

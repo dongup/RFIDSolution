@@ -20,7 +20,14 @@
                         </tr>
                         <tr>
                             <td colspan="1000">
-                                <p class="m-0 text-center text-bold">PHIẾU XUẤT KHO NỘI BỘ</p>
+                                @if (model.TRANSFER_TYPE == TransferType.Internal)
+                                {
+                                    <p class="m-0 text-center text-bold">PHIẾU XUẤT KHO NỘI BỘ</p>
+                                }
+                                else
+                                {
+                                    <p class="m-0 text-center text-bold">PHIẾU XUẤT KHO</p>
+                                }
                             </td>
                         </tr>
                         <tr>
@@ -28,7 +35,14 @@
                                 <div class="row">
                                     <div class="col-md-2"></div>
                                     <div class="col-md-8">
-                                        <p class="m-0 text-center text-bold">(Internal Warehouse Output Bill)</p>
+                                        @if (model.TRANSFER_TYPE == TransferType.Internal)
+                                        {
+                                            <p class="m-0 text-center text-bold">(Internal Warehouse Output Bill)</p>
+                                        }
+                                        else
+                                        {
+                                            <p class="m-0 text-center text-bold">(Warehouse Output Bill)</p>
+                                        }
                                     </div>
                                     <div class="p-0">
                                         <div class="d-flex" style="margin-right: 12px">

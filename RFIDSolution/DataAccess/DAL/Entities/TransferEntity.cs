@@ -49,6 +49,8 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public string PrintNote { get; set; }
 
+        public TransferType TRANSFER_TYPE { get; set; } = TransferType.Internal;
+
         [ForeignKey(nameof(TRANSFER_DEPT_ID))]
         public DepartmentEntity Department { get; set; }
 

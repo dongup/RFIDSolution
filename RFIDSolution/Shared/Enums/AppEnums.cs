@@ -36,12 +36,15 @@ namespace RFIDSolution.Shared.Enums
             //Đã đem ra ngoài
             [Description("Transfered out")]
             Transfered = 2,
+            //Đã đem xuất ra nước ngoài
+            [Description("Deliveried out")]
+            DeliveryOut = 3,
             //Không được phép mượn
             [Description("Unavailable")]
-            Unavailable = 3,
+            Unavailable = 4,
             //Tag chưa được mapping
             [Description("Unknown")]
-            Unknown = 4
+            Unknown = 5
         }
 
         /// <summary>
@@ -52,7 +55,9 @@ namespace RFIDSolution.Shared.Enums
             [Description("Borrowing")]
             Borrowing = 1,
             [Description("Returned")]
-            Returned = 2
+            Returned = 2,
+            [Description("Delivered")]
+            Delivered = 3,
         }
 
         /// <summary>
@@ -164,6 +169,13 @@ namespace RFIDSolution.Shared.Enums
             Success,
             Info,
             Primary
+        }
+
+        public enum TransferType { 
+            [Description("Internal")]
+            Internal = 1,
+            [Description("Delivery")]
+            Delivery = 2
         }
     }
 }

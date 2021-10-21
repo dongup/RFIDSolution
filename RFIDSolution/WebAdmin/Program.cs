@@ -18,7 +18,7 @@ using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
 
-namespace RFIDSolution.Shared
+namespace RFIDSolution.WebAdmin
 {
     public class Program
     {

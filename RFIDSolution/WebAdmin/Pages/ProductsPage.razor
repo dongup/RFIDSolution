@@ -17,6 +17,7 @@
                         <option value="0">Any status</option>
                         <option value="@((int)ProductStatus.Available)">@ProductStatus.Available.GetDescription()</option>
                         <option value="@((int)ProductStatus.Transfered)">@ProductStatus.Transfered.GetDescription()</option>
+                        <option value="@((int)ProductStatus.DeliveryOut)">@ProductStatus.DeliveryOut.GetDescription()</option>
                         <option value="@((int)ProductStatus.Unavailable)">@ProductStatus.Unavailable.GetDescription()</option>
                     </select>
                 </div>
@@ -49,7 +50,6 @@ else
                         <th>CATEGORY</th>
                         <th>POC</th>
                         <th>STATUS</th>
-                        <th>REMARKS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -74,7 +74,6 @@ else
                                 <MyTd>
                                     <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
                                 </MyTd>
-                                <MyTd>@item.Remarks</MyTd>
                             </SelectableRow>
                             <TableRowDetail Show="item.ShowDetail">
                                 <div class="card">

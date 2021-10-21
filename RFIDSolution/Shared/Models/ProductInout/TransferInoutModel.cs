@@ -51,6 +51,8 @@ namespace RFIDSolution.Shared.Models
 
         public string RETURN_NOTE { get; set; }
 
+        public TransferType TRANSFER_TYPE { get; set; } = TransferType.Internal;
+
         public string NOTE { get; set; }
         
         public string CREATED_USER { get; set; }

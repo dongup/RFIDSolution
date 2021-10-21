@@ -174,14 +174,19 @@ namespace RFIDSolution.Server.Controllers
             return rspns.Succeed(reasons);
         }
 
-        [HttpPost("transferOut")]
-        public async Task<ResponseModel<bool>> TransferOut(TransferOutRequest value)
+        [HttpPost("deliveryOut")]
+        public async Task<ResponseModel<bool>> deliveryOut(TransferOutRequest value)
         {
             var rspns = new ResponseModel<bool>();
 
             //Kiểm tra cờ onhold, not avaiable
             var products = _context.PRODUCT.Where(x => value.Products.Select(a => a.ProductId).Contains(x.PRODUCT_ID));
-            if(products.Any(x => x.PRODUCT_STATUS != Shared.Enums.AppEnums.ProductStatus.Available))
+            if (products.Count() == 0)
+            {
+                return rspns.Failed("Please scan aleast one shoe!");
+            }
+
+            if (products.Any(x => x.PRODUCT_STATUS != Shared.Enums.AppEnums.ProductStatus.Available))
             {
                 return rspns.Failed("One or more shoe are not avaiable for transfer out, please check again!");
             }
@@ -191,7 +196,84 @@ namespace RFIDSolution.Server.Controllers
             {
                 TIME_START = DateTime.Now,
                 TRANSFER_REASON = value.TRANSFER_REASON,
-                TRANSFER_TO = _context.DEPT_DEF.Find(value.DEPARTMENT_ID)?.DEPT_NAME,
+                TRANSFER_TO = value.TRANSFER_TO,
+                TRANSFER_BY = value.TRANSFER_BY,
+                TRANSFER_TYPE = Shared.Enums.AppEnums.TransferType.Delivery,
+                TRANSFER_STATUS = Shared.Enums.AppEnums.InoutStatus.Delivered,
+                REF_DOC_DATE = value.REF_DOC_DATE.ToDateTime(),
+                REF_DOC_NO = value.REF_DOC_NO,
+                CREATED_DATE = DateTime.Now,
+                TRANSFER_NOTE = value.TRANSFER_NOTE,
+                TRANSFER_DEPT_ID = value.DEPARTMENT_ID,
+
+                CREATED_USER_ID = CurrentUserId,
+                CREATED_USER = CurrentUser.FullName,
+                CREATED_USER_DEPT = CurrentUser.DepartmentName,
+            };
+
+            _context.PRODUCT_TRANSFER.Add(newTransfer);
+            _context.SaveChanges();
+
+            List<TransferDetailEntity> transferDetails = value.Products.Select(x => new TransferDetailEntity()
+            {
+                PRODUCT_ID = x.ProductId,
+                TRANSFER_ID = newTransfer.TRANSFER_ID,
+                CREATED_DATE = DateTime.Now,
+                TRANSFER_NOTE = x.Note,
+                STATUS = Shared.Enums.AppEnums.InoutStatus.Delivered,
+                TRANSFER_STATUS = Shared.Enums.AppEnums.GetStatus.Ok,
+                TRANSFER_TIME = DateTime.Now,
+                TRANSFER_BY = value.TRANSFER_BY
+            }).ToList();
+            _context.PRODUCT_TRANSFER_DTL.AddRange(transferDetails);
+            await _context.SaveChangesAsync();
+
+            //Đổi trạng thái của các item được transfer sau khi đã lưu dữ liệu thành công
+            foreach (var prod in products)
+            {
+                prod.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.DeliveryOut;
+            }
+            await _context.SaveChangesAsync();
+
+            //Trả kết quả
+            return rspns.Succeed();
+        }
+
+
+        [HttpPost("transferOut")]
+        public async Task<ResponseModel<bool>> TransferOut(TransferOutRequest value)
+        {
+            var rspns = new ResponseModel<bool>();
+
+            //Kiểm tra cờ onhold, not avaiable
+            var products = _context.PRODUCT.Where(x => value.Products.Select(a => a.ProductId).Contains(x.PRODUCT_ID));
+            if(products.Count() == 0)
+            {
+                return rspns.Failed("Please scan aleast one shoe!");
+            }
+
+            if(products.Any(x => x.PRODUCT_STATUS != Shared.Enums.AppEnums.ProductStatus.Available))
+            {
+                return rspns.Failed("One or more shoe are not avaiable for transfer out, please check again!");
+            }
+
+            string transferTo = value.TRANSFER_TO;
+
+            if(value.DEPARTMENT_ID == 0 || value.DEPARTMENT_ID == null)
+            {
+                value.DEPARTMENT_ID = _context.DEPT_DEF.FirstOrDefault(x => x.DEPT_NAME == value.TRANSFER_TO)?.DEPT_ID;
+                if(value.DEPARTMENT_ID == null)
+                {
+                    return rspns.Failed($"{value.TRANSFER_TO} is not a valid department!");
+                }
+            }
+
+            //Lưu giữ liệu
+            TransferEntity newTransfer = new TransferEntity
+            {
+                TIME_START = DateTime.Now,
+                TRANSFER_REASON = value.TRANSFER_REASON,
+                TRANSFER_TO = string.IsNullOrEmpty(value.TRANSFER_TO)? _context.DEPT_DEF.Find(value.DEPARTMENT_ID)?.DEPT_NAME : value.TRANSFER_TO,
                 TRANSFER_BY = value.TRANSFER_BY,
                 TRANSFER_STATUS = Shared.Enums.AppEnums.InoutStatus.Borrowing,
                 REF_DOC_DATE = value.REF_DOC_DATE.ToDateTime(),

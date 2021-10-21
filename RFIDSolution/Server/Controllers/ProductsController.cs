@@ -5,6 +5,7 @@ using RFIDSolution.Shared.DAL;
 using RFIDSolution.Shared.DAL.Entities;
 using RFIDSolution.Shared.Models;
 using RFIDSolution.Shared.Models.Inventory;
+using RFIDSolution.Shared.Models.Products;
 using RFIDSolution.Shared.Utils;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,7 @@ namespace RFIDSolution.Server.Controllers
                             || x.EPC == keyword
                             || x.PRODUCT_SEASON == keyword)
                             && (shoeStatus == 0 || (int)x.PRODUCT_STATUS == shoeStatus))
+                .OrderByDescending(x => x.CREATED_DATE)
                 .Select(x => new ProductModel() {
                     ID = x.PRODUCT_ID,
                     Category = x.PRODUCT_CATEGORY,
@@ -60,6 +62,95 @@ namespace RFIDSolution.Server.Controllers
                 });
 
             return rspns.Succeed(new PaginationResponse<ProductModel>(query, pageItem, pageIndex));
+        }
+
+        [HttpGet("searchTransfer")]
+        public async Task<ResponseModel<List<ProductModel>>> GetSearchForTransfer(string keyword)
+        {
+            var rspns = new ResponseModel<List<ProductModel>>();
+
+            var query = _context.PRODUCT
+                .Where(x => (x.PRODUCT_CODE.Contains(keyword)
+                            || x.EPC == keyword
+                            || x.Model.MODEL_NAME.Contains(keyword)
+                            || x.Category.CAT_NAME.Contains(keyword)
+                            || x.PRODUCT_SIZE.Contains(keyword)
+                            || x.PRODUCT_LOCATION.Contains(keyword)
+                            || x.PRODUCT_SEASON.Contains(keyword)
+                            || x.PRODUCT_STAGE.Contains(keyword)
+                            || x.PRODUCT_SEASON == keyword))
+                .OrderByDescending(x => x.CREATED_DATE)
+                .Select(x => new ProductModel()
+                {
+                    ID = x.PRODUCT_ID,
+                    Category = x.PRODUCT_CATEGORY,
+                    ColorWay = x.COLOR_NAME,
+                    DevStyleName = x.DEV_NAME,
+                    EPC = x.EPC,
+                    Location = x.PRODUCT_LOCATION,
+                    LR = x.LR,
+                    LRStr = x.LR.GetDescription(),
+                    ModelId = x.MODEL_ID,
+                    ModelName = x.Model.MODEL_NAME,
+                    POC = x.PRODUCT_POC,
+                    RefDocDate = x.REF_DOC_DATE,
+                    RefDocNo = x.REF_DOC_NO,
+                    Remarks = x.PRODUCT_REMARKS,
+                    Season = x.PRODUCT_SEASON,
+                    Size = x.PRODUCT_SIZE,
+                    SKU = x.PRODUCT_CODE,
+                    Stage = x.PRODUCT_STAGE,
+                    Article = "",
+                    ProductStatus = x.PRODUCT_STATUS,
+                    CategoryId = x.CATEGORY_ID,
+                    CreatedUser = x.CREATED_USER,
+                    Note = x.NOTE,
+                });
+
+            return rspns.Succeed(query.ToList());
+        }
+
+        [HttpGet("app")]
+        public async Task<ResponseModel<List<ProductModel>>> GetOnApp(string keyword, int shoeStatus, int pageItem = 10, int pageIndex = 0)
+        {
+            var rspns = new ResponseModel<List<ProductModel>>();
+
+            var query = _context.PRODUCT
+                .Where(x => (string.IsNullOrEmpty(keyword)
+                            || x.PRODUCT_CODE.Contains(keyword)
+                            || x.EPC == keyword
+                            || x.PRODUCT_SEASON == keyword)
+                            && (shoeStatus == 0 || (int)x.PRODUCT_STATUS == shoeStatus))
+                .OrderByDescending(x => x.CREATED_DATE)
+                .Select(x => new ProductModel()
+                {
+                    ID = x.PRODUCT_ID,
+                    Category = x.PRODUCT_CATEGORY,
+                    ColorWay = x.COLOR_NAME,
+                    DevStyleName = x.DEV_NAME,
+                    EPC = x.EPC,
+                    Location = x.PRODUCT_LOCATION,
+                    LR = x.LR,
+                    LRStr = x.LR.GetDescription(),
+                    ModelId = x.MODEL_ID,
+                    ModelName = x.Model.MODEL_NAME,
+                    POC = x.PRODUCT_POC,
+                    RefDocDate = x.REF_DOC_DATE,
+                    RefDocNo = x.REF_DOC_NO,
+                    Remarks = x.PRODUCT_REMARKS,
+                    Season = x.PRODUCT_SEASON,
+                    Size = x.PRODUCT_SIZE,
+                    SKU = x.PRODUCT_CODE,
+                    Stage = x.PRODUCT_STAGE,
+                    Article = "",
+                    ProductStatus = x.PRODUCT_STATUS,
+                    CategoryId = x.CATEGORY_ID,
+                    CreatedUser = x.CREATED_USER,
+                    Note = x.NOTE,
+                });
+            PaginationResponse<ProductModel> pagiResponse = new PaginationResponse<ProductModel>(query, pageItem, pageIndex);
+            var result = pagiResponse.Data;
+            return rspns.Succeed(result);
         }
 
         [HttpGet("all")]
@@ -205,6 +296,7 @@ namespace RFIDSolution.Server.Controllers
                 .Select(x => new ProductModel()
                 {
                     ID = x.PRODUCT_ID,
+                    ProductId = x.PRODUCT_ID,
                     Category = x.PRODUCT_CATEGORY,
                     ColorWay = x.COLOR_NAME,
                     DevStyleName = x.DEV_NAME,
@@ -228,6 +320,26 @@ namespace RFIDSolution.Server.Controllers
                     Note = x.NOTE,
                     CategoryId = x.CATEGORY_ID,
                 }).FirstOrDefault();
+
+            return rspns.Succeed(query);
+        }
+
+        /// <summary>
+        /// Lấy ra ngẫu nhiên 1 lượng EPC đã có trong hệ thống
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        [HttpGet("randomEPC/{number}")]
+        public async Task<ResponseModel<List<string>>> GetRandomEPC(int number)
+        {
+            var rspns = new ResponseModel<List<string>>();
+
+            var query = _context.PRODUCT
+                .OrderByDescending(x => Guid.NewGuid())
+                .Take(number)
+                .Where(x => !string.IsNullOrEmpty(x.EPC))
+                .Select(x => x.EPC)
+                .ToList();
 
             return rspns.Succeed(query);
         }
@@ -262,7 +374,7 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ResponseModel<bool>> Post(ProductModel item)
+        public async Task<ResponseModel<bool>> Post(ProductRequestModel item)
         {
             var rspns = new ResponseModel<bool>();
          
@@ -327,6 +439,62 @@ namespace RFIDSolution.Server.Controllers
                 _context.RFID_TAG.Add(tagEntity);
                 _context.SaveChanges();
             }
+
+            return rspns.Succeed();
+        }
+
+        /// <summary>
+        /// Mapping từ app
+        /// </summary>
+        /// <param name="item">Thông tin giày</param>
+        /// <returns></returns>
+        [HttpPost("app")]
+        public async Task<ResponseModel<bool>> PostApp(ProductRequestModel item)
+        {
+            var rspns = new ResponseModel<bool>();
+
+            //Nếu tag đã tồn tại thì không cho lưu
+            if (_context.PRODUCT.Any(x => x.EPC == item.EPC))
+            {
+                return rspns.Failed($"Shoe's EPC {item.EPC} is already exist!");
+            }
+
+            var entity = new ProductEntity();
+            entity.PRODUCT_CODE = item.SKU;
+            entity.EPC = item.EPC;
+
+            var model = _context.MODEL_DEF.FirstOrDefault(x => x.MODEL_NAME == item.ModelName);
+            if(model == null) return rspns.Failed($"{item.Category} is not a valid model!");
+
+            entity.MODEL_ID = model.MODEL_ID;
+            entity.PRODUCT_SIZE = item.Size;
+            entity.PRODUCT_POC = item.POC;
+            entity.PRODUCT_LOCATION = item.Location;
+            entity.PRODUCT_REMARKS = item.Remarks;
+            entity.DEV_NAME = item.DevStyleName;
+            entity.PRODUCT_SEASON = item.Season;
+            entity.PRODUCT_STAGE = item.Stage;
+            entity.COLOR_NAME = item.ColorWay;
+
+            var cat = _context.CAT_DEF.FirstOrDefault(x => x.CAT_NAME == item.Category);
+            if (cat == null) return rspns.Failed($"{item.Category} is not a valid category!");
+
+            entity.PRODUCT_CATEGORY = cat.CAT_NAME;
+            entity.CATEGORY_ID = cat.CAT_ID;
+            entity.REF_DOC_NO = item.RefDocNo;
+            entity.REF_DOC_DATE = item.RefDocDate;
+            entity.CREATED_USER_ID = CurrentUser.Id;
+            entity.CREATED_USER = CurrentUser.FullName;
+
+            _context.PRODUCT.Add(entity);
+            await _context.SaveChangesAsync();
+
+            RFIDTagEntity tagEntity = new RFIDTagEntity();
+            tagEntity.EPC = entity.EPC;
+            tagEntity.CREATED_USER_ID = entity.CREATED_USER_ID;
+            tagEntity.CREATED_USER = entity.CREATED_USER;
+            _context.RFID_TAG.Add(tagEntity);
+            _context.SaveChanges();
 
             return rspns.Succeed();
         }

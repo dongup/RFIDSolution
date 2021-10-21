@@ -94,9 +94,12 @@ else
                                                             <th>MODEL</th>
                                                             <th>TRANSFER NOTE</th>
                                                             <th>STATUS</th>
-                                                            <th>RETURN TIME</th>
-                                                            <th>RETURN BY</th>
-                                                            <th>RETURN NOTE</th>
+                                                            @if (item.TRANSFER_TYPE != TransferType.Delivery)
+                                                            {
+                                                                <th>RETURN TIME</th>
+                                                                <th>RETURN BY</th>
+                                                                <th>RETURN NOTE</th>
+                                                            }
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -114,9 +117,12 @@ else
                                                                         <TransferStatusBadge Status="prod.STATUS">
                                                                         </TransferStatusBadge>
                                                                     </td>
-                                                                    <td>@prod.RETURN_TIME?.ToVNString()</td>
-                                                                    <td>@prod.RETURN_BY</td>
-                                                                    <td>@prod.RETURN_NOTE</td>
+                                                                    @if (item.TRANSFER_TYPE != TransferType.Delivery)
+                                                                    {
+                                                                        <td>@prod.RETURN_TIME?.ToVNString()</td>
+                                                                        <td>@prod.RETURN_BY</td>
+                                                                        <td>@prod.RETURN_NOTE</td>
+                                                                    }
                                                                 </tr>
                                                                 count++;
                                                             }
