@@ -32,6 +32,7 @@ namespace RFIDSolution.Server.Controllers
                 .Where(x => (string.IsNullOrEmpty(keyword)
                             || x.PRODUCT_CODE.Contains(keyword)
                             || x.EPC == keyword
+                            || x.PRODUCT_ID.ToString() == keyword
                             || x.PRODUCT_SEASON == keyword)
                             && (shoeStatus == 0 || (int)x.PRODUCT_STATUS == shoeStatus))
                 .OrderByDescending(x => x.CREATED_DATE)
@@ -46,6 +47,7 @@ namespace RFIDSolution.Server.Controllers
                     LRStr = x.LR.GetDescription(),
                     ModelId = x.MODEL_ID,
                     ModelName = x.Model.MODEL_NAME,
+                    CurrentLocation = x.CURRENT_LOCATION,
                     POC = x.PRODUCT_POC,
                     RefDocDate = x.REF_DOC_DATE,
                     RefDocNo = x.REF_DOC_NO,
@@ -210,6 +212,7 @@ namespace RFIDSolution.Server.Controllers
                     DevStyleName = x.DEV_NAME,
                     EPC = x.EPC,
                     Location = x.PRODUCT_LOCATION,
+                    CurrentLocation = x.CURRENT_LOCATION,
                     LR = x.LR,
                     LRStr = x.LR.GetDescription(),
                     ModelId = x.MODEL_ID,
@@ -227,7 +230,8 @@ namespace RFIDSolution.Server.Controllers
                     ProductStatus = x.PRODUCT_STATUS,
                     CategoryId = x.CATEGORY_ID,
                     Note = x.NOTE,
-                    TransferHistory = x.TransferDetails.Select(a => a.Transfer).Select(a => new TransferInoutModel()
+                    TransferHistory = x.TransferDetails.OrderByDescending(a => a.CREATED_DATE)
+                    .Select(a => a.Transfer).Select(a => new TransferInoutModel()
                     {
                         NOTE = a.NOTE,
                         REF_DOC_DATE = a.REF_DOC_DATE.ToShortVNString(),
@@ -242,6 +246,16 @@ namespace RFIDSolution.Server.Controllers
                         TRANSFER_NOTE = a.TRANSFER_NOTE,
                         TRANSFER_STATUS = a.TRANSFER_STATUS,
                         TRANSFER_TO = a.TRANSFER_TO,
+                    }).ToList(),
+                    Inventories = x.InventoryDetails.OrderByDescending(a => a.CREATED_DATE).Select(a => new InventoryModel()
+                    {
+                        INVENTORY_ID = a.DTL_ID,
+                        INVENTORY_NAME = a.Inventory.INVENTORY_NAME,
+                        CREATED_USER = a.Inventory.CREATED_USER,
+                        CREATED_DATE = a.Inventory.CREATED_DATE.ToShortVNString(),
+                        PRODUCT_STATUS = a.STATUS,
+                        INVENTORY_STATUS_ID = a.Inventory.INVENTORY_STATUS,
+                        INVENTORY_STATUS = a.Inventory.INVENTORY_STATUS.GetDescription()
                     }).ToList()
                 }).FirstOrDefault();
             if (query == null) return rspns.NotFound("");
@@ -440,6 +454,30 @@ namespace RFIDSolution.Server.Controllers
                 _context.SaveChanges();
             }
 
+            return rspns.Succeed();
+        }
+
+        [HttpPut("unlock/{ID}")]
+        public async Task<ResponseModel<bool>> UnLockShoe(int ID)
+        {
+            var rspns = new ResponseModel<bool>();
+            var product = _context.PRODUCT.Find(ID);
+            if (product == null) return rspns.NotFound();
+
+            product.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.Available;
+            _context.SaveChanges();
+            return rspns.Succeed();
+        }
+
+        [HttpPut("lock/{ID}")]
+        public async Task<ResponseModel<bool>> LockShoe(int ID)
+        {
+            var rspns = new ResponseModel<bool>();
+            var product = _context.PRODUCT.Find(ID);
+            if (product == null) return rspns.NotFound();
+
+            product.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.Unavailable;
+            _context.SaveChanges();
             return rspns.Succeed();
         }
 

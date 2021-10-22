@@ -332,21 +332,42 @@ namespace RFIDSolution.Server.Controllers
                         .OrderByDescending(a => a.TRANSFER_TIME)
                         .Select(x => x.RETURN_TIME)
                         .FirstOrDefault(),
+                    DeliveryTime = x.TransferDetails
+                        .Where(a => a.TRANSFER_TIME <= dToDate
+                                    && a.STATUS == InoutStatus.Delivered)
+                        .OrderByDescending(a => a.TRANSFER_TIME)
+                        .Select(x => x.TRANSFER_TIME)
+                        .FirstOrDefault(),
                     Remarks = x.PRODUCT_REMARKS
                 }).ToList();
 
             foreach (var item in query)
             {
-                if (item.ReturnTime == null) continue;
-                DateTime returnTime = (DateTime)item.ReturnTime;
-
-                if (returnTime <= dToDate)
+                if(item.DeliveryTime != null)
                 {
-                    item.ProductStatus = ProductStatus.Available;
+                    DateTime deliTime = (DateTime)item.DeliveryTime;
+                    if (deliTime <= dToDate)
+                    {
+                        item.ProductStatus = ProductStatus.Available;
+                    }
+                    else
+                    {
+                        item.ProductStatus = ProductStatus.DeliveryOut;
+                    }
                 }
-                else
+
+                if (item.ReturnTime != null)
                 {
-                    item.ProductStatus = ProductStatus.Transfered;
+                    DateTime returnTime = (DateTime)item.ReturnTime;
+
+                    if (returnTime <= dToDate)
+                    {
+                        item.ProductStatus = ProductStatus.Available;
+                    }
+                    else
+                    {
+                        item.ProductStatus = ProductStatus.Transfered;
+                    }
                 }
             }
 

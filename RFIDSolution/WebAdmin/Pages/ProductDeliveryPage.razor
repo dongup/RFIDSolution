@@ -56,7 +56,7 @@
 
                     <button class="btn btn-secondary" @onclick="() => searchProducts.Clear()"><span class="oi oi-delete me-2"></span>CLEAR</button>
                 </div>
-                <table class="table table-bordered table-hover">
+                <table class="table table-bordered table-hover table-detail">
                     <thead>
                         <tr>
                             <th>Id</th>
@@ -69,7 +69,7 @@
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody style="max-height: 200px; overflow-y: auto">
+                    <tbody>
                         @if (searchProducts.Count > 0)
                         {
                             int count = 1;
@@ -393,21 +393,27 @@
 
     private async Task addScanItem(ProductModel sltItem)
     {
-        if(sltItem.ProductStatus != ProductStatus.Available)
+        if (sltItem.ProductStatus != ProductStatus.Available)
         {
-            await _dialog.ErrorAlert($"{sltItem.ProductStatusStr} shoe is not for delivery!");
+            //await _dialog.ErrorAlert($"{sltItem.ProductStatusStr} shoe is not for delivery!");
+            if(await _dialog.Confirm($"Shoe {sltItem.SKU} not avaiale for delivery! do you want to remove it from the list?"))
+            {
+                searchProducts.Remove(sltItem);
+            }
             return;
         }
 
         if(validProducts.Any(x => x.ID == sltItem.ID))
         {
-            await _dialog.ErrorAlert($"Shoe {sltItem.SKU} is not already selected!");
+            if (await _dialog.Confirm($"Shoe {sltItem.SKU} is already selected! do you want to remove it from the list?"))
+            {
+                searchProducts.Remove(sltItem);
+            }
             return;
         }
 
         products.Add(sltItem);
         validProducts.Add(sltItem);
-
         searchProducts.Remove(sltItem);
     }
 

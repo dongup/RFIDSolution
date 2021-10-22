@@ -41,18 +41,18 @@ namespace TaiyoshaEPE.WebApi.Hubs
         public async Task StartInventory(RFTagRequest request)
         {
             //Code chỉ dùng khi không có reader
-            var mockData = await GetRandomEPC(3);
-            foreach (string EPC in mockData)
-            {
-                RFTagResponse tag = new RFTagResponse();
-                tag.EPCID = EPC;
-                tag.LastSeen = DateTime.Now.Ticks;
-                tag.RSSI = -32;
+            //var mockData = await GetRandomEPC(3);
+            //foreach (string EPC in mockData)
+            //{
+            //    RFTagResponse tag = new RFTagResponse();
+            //    tag.EPCID = EPC;
+            //    tag.LastSeen = DateTime.Now.Ticks;
+            //    tag.RSSI = -32;
 
-                var caller = Clients.Caller;
-                await caller.SendAsync("ReceiveTag", tag);
-            }
-            return;
+            //    var caller = Clients.Caller;
+            //    await caller.SendAsync("ReceiveTag", tag);
+            //}
+            //return;
 
             if (!ReaderApi.ReaderStatus.IsConnected)
             {
@@ -74,7 +74,6 @@ namespace TaiyoshaEPE.WebApi.Hubs
 
             //Code sử dụng khi có reader
             ReaderApi.OnTagRead += client.ReadHandler;
-            
         }
 
         /// <summary>

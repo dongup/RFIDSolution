@@ -47,6 +47,7 @@ namespace RFIDSolution.Server.Controllers
                     TIME_END = x.TIME_END,
                     TRANSFER_NOTE = x.TRANSFER_NOTE,
                     RETURN_NOTE = x.RETURN_NOTE,
+                    TRANSFER_TYPE = x.TRANSFER_TYPE,
                     NOTE = x.NOTE
                 });
 
@@ -78,6 +79,7 @@ namespace RFIDSolution.Server.Controllers
                     CREATED_USER = x.CREATED_USER,
                     CREATED_USER_DEPT = x.CREATED_USER_DEPT,
                     NOTE = x.NOTE,
+                    TRANSFER_TYPE = x.TRANSFER_TYPE,
                     Products = x.TransferDetails.Select(a => new ProductTransferModel()
                     {
                         EPC = a.Product.EPC,
@@ -223,6 +225,7 @@ namespace RFIDSolution.Server.Controllers
                 STATUS = Shared.Enums.AppEnums.InoutStatus.Delivered,
                 TRANSFER_STATUS = Shared.Enums.AppEnums.GetStatus.Ok,
                 TRANSFER_TIME = DateTime.Now,
+                TRANSFER_TYPE = Shared.Enums.AppEnums.TransferType.Delivery,
                 TRANSFER_BY = value.TRANSFER_BY
             }).ToList();
             _context.PRODUCT_TRANSFER_DTL.AddRange(transferDetails);
@@ -232,6 +235,7 @@ namespace RFIDSolution.Server.Controllers
             foreach (var prod in products)
             {
                 prod.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.DeliveryOut;
+                prod.CURRENT_LOCATION = newTransfer.TRANSFER_TO;
             }
             await _context.SaveChangesAsync();
 
@@ -306,6 +310,7 @@ namespace RFIDSolution.Server.Controllers
             foreach (var prod in products)
             {
                 prod.PRODUCT_STATUS = Shared.Enums.AppEnums.ProductStatus.Transfered;
+                prod.CURRENT_LOCATION = newTransfer.TRANSFER_TO;
             }
             await _context.SaveChangesAsync();
 

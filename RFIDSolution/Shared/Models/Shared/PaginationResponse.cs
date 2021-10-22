@@ -39,6 +39,12 @@ namespace RFIDSolution.Shared.Models
                     TotalPage = (TotalRow / pageItem) + 1;
                 }
             }
+
+            if(TotalRow < pageItem)
+            {
+                pageIndex = 0;
+            }
+
             if (isPagging)
             {
                 Data = lst.Pagging(pageItem, pageIndex).ToList();

@@ -61,6 +61,8 @@ namespace RFIDSolution.Shared.Models.Inventory
 
         public InventoryStatus INVENTORY_STATUS_ID { get; set; }
 
+        public InventoryProductStatus PRODUCT_STATUS { get; set; }
+
         public string INVENTORY_STATUS { get; set; }
 
         public string CREATED_USER { get; set; }
