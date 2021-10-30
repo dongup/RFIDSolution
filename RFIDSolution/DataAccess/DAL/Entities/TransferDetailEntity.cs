@@ -46,6 +46,8 @@ namespace RFIDSolution.Shared.DAL.Entities
 
         public InoutStatus STATUS { get; set; } = InoutStatus.Borrowing;
 
+        public TransferType TRANSFER_TYPE { get; set; } = TransferType.Internal; 
+
         public GetStatus TRANSFER_STATUS { get; set; }
 
         public GetStatus RETURN_STATUS { get; set; }

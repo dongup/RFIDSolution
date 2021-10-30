@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using RFIDSolution.Shared;
 using RFIDSolution.Shared.Models;
 using RFIDSolution.Shared.Models.Indentity;
 using RFIDSolution.WebAdmin.Services;
@@ -37,6 +38,7 @@ namespace RFIDSolution.WebAdmin.Service
                 await _localStorage.SetItemAsync<String>("authToken", rspns.Result.Token);
                 _stateProvider.MarkUserAsAuthenticated(rspns.Result.User);
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", rspns.Result.Token);
+                Program.TokenHeader = _httpClient.DefaultRequestHeaders.Authorization;
             }
 
             return rspns;
@@ -47,6 +49,7 @@ namespace RFIDSolution.WebAdmin.Service
             await _localStorage.RemoveItemAsync("authToken");
             _stateProvider.MarkUserAsLoggedOut();
             _httpClient.DefaultRequestHeaders.Authorization = null;
+            Program.TokenHeader = null;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using RFIDSolution.Shared.Models.Shared;
+﻿using RFIDSolution.Shared.Models.Inventory;
+using RFIDSolution.Shared.Models.Shared;
 using RFIDSolution.Shared.Utils;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace RFIDSolution.Shared.Models
         }
 
         public int ID { get; set; }
+        public int ProductId { get; set; }
         public string SKU { get; set; }
         public string EPC { get; set; }
         public int? ModelId { get; set; }
@@ -24,6 +26,7 @@ namespace RFIDSolution.Shared.Models
         public string Size { get; set; }
         public string POC { get; set; }
         public string Location { get; set; }
+        public string CurrentLocation { get; set; }
         public string Remarks { get; set; }
         public string DevStyleName { get; set; }
         public string Season { get; set; }
@@ -46,6 +49,8 @@ namespace RFIDSolution.Shared.Models
                 returnTime = value;
             }
         }
+
+        public DateTime? DeliveryTime { get; set; }
 
         public InoutStatus? _InoutStatus
         {
@@ -75,6 +80,8 @@ namespace RFIDSolution.Shared.Models
         public DateTime CreatedDate { get; set; }
 
         public List<TransferInoutModel> TransferHistory { get; set; } = new List<TransferInoutModel>();
+
+        public List<InventoryModel> Inventories { get; set; } = new List<InventoryModel>();
 
         public string Note { get; set; }
 

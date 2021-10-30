@@ -115,12 +115,13 @@ namespace RFIDSolution.Server.Controllers
         }
 
         [HttpGet]
-        public ResponseModel<PaginationResponse<InventoryModel>> Get(string keyword = "", int pageItem = 10, int pageIndex = 0)
+        public ResponseModel<PaginationResponse<InventoryModel>> Get(string keyword = "", int status = 0, int pageItem = 10, int pageIndex = 0)
         {
             var rspns = new ResponseModel<PaginationResponse<InventoryModel>>();
 
             var result = _context.INVENTORY
-                .Where(x => string.IsNullOrEmpty(keyword) || x.INVENTORY_NAME.Contains(keyword))
+                .Where(x => string.IsNullOrEmpty(keyword) || x.INVENTORY_NAME.Contains(keyword)
+                && (status == 0 || (int)x.INVENTORY_STATUS == status))
                 .OrderByDescending(x => x.CREATED_DATE)
                 .Select(x => new InventoryModel()
                 {

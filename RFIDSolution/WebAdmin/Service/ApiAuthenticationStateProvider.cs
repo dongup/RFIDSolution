@@ -36,7 +36,8 @@ namespace RFIDSolution.WebAdmin.Services
 
             Program.TokenHeader = new AuthenticationHeaderValue("bearer", savedToken);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", savedToken);
-            
+            Program.TokenHeader = _httpClient.DefaultRequestHeaders.Authorization;
+
             ClaimsPrincipal claims = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(savedToken), "jwt"));
 
             string departmentId = claims.Claims.FirstOrDefault(x => x.Type == UserClaim.DepartmentId)?.Value;
@@ -68,6 +69,7 @@ namespace RFIDSolution.WebAdmin.Services
         {
             Program.TokenHeader = null;
             _httpClient.DefaultRequestHeaders.Authorization = null;
+            Program.TokenHeader = null;
 
             var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
             var authState = Task.FromResult(new AuthenticationState(anonymousUser));

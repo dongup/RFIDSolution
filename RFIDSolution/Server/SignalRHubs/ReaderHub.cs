@@ -19,8 +19,11 @@ namespace TaiyoshaEPE.WebApi.Hubs
 
         public static List<RFClient> RFClients { get => rFClients; set => rFClients = value; }
 
+        public AppDbContext _context;
+
         public ReaderHub(AppDbContext context) 
         {
+            _context = context;
         }
 
         private static readonly List<RFClient> rfClients = new List<RFClient>();
@@ -37,13 +40,19 @@ namespace TaiyoshaEPE.WebApi.Hubs
         /// <returns></returns>
         public async Task StartInventory(RFTagRequest request)
         {
-            //Code test khi khong co reader
-            //RFTagResponse newTag = new RFTagResponse();
-            //newTag.EPCID = Guid.NewGuid().ToString();
-            //newTag.AntennaID = 1;
-            //newTag.LastSeen = DateTime.Now.Ticks;
-            //newTag.RSSI = 12;
-            //await Clients.Caller.SendAsync("ReceiveTag", newTag);
+            //Code chỉ dùng khi không có reader
+            //var mockData = await GetRandomEPC(3);
+            //foreach (string EPC in mockData)
+            //{
+            //    RFTagResponse tag = new RFTagResponse();
+            //    tag.EPCID = EPC;
+            //    tag.LastSeen = DateTime.Now.Ticks;
+            //    tag.RSSI = -32;
+
+            //    var caller = Clients.Caller;
+            //    await caller.SendAsync("ReceiveTag", tag);
+            //}
+            //return;
 
             if (!ReaderApi.ReaderStatus.IsConnected)
             {
@@ -62,8 +71,28 @@ namespace TaiyoshaEPE.WebApi.Hubs
                 client.ClientProxy = Clients.Caller;
                 RFClients.Add(client);
             }
+
+            //Code sử dụng khi có reader
             ReaderApi.OnTagRead += client.ReadHandler;
         }
+
+        /// <summary>
+        /// Lấy ra ngẫu nhiên 1 lượng EPC đã có trong hệ thống
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetRandomEPC(int number)
+        {
+            var query = _context.PRODUCT
+                .OrderByDescending(x => Guid.NewGuid())
+                .Take(number)
+                .Where(x => !string.IsNullOrEmpty(x.EPC))
+                .Select(x => x.EPC)
+                .ToList();
+
+            return query;
+        }
+
 
         public void StopInventory()
         {
@@ -81,6 +110,7 @@ namespace TaiyoshaEPE.WebApi.Hubs
             if(!RFClients.Any(x => x.Id == client.Id))
             {
                 ReaderApi.OnTagRead -= client.ReadHandler;
+
                 //Chỉ sử dụng khi không có reader
                 //readerApi.OnTagRead = null;
                 return;

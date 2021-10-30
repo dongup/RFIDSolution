@@ -7,81 +7,36 @@
         </div>
         <div class="col-md-10 ">
             <div class="card">
-                <div class="card-header p-0">
-                    <ul class="nav nav-tabs w-100">
-                        <li class="nav-item p-0 hand" @onclick="() => isTransferIn = false">
-                            <a class="nav-link text-danger @(isTransferIn? "" : "active")"><span class="oi oi-arrow-circle-right me-1"></span> TRANSFER OUT</a>
-                        </li>
-                        <li class="nav-item p-0 hand" @onclick="() => isTransferIn = true">
-                            <a class="nav-link text-success @(isTransferIn? "active" : "")">
-                                <span class="oi oi-arrow-circle-left me-1"></span>TRANSFER IN
-                            </a>
-                        </li>
-                    </ul>
-                </div>
                 <div class="card-body">
-                    @if (isTransferIn)
-                    {
-                        <h3 class="text-success" style="font-weight: bold">TRANSFER IN</h3>
-                        <!--Transfer in-->
+                    <!--Delivery out-->
+                    <Form OnValidSubmit="async () => { await transferOut(); }">
                         <div class="row">
                             <div class="col-md-6">
+                                <h3 class="text-warning" style="font-weight: bold">DELIVERY OUT</h3>
                                 <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="row">
-                                            <FormInputText Title="Return by" @bind-Text="@transferInModel.RETURN_BY" Size="12" Required="true" InValidFeedBack="Please enter return user"></FormInputText>
-                                            <div class="col-md-12">
-                                                <label>Note</label>
-                                                <textarea value="@transferInModel.RETURN_NOTE" @onchange="(e) => transferInModel.RETURN_NOTE = e.Value.ToString()" rows="5" class="form-control"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <FormInputText Title="Transfer reason" @bind-Text="@transferOutModel.TRANSFER_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
+                                    <FormInputText Title="Transfer by" @bind-Text="@transferOutModel.TRANSFER_BY" Required="true" Size="3" InValidFeedBack="Please enter transfer user"></FormInputText>
+                                    <FormInputText Title="Transfer to" @bind-Text="@transferOutModel.TRANSFER_TO" Required="true" Size="3" InValidFeedBack="Please enter transfer user"></FormInputText>
 
-                                    <div class="col-md-12 mt-2 d-flex">
-                                        <button class="btn btn-success btn-lg me-4" @onclick="() => transferIn()"><span class="oi oi-arrow-circle-left me-1"></span> Transfer In</button>
+                                    <FormInputText Title="Document no" @bind-Text="@transferOutModel.REF_DOC_NO" Size="3" Disabled="true"></FormInputText>
+                                    <FormInputText Title="Document date" @bind-Text="@transferOutModel.REF_DOC_DATE" Size="3" Disabled="true"></FormInputText>
+
+                                    <div>
+                                        <label>Note</label>
+                                        <textarea value="@transferOutModel.TRANSFER_NOTE" @onchange="(e) => transferOutModel.TRANSFER_NOTE = e.Value.ToString()" rows="3" class="form-control"></textarea>
                                     </div>
+                                    <div class="col-md-12 mt-2 d-flex">
+                                        <button type="submit" class="btn btn-warning btn-lg"><span class="oi oi-arrow-circle-right me-1"></span> Delivery Out</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <div style="overflow-y: auto;display: flex;flex-direction: column;align-items: center;background: #f4f5f8; max-height: 300px; max-width: 500px" class="py-4">
+                                    <TransferSheet model="transferOutModel" products="validProducts" DivId="@divId"></TransferSheet>
                                 </div>
                             </div>
                         </div>
-                    }
-                    else
-                    {
-                        <!--Transfer out-->
-                        <Form OnValidSubmit="async () => { await transferOut(); }">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h3 class="text-danger" style="font-weight: bold">TRANSFER OUT</h3>
-                                    <div class="row">
-                                        <FormInputText Title="Transfer reason" @bind-Text="@transferOutModel.TRANSFER_REASON" Required="true" Size="12" InValidFeedBack="Please enter transfer reason"></FormInputText>
-                                        <FormInputText Title="Transfer by" @bind-Text="@transferOutModel.TRANSFER_BY" Required="true" Size="3" InValidFeedBack="Please enter transfer user"></FormInputText>
-                                        <div class="col-md-3">
-                                            <SelectSearch Value="@transferOutModel.TRANSFER_DEPT_ID" ValueChanged="(e) => { transferOutModel.TRANSFER_DEPT_ID = e; transferOutModel.TRANSFER_TO = departments.FirstOrDefault(x => x.DEPT_ID == transferOutModel.TRANSFER_DEPT_ID)?.DEPT_NAME; }" 
-                                                          Title="Transfer to" InvalidFeedBack="@("Please select a valid department")"
-                                                          PlaceHolder="Choose department" Items="departments" Requried="true" TItem="DepartmentResponse" TValue="int?">
-                                                <ItemTemplate>
-                                                    <option value="@context.DEPT_ID">@context.DEPT_NAME</option>
-                                                </ItemTemplate>
-                                            </SelectSearch>
-                                        </div>
-                                        <FormInputText Title="Document no" @bind-Text="@transferOutModel.REF_DOC_NO" Size="3" Disabled="true"></FormInputText>
-                                        <FormInputText Title="Document date" @bind-Text="@transferOutModel.REF_DOC_DATE" Size="3" Disabled="true"></FormInputText>
-                                        <div>
-                                            <label>Note</label>
-                                            <textarea value="@transferOutModel.TRANSFER_NOTE" @onchange="(e) => transferOutModel.TRANSFER_NOTE = e.Value.ToString()" rows="3" class="form-control"></textarea>
-                                        </div>
-                                        <div class="col-md-12 mt-2 d-flex">
-                                            <button type="submit" class="btn btn-danger btn-lg"><span class="oi oi-arrow-circle-right me-1"></span> Transfer Out</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 text-center">
-                                    <div style="overflow-y: auto;display: flex;flex-direction: column;align-items: center;background: #f4f5f8; max-height: 300px; max-width: 500px" class="py-4">
-                                        <TransferSheet model="transferOutModel" products="validProducts" DivId="@divId"></TransferSheet>
-                                    </div>
-                                </div>
-                            </div>
-                        </Form>
-                    }
+                    </Form>
                 </div>
             </div>
         </div>
@@ -92,6 +47,57 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card">
+                <div class="card-header d-flex align-items-center bg-gradient">
+                    <h5 class="m-0 me-4 text-success" style="font-weight: bold">SEARCH</h5>
+                    <div class="spacer"></div>
+                    <div class="me-4" style="width: 500px">
+                        <InputSearch TextChanged="async (value) => { textSearch = value; await searchProduct(); }" PlaceHolder="Search by SKU, model, category..."></InputSearch>
+                    </div>
+
+                    <button class="btn btn-secondary" @onclick="() => searchProducts.Clear()"><span class="oi oi-delete me-2"></span>CLEAR</button>
+                </div>
+                <table class="table table-bordered table-hover table-detail">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>SKU</th>
+                            <th>SHOE STATUS</th>
+                            <th>MODEL</th>
+                            <th>CATEGORY</th>
+                            <th>SIZE</th>
+                            <th>COLOR</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (searchProducts.Count > 0)
+                        {
+                            int count = 1;
+                            @foreach (var item in searchProducts)
+                            {
+                                <tr class="hand @(item.WarningClass) @(sledProduct.ID == item.ID? "bg-info" : "")" @onclick="() => showProductDetail(item)">
+                                    <td>@item.ID</td>
+                                    <td>@item.SKU</td>
+                                    <td>
+                                        <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
+                                    </td>
+                                    <td>@item.ModelName</td>
+                                    <td>@item.Category</td>
+                                    <td>@item.Size</td>
+                                    <td>@item.ColorWay</td>
+                                    <td><span class="oi oi-plus text-success" title="Add to selected shoes list" @onclick="() => addScanItem(item)"></span></td>
+                                </tr>
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card mt-4">
                 <div class="card-header d-flex align-items-center">
                     <h5 class="text-body m-0">SELECTED SHOES - Total: <span class="text-success">@products.Count</span></h5>
                     <div class="spacer"></div>
@@ -136,6 +142,7 @@
                 </table>
             </div>
         </div>
+
         <div class="col-md-6 ps-0">
             <div class="card">
                 <div class="card-header p-0">
@@ -176,9 +183,7 @@
                                     <ListItem Title="SKU" Bordered="false">@sledProduct.SKU</ListItem>
                                     <ListItem Title="Model" Bordered="false">@sledProduct.ModelName</ListItem>
                                     <ListItem Title="Shoe status" Bordered="false">
-                                        <span class="@sledProduct.StatusColor">
-                                            @sledProduct.ProductStatus.GetDescription()
-                                        </span>
+                                        <ProductStatusBadge ProductStatus="@sledProduct.ProductStatus"></ProductStatusBadge>
                                     </ListItem>
                                     <ListItem Title="L/R" Bordered="false">
                                         @sledProduct.LR.GetDescription()
@@ -296,17 +301,18 @@
         </div>
     </div>
 </div>
+
 @using Grpc.Core;
 @using RFIDSolution.Shared.Models.ProductInout;
 @attribute [Authorize]
 @inject DialogService _dialog
 @inject HttpClient _client
 @inject DialogService _dialog
-@inject JsService js 
+@inject JsService js
 @inject DefineService defineService
-@inject UserService userService 
+@inject UserService userService
 
-@page "/transfer"
+@page "/transferdelivery"
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
 
@@ -317,8 +323,7 @@
 
     private List<DepartmentResponse> departments = new List<DepartmentResponse>();
     private List<RFTagResponse> Tags = new List<RFTagResponse>();
-    private TransferInoutModel transferOutModel = new TransferInoutModel();
-    private TransferInoutModel transferInModel = new TransferInoutModel();
+    private TransferInoutModel transferOutModel = new TransferInoutModel() { TRANSFER_TYPE = TransferType.Delivery };
     private TransferInoutModel productTransferInfo = new TransferInoutModel();
 
     private bool isTransferIn { get; set; } = false;
@@ -331,6 +336,8 @@
     private bool addingItem = false;
     private string keyword = "";
 
+    private string textSearch = "";
+    private List<ProductModel> searchProducts = new List<ProductModel>();
     private ProductModel sledProduct = new ProductModel();
     private List<ProductModel> products = new List<ProductModel>();
     private List<ProductModel> validProducts = new List<ProductModel>();
@@ -338,11 +345,26 @@
 
     protected override async Task OnInitializedAsync()
     {
-        MainLayout.Instance.PageTitle = "Transfer shoe";
+        MainLayout.Instance.PageTitle = "Delivery shoe";
         departments = await defineService.GetDepartmnets();
         await getReasonList();
         await loadAntenas();
         await refreshData();
+    }
+
+    private async Task searchProduct()
+    {
+        ProductModel product = new ProductModel();
+        var rspns = await _client.GetFromJsonAsync<ResponseModel<List<ProductModel>>>("products/searchTransfer?keyword=" + textSearch);
+        if (rspns.IsSuccess)
+        {
+            searchProducts = rspns.Result;
+            StateHasChanged();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
     }
 
     private async Task showProductDetail(ProductModel product)
@@ -369,13 +391,39 @@
         }
     }
 
+    private async Task addScanItem(ProductModel sltItem)
+    {
+        if (sltItem.ProductStatus != ProductStatus.Available)
+        {
+            //await _dialog.ErrorAlert($"{sltItem.ProductStatusStr} shoe is not for delivery!");
+            if(await _dialog.Confirm($"Shoe {sltItem.SKU} not avaiale for delivery! do you want to remove it from the list?"))
+            {
+                searchProducts.Remove(sltItem);
+            }
+            return;
+        }
+
+        if(validProducts.Any(x => x.ID == sltItem.ID))
+        {
+            if (await _dialog.Confirm($"Shoe {sltItem.SKU} is already selected! do you want to remove it from the list?"))
+            {
+                searchProducts.Remove(sltItem);
+            }
+            return;
+        }
+
+        products.Add(sltItem);
+        validProducts.Add(sltItem);
+        searchProducts.Remove(sltItem);
+    }
+
     private void deleteScanItem(ProductModel item)
     {
         products.Remove(item);
         if (item.ID == sledProduct.ID) sledProduct = new ProductModel();
 
         var validItem = validProducts.FirstOrDefault(x => x.ID == item.ID);
-        if (validItem != null)
+        if(validItem != null)
         {
             validProducts.Remove(validItem);
         }
@@ -395,20 +443,21 @@
             await _dialog.ErrorAlert("Please remove all Unknown tag first!");
             return;
         }
+
         //Kiểm tra trạng thái của những giày đã scan, nếu có giày đang được mượn thì không cho transfer
-        var notAvaiableShoes = products.Where(x => x.ProductStatus == ProductStatus.Transfered || x.ProductStatus == ProductStatus.Unavailable);
+        var notAvaiableShoes = products.Where(x => x.ProductStatus == ProductStatus.Transfered || x.ProductStatus == ProductStatus.Unavailable || x.ProductStatus == ProductStatus.DeliveryOut);
         foreach (var item in notAvaiableShoes)
         {
             item.IsWarning = true;
         }
         if (notAvaiableShoes.Count() > 0)
         {
-            await _dialog.ErrorAlert("One or more shoe is already transfered out, please remove them and try again!");
+            await _dialog.ErrorAlert("One or more shoe is already transfered/delivery out, please remove them and try again!");
             return;
         }
 
         //Xác nhận xuất
-        if (!await _dialog.Confirm($"Are you sure want to transfer {products.Count} shoe(s) out?")) return;
+        if (!await _dialog.Confirm($"Are you sure want to delivery {products.Count} shoe(s) out?")) return;
 
         //Yêu cầu mật khẩu xác nhận
         if (!await _dialog.ConfirmPassword()) return;
@@ -416,12 +465,12 @@
         //Request server
         var requestModel = new TransferOutRequest(transferOutModel);
         requestModel.Products = products.Select(x => new ProductTransferRequest(x)).ToList();
-        var req = await _client.PostAsJsonAsync<TransferOutRequest>($"{baseUrl}/transferOut", requestModel);
+        var req = await _client.PostAsJsonAsync<TransferOutRequest>($"{baseUrl}/deliveryOut", requestModel);
         var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
         if (rspns.IsSuccess)
         {
             await js.PrintDiv(divId);
-            await _dialog.SuccessAlert("Transfer out succeed!");
+            await _dialog.SuccessAlert("Delivery out succeed!");
             products = new List<ProductModel>();
             await refreshData();
         }
@@ -430,56 +479,11 @@
             await _dialog.ErrorAlert(rspns.Message);
         }
         await Task.Delay(1000);
-        transferOutModel = new TransferInoutModel();
-    }
-
-    private async Task transferIn()
-    {
-        //Yêu cầu mật khẩu xác nhận
-        //Để sau
-
-        //Kiểm tra số lượng giày đã scan
-        if (products.Count <= 0)
+        transferOutModel = new TransferInoutModel()
         {
-            await _dialog.ErrorAlert("Please scan at least one shoe!");
-            return;
-        }
-
-        if (products.Any(x => x.ProductStatus == ProductStatus.Unknown))
-        {
-            await _dialog.ErrorAlert("Please remove all Unknown tag first!");
-            return;
-        }
-
-        //Kiểm tra trạng thái của những giày đã scan, nếu có giày chưa được mượn thì không cho transfer
-        var notAvaiableShoes = products.Where(x => x.ProductStatus == ProductStatus.Available);
-        foreach (var item in notAvaiableShoes)
-        {
-            item.IsWarning = true;
-        }
-        if (notAvaiableShoes.Count() > 0)
-        {
-            await _dialog.ErrorAlert("One or more shoe is not yet transfered out, please remove them and try again!");
-            return;
-        }
-
-        //Xác nhận xuất
-        if (!await _dialog.Confirm($"Are you sure want to transfer in {products.Count} shoe(s) in?")) return;
-
-        //Request server
-        var requestModel = new TransferInRequest(transferInModel, products);
-        var req = await _client.PostAsJsonAsync<TransferInRequest>($"{baseUrl}/transferIn", requestModel);
-        var rspns = await req.Content.ReadFromJsonAsync<ResponseModel<object>>();
-        if (rspns.IsSuccess)
-        {
-            await _dialog.SuccessAlert("Transfer in succeed!");
-            products = new List<ProductModel>();
-            transferInModel = new TransferInoutModel();
-        }
-        else
-        {
-            await _dialog.ErrorAlert(rspns.Message);
-        }
+            TRANSFER_TYPE = TransferType.Delivery
+        };
+        validProducts.Clear();
     }
 
     private async Task OnTagRead(RFTagResponse tag)
@@ -521,30 +525,7 @@
         {
             product.TagResponse = tag;
         }
-
-        var awayProducts = new List<ProductModel>();
-        foreach (var item in products)
-        {
-            var readTag = item.TagResponse;
-            DateTime lastSeen = readTag.LastSeen.ToDateTime();
-            //Nếu tag đã không được đọc trong 3 giây thì coi như đã đi ra khỏi vùng phủ sóng
-            if ((DateTime.Now - lastSeen).TotalSeconds >= 3)
-            {
-                readTag.Status = 2;
-                readTag.RSSI = 0;
-                awayProducts.Add(item);
-                //Nếu item đang show chi tiết đã ra ngoài vùng phủ sóng thì không show nữa
-                if (item.ID == sledProduct.ID) sledProduct = new ProductModel();
-            }
-        }
-
-        //xóa những tag đã ra khỏi vùng phủ sóng
-        foreach (var item in awayProducts)
-        {
-            products.Remove(item);
-        }
-        //products = products.Where(x => x.TagResponse.Status != 2).ToList();
-        //StateHasChanged();
+        StateHasChanged();
     }
 
     private async Task getReasonList()
@@ -579,9 +560,9 @@
         if (rspns.IsSuccess)
         {
             product = rspns.Result;
-            if(product.ProductStatus == ProductStatus.Available)
+            if (product.ProductStatus == ProductStatus.Available)
             {
-                if(!validProducts.Any(X => X.ID == product.ID))
+                if (!validProducts.Any(x => x.ID == product.ID))
                 {
                     validProducts.Add(product);
                 }

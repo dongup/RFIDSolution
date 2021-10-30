@@ -40,6 +40,16 @@ namespace RFIDSolution.Server.Controllers
             return rspns.Succeed();
         }
 
+        [HttpGet("app")]
+        public async Task<ResponseModel<List<string>>> GetForApp()
+        {
+            var rspns = new ResponseModel<List<string>>();
+            rspns.Result = await _context.DEPT_DEF
+                .Select(x => x.DEPT_NAME).ToListAsync();
+
+            return rspns.Succeed();
+        }
+
         [HttpPost]
         public async Task<ResponseModel<object>> Post(DepartmentRequest value)
         {

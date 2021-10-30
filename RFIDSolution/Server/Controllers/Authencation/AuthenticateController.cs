@@ -27,11 +27,20 @@ namespace BaseApiWithIdentity.Controllers.Authorization
         }
 
         [HttpPost]
-        public ActionResult<ResponseModel<UserEntity>> CheckAuthenticate()
+        public ActionResult<ResponseModel<UserModel>> CheckAuthenticate()
         {
-            var rspns = new ResponseModel<UserEntity>();
+            var rspns = new ResponseModel<UserModel>();
+            UserEntity user = CurrentUser;
 
-            return rspns.Succeed(CurrentUser);
+            return rspns.Succeed(new UserModel() { 
+                DepartmentId = user.DEPARTMENT_ID,
+                DepartmentName = user.DepartmentName,
+                Email = user.Email,
+                Phone = user.Phone,
+                FullName = user.FullName,
+                UserName = user.UserName,
+                Id = user.Id,
+            });
         }
 
         [HttpGet("confirmpassword/{password}")]

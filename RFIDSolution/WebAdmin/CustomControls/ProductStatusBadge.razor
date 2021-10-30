@@ -1,5 +1,6 @@
 ﻿<StatusBadge Success="ProductStatus == ProductStatus.Available"
              Warning="ProductStatus == ProductStatus.Transfered"
+             Default="ProductStatus == ProductStatus.DeliveryOut"
              Error="ProductStatus == ProductStatus.Unavailable || ProductStatus == ProductStatus.Unknown">
     @ProductStatus.GetDescription()
 </StatusBadge>

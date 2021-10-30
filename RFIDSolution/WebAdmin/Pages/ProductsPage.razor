@@ -17,6 +17,7 @@
                         <option value="0">Any status</option>
                         <option value="@((int)ProductStatus.Available)">@ProductStatus.Available.GetDescription()</option>
                         <option value="@((int)ProductStatus.Transfered)">@ProductStatus.Transfered.GetDescription()</option>
+                        <option value="@((int)ProductStatus.DeliveryOut)">@ProductStatus.DeliveryOut.GetDescription()</option>
                         <option value="@((int)ProductStatus.Unavailable)">@ProductStatus.Unavailable.GetDescription()</option>
                     </select>
                 </div>
@@ -40,6 +41,7 @@ else
                         <th>EPC</th>
                         <th>SKU</th>
                         <th>LOCATION</th>
+                        <th>CURRENT LOCATION</th>
                         <th>SEASON</th>
                         <th>STAGE</th>
                         <th>MODEL</th>
@@ -49,7 +51,6 @@ else
                         <th>CATEGORY</th>
                         <th>POC</th>
                         <th>STATUS</th>
-                        <th>REMARKS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,6 +64,7 @@ else
                                 <MyTd>@item.EPC</MyTd>
                                 <MyTd>@item.SKU</MyTd>
                                 <MyTd>@item.Location</MyTd>
+                                <MyTd>@item.CurrentLocation</MyTd>
                                 <MyTd>@item.Season</MyTd>
                                 <MyTd>@item.Stage</MyTd>
                                 <MyTd>@item.ModelName</MyTd>
@@ -74,7 +76,6 @@ else
                                 <MyTd>
                                     <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
                                 </MyTd>
-                                <MyTd>@item.Remarks</MyTd>
                             </SelectableRow>
                             <TableRowDetail Show="item.ShowDetail">
                                 <div class="card">
@@ -103,10 +104,9 @@ else
                                                     <ListItem Title="Shoe status" Bordered="false">
                                                         <ProductStatusBadge ProductStatus="@item.ProductStatus"></ProductStatusBadge>
                                                     </ListItem>
-                                                    <ListItem Title="L/R" Bordered="false">
-                                                        @item.LR.GetDescription()
-                                                    </ListItem>
+                                                    <ListItem Title="L/R" Bordered="false">@item.LR.GetDescription()</ListItem>
                                                     <ListItem Title="Location" Bordered="false">@item.Location</ListItem>
+                                                    <ListItem Title="Current location" Bordered="false">@item.CurrentLocation</ListItem>
                                                     <ListItem Title="Season" Bordered="false">@item.Season</ListItem>
                                                     <ListItem Title="Created user" Bordered="false">@item.CreatedUser</ListItem>
                                                 </div>
@@ -130,6 +130,7 @@ else
                                                         <th>Id</th>
                                                         <th>TRANSFER DATE</th>
                                                         <th>TRANSFER REASON</th>
+                                                        <th>TRANSFER TYPE</th>
                                                         <th>TRANSFER TO</th>
                                                         <th>TRANSFER BY</th>
                                                         <th>STATUS</th>
@@ -146,6 +147,7 @@ else
                                                                 <MyTd>@transfer.TRANSFER_ID</MyTd>
                                                                 <MyTd>@transfer.TIME_START.ToVNString()</MyTd>
                                                                 <MyTd>@transfer.TRANSFER_REASON</MyTd>
+                                                                <MyTd>@transfer.TRANSFER_TYPE.GetDescription()</MyTd>
                                                                 <MyTd>@transfer.TRANSFER_TO</MyTd>
                                                                 <MyTd>@transfer.TRANSFER_BY</MyTd>
                                                                 <MyTd>
@@ -166,16 +168,72 @@ else
                                         }
                                         else
                                         {
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Id</th>
+                                                        <th>INVENTORY NAME</th>
+                                                        <th>INVENTORY DATE</th>
+                                                        <th>CREATE USER</th>
+                                                        <th>SHOE STATUS</th>
+                                                        <th>INVENTORY PLAN STATUS</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @if (item.Inventories.Count > 0)
+                                                    {
+                                                        @foreach (var transfer in item.Inventories)
+                                                        {
+                                                            <SelectableRow>
+                                                                <MyTd>@transfer.INVENTORY_ID</MyTd>
+                                                                <MyTd>@transfer.INVENTORY_NAME</MyTd>
+                                                                <MyTd>@transfer.CREATED_DATE</MyTd>
+                                                                <MyTd>@transfer.CREATED_USER</MyTd>
+                                                                <MyTd>
+                                                                    <StatusBadge Success="@(transfer.PRODUCT_STATUS == InventoryProductStatus.Found)"
+                                                                                 Error="@(transfer.PRODUCT_STATUS == InventoryProductStatus.NotFound)">
+                                                                        @transfer.PRODUCT_STATUS.GetDescription()
+                                                                    </StatusBadge>
+                                                                </MyTd>
 
+                                                                 <MyTd>
+                                                                    <StatusBadge Success="@(transfer.INVENTORY_STATUS_ID == InventoryStatus.Completed)"
+                                                                                 Error="@(transfer.INVENTORY_STATUS_ID == InventoryStatus.Canceled)"
+                                                                                 Info="@(transfer.INVENTORY_STATUS_ID == InventoryStatus.OnGoing)"
+                                                                                 Warning="@(transfer.INVENTORY_STATUS_ID == InventoryStatus.Pending)">
+                                                                        @transfer.INVENTORY_STATUS_ID.GetDescription()
+                                                                    </StatusBadge>
+                                                                </MyTd>
+                                                            </SelectableRow>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <NoData></NoData>
+                                                    }
+                                                </tbody>
+                                                <tfoot></tfoot>
+                                            </table>
                                         }
                                     </div>
 
                                     <div class="d-flex w-100 card-footer">
-                                        <AuthorizeView Roles="admin">
+                                        <AuthorizeView>
 
                                         </AuthorizeView>
                                         <button class="btn btn-danger me-2" @onclick="() => deleteProduct(item)"><span class="oi oi-delete me-1"></span>DELETE</button>
                                         <button class="btn btn-primary" @onclick="() => editProduct(item)"><span class="oi oi-pencil me-1"></span>UPDATE</button>
+
+                                        <div class="spacer"></div>
+
+                                        @if (item.ProductStatus == ProductStatus.Available)
+                                        {
+                                            <button class="btn btn-warning" @onclick="() => lockProduct(item)"><span class="oi oi-lock-locked me-1"></span>LOCK SHOE</button>
+                                        }
+                                        else if(item.ProductStatus == ProductStatus.Unavailable)
+                                        {
+                                            <button class="btn btn-success" @onclick="() => unlockProduct(item)"><span class="oi oi-lock-unlocked me-1"></span>UNLOCK SHOE</button>
+                                        }
                                     </div>
                                 </div>
                             </TableRowDetail>
@@ -229,8 +287,9 @@ else
         if (rspns.IsSuccess)
         {
             item.TransferHistory = rspns.Result.TransferHistory;
+            item.Inventories = rspns.Result.Inventories;
+            item.ProductStatus = rspns.Result.ProductStatus;
             StateHasChanged();
-            item = rspns.Result;
         }
         else
         {
@@ -254,6 +313,42 @@ else
         {
             await _dialog.SuccessAlert("Shoe deleted");
             await loadData();
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task lockProduct(ProductModel item)
+    {
+        if (!await _dialog.Confirm("Lock this shoe? Locked shoe cannot be transfer or delivery out!"))
+            return;
+
+        var postReq = await _client.PutAsJsonAsync<object>($"products/lock/{item.ID}", null);
+        var rspns = await postReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"Shoe {item.ModelName} - {item.SKU} locked");
+            await showShoeDetail(item);
+        }
+        else
+        {
+            await _dialog.ErrorAlert(rspns.Message);
+        }
+    }
+
+    private async Task unlockProduct(ProductModel item)
+    {
+        if (!await _dialog.Confirm("UnLock this shoe?"))
+            return;
+
+        var postReq = await _client.PutAsJsonAsync<object>($"products/unlock/{item.ID}", null);
+        var rspns = await postReq.Content.ReadFromJsonAsync<ResponseModel<object>>();
+        if (rspns.IsSuccess)
+        {
+            await _dialog.SuccessAlert($"Shoe {item.ModelName} - {item.SKU} unlocked");
+            await showShoeDetail(item);
         }
         else
         {

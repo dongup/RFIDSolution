@@ -58,6 +58,9 @@ namespace RFIDSolution.Shared.DAL.Entities
         [StringLength(50)]
         public string PRODUCT_LOCATION { get; set; }
 
+        [StringLength(400)]
+        public string CURRENT_LOCATION { get; set; }
+
         public string PRODUCT_REMARKS { get; set; }
 
         [StringLength(100)]
@@ -78,7 +81,7 @@ namespace RFIDSolution.Shared.DAL.Entities
         [StringLength(100)]
         public string PRODUCT_GENDER { get; set; }
 
-        public DateTime COMPLETED_DATE { get; set; }
+        public DateTime? COMPLETED_DATE { get; set; }
 
         [StringLength(100)]
         public string PRODUCT_WHQDEVELOPER { get; set; }
@@ -119,5 +122,7 @@ namespace RFIDSolution.Shared.DAL.Entities
         public ModelEntity Model { get; set; }
 
         public ICollection<TransferDetailEntity> TransferDetails { get; set; } = new HashSet<TransferDetailEntity>();
+
+        public ICollection<InventoryDetailEntity> InventoryDetails { get; set; } = new HashSet<InventoryDetailEntity>();
     }
 }
