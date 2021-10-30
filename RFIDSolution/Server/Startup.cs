@@ -48,8 +48,8 @@ namespace RFIDSolution.Server
         {
             services.AddGrpc();
             services.AddSignalR();
-            //var strConn = Configuration.GetConnectionString("default");
-            var strConn = Configuration.GetConnectionString("iot");
+            var strConn = Configuration.GetConnectionString("default");
+            //var strConn = Configuration.GetConnectionString("iot");
             //System.Console.WriteLine(strConn);
             AppDbContext.ConnStr = strConn;
             services.AddDbContext<AppDbContext>(sp => sp.UseSqlServer(strConn));
