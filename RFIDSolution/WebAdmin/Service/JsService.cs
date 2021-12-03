@@ -20,7 +20,6 @@ namespace RFIDSolution.WebAdmin.Services
             _client = client;
         }
 
-
         public async Task DownLoadFile(string url)
         {
             string fullUrl = $"reports/{url}";

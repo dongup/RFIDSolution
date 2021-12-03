@@ -403,15 +403,19 @@ namespace RFIDSolution.Server.Controllers
             {
                 var savedEntity = _context.PRODUCT.Where(x => x.PRODUCT_CODE == item.SKU && string.IsNullOrEmpty(x.EPC)).FirstOrDefault();
                 savedEntity.EPC = item.EPC;
+                savedEntity.DEV_NAME = item.DevStyleName;
+                savedEntity.PRODUCT_SEASON = item.Season;
+                savedEntity.PRODUCT_STAGE = item.Stage;
+                savedEntity.COLOR_NAME = item.ColorWay;
 
-                if(!_context.RFID_TAG.Any(x => x.EPC == item.EPC))
+                if (!_context.RFID_TAG.Any(x => x.EPC == item.EPC))
                 {
                     RFIDTagEntity tagEntity = new RFIDTagEntity();
                     tagEntity.EPC = item.EPC;
                     tagEntity.CREATED_DATE = DateTime.Now;
                     tagEntity.CREATED_USER = CurrentUser.FullName;
                     tagEntity.CREATED_USER_ID = CurrentUser.Id;
-
+               
                     _context.RFID_TAG.Add(tagEntity);
                 }
 
